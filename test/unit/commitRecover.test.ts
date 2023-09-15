@@ -1,9 +1,9 @@
 import { SignerWithAddress } from "@nomicfoundation/hardhat-ethers/signers";
 import { assert, expect } from "chai";
-import { BigNumberish, toNumber } from "ethers";
-import { network, deployments, ethers }from "hardhat";
+import { BigNumberish, toNumber, ContractTransactionReceipt } from "ethers";
+import { network, deployments, ethers, }from "hardhat";
 import { developmentChains, networkConfig} from "../../helper-hardhat-config";
-import { CommitRecover, CommitRecover__factory } from "../../typechain-types";
+import { CommitRecover, CommitRecover__factory, } from "../../typechain-types";
 import { simpleVDF, getRandomInt } from "../shared/utils";
 const { time } = require('@nomicfoundation/hardhat-network-helpers');
 
@@ -58,20 +58,20 @@ const { time } = require('@nomicfoundation/hardhat-network-helpers');
         console.log("");
     });
     describe("--constructor--", () => {
+        it("intitiallizes the commitRecover contract startTime correctly", async () => {
+            /// check startTime
+            commitStartTime = Number(await commitRecover.startTime());
+            const deployedBlockNum: number = deployed.CommitRecover.receipt.blockNumber;
+            const deployedBlock = await ethers.provider.getBlock(deployedBlockNum);
+            const deployedTimestamp = deployedBlock?.timestamp;
+            console.log("deployedTimestamp: ", deployedTimestamp, "| startTime: ", commitStartTime, "| get Lastest block timestamp: ", await time.latest());
+            assert.equal(commitStartTime, deployedTimestamp, "startTime should be the same as deployedTimestamp")
+        });
         it("intitiallizes the commitRecover contract stage correctly", async () => {
             /// check Stage
             const stage = Number(await commitRecover.stage());
             console.log("stage is ", stage, " == commit stage");
             assert.equal(stage, 0, "stage should be 0");
-        });
-        it("intitiallizes the commitRecover contract startTime correctly", async () => {
-            /// check startTime
-            commitStartTime = Number(await commitRecover.startTime());
-            const deployedBlockNum: number = deployed.CommitRecover.receipt.blockNumber;
-            const deployedBlock = await ethers.provider.getBlock(1);
-            const deployedTimestamp = deployedBlock?.timestamp;
-            console.log("deployedTimestamp: ", deployedTimestamp, "| startTime: ", commitStartTime, "| get Lastest block timestamp: ", await time.latest());
-            assert.equal(commitStartTime, deployedTimestamp, "startTime should be the same as deployedTimestamp")
         });
         it("intitiallizes the commitRecover contract commitduration correctly", async () => {
             /// check commitduration
@@ -79,10 +79,11 @@ const { time } = require('@nomicfoundation/hardhat-network-helpers');
             console.log("commitDuration:",commitDuration);
             assert.equal(commitDuration, networkConfig[network.config.chainId!].commitDuration, "commitDuration should be the same as networkConfig[network.name].commitDuration")
         });
-        it("intitiallizes the commitRecover contract commitRecoverDuration correctly", async () => {
+        it("intitiallizes the commitRecover contract commitRecoverDuration correctly, should be greater than commitDuration", async () => {
             /// check commitRevealDuration
             const commitRecoverDuration = Number(await commitRecover.commmitRevealDuration());
             assert.equal(commitRecoverDuration, networkConfig[network.config.chainId!].commitRecoverDuration, "commitRevealDuration should be the same as networkConfig[network.name].CommitRecoverDuration")
+            assert.isAbove(commitRecoverDuration, Number(await commitRecover.commitDuration()));
             console.log("commitRecoverDuration(commit + recover):", commitRecoverDuration);
         });
         it("intitiallizes the commitRecover contract order correctly", async () => {
@@ -91,16 +92,49 @@ const { time } = require('@nomicfoundation/hardhat-network-helpers');
             assert.equal(order, networkConfig[network.config.chainId!].order, "order should be the same as networkConfig[network.name].order")
             console.log("order:", order);
         });
-        it("initializes the commitRecover contract h correctly", async () => {
+        it("initializes the commitRecover contract g correctly, should be less than order", async () => {
             /// check g
             assert.equal(Number(await commitRecover.g()), g, "g should be the same as networkConfig[network.name].g");
+            assert.isBelow(g, order, "g should be less than order");
             console.log("g:", g);
         });
-        it("intitiallizes the commitRecover contract omega correctly", async () => {
+        it("intitiallizes the commitRecover contract omega correctly\n", async () => {
             /// check omega
             const omega = Number(await commitRecover.omega());
             assert.equal(omega, 1);
             console.log("omega:", omega);
+        });
+    });
+    describe("--commit--", () => {
+        let txReceipt: ContractTransactionReceipt;
+        it("should commit successfully", async () => {
+            for (let i = 0; i < member; i++){
+                console.log("committing c_", i, "... by a member address:", accounts[i+1].address);
+                const tx = await commitRecover.connect(accounts[i+1]).commit(c[i]);
+                txReceipt = await tx.wait(1) as ContractTransactionReceipt;
+                /// check timestamp
+                const commitedTxBlock = await ethers.provider.getBlock(txReceipt?.blockNumber as number);
+                const commitedTimestamp = commitedTxBlock?.timestamp;
+                console.log("commitStartedTime:", commitStartTime, `| c_${i}_commitedTimestamp, `, commitedTimestamp, "| get Lastest block timestamp: ", await time.latest());
+                console.log(commitedTimestamp as number - commitStartTime, " seconds passed since commit started");
+                /// check Stage
+                const currentStage = Number(await commitRecover.stage());
+                console.log("current stage is ", currentStage, " == commit stage");
+                assert.equal(currentStage, 0, "stage should be 0");
+                /// check commit Info
+                const commitsInfos = await commitRecover.commitsInfos(accounts[i+1].address);
+                console.log(`member_${i}'s commited c:`, commitsInfos.c.toString());
+                assert.equal(commitsInfos.c.toString(), c[i].toString(), `member_${i}'s commited c should be the same as c_${i}`);
+                console.log(`member_${i}'s commit revealed?:`, commitsInfos.revealed);
+                assert.equal(commitsInfos.revealed, false, `member_${i}'s commit should not be revealed yet`);
+                /// check commit string
+                const commitsString = await commitRecover.commitsString();
+                console.log(`${i}: commitsString:`, commitsString);
+                /// check commit count
+                const commitCount = Number(await commitRecover.count());
+                console.log("commitCount:", commitCount);
+                console.log("-----------------------------------------------");
+            }
         });
     });
 });
