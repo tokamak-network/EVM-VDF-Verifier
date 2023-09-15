@@ -41,7 +41,7 @@ contract CommitRecover {
     bool public isHSet;
 
     mapping(address owner => Commit commit) public commitsInfos;
-    mapping(uint256 index => address owner) public commits;
+    //mapping(uint256 index => address owner) public commits;
 
     /* Events */
     event CommitC(address participant, uint256 commit, uint256 commitCount);

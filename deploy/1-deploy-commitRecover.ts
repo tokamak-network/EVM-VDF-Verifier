@@ -29,7 +29,7 @@ const deployCommitRecover: DeployFunction = async function (hre: HardhatRuntimeE
     log("----------------------------------------------------");
     const args: any[] = [
         networkConfig[chainId!].commitDuration,
-        networkConfig[chainId!].CommitRecoverDuration,
+        networkConfig[chainId!].commitRecoverDuration,
         networkConfig[chainId!].order,
         gGen()
     ]
