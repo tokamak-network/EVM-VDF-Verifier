@@ -38,6 +38,7 @@ const deployCommitRecover: DeployFunction = async function (hre: HardhatRuntimeE
         args: args,
         log: true,
         waitConfirmations: waitBlockConfirmations,
+        gasLimit: 4000000,
     });
 
     // Verify the deployment

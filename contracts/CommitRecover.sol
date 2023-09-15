@@ -3,10 +3,13 @@
 pragma solidity ^0.8.21;
 
 import "./libraries/Strings.sol";
+import "hardhat/console.sol";
 
 /* Errors */
 error CommitRecover__AlreadyRevealed();
+error CommitRecover__CommitRevealDurationLessThanCommitDuration();
 error CommitRecover__InvalidCommitValue();
+error CommitRecover__GGreaterThanOrder();
 error CommitRecover__ANotMatchCommit();
 error CommitRecover__FunctionInvalidAtThisStage();
 error CommitRecover__StageNotFinished();
@@ -54,6 +57,9 @@ contract CommitRecover {
         uint256 _order,
         uint256 _g
     ) {
+        if (_order <= _g) revert CommitRecover__GGreaterThanOrder();
+        if (_commitDuration >= _commmitRevealDuration)
+            revert CommitRecover__CommitRevealDurationLessThanCommitDuration();
         stage = Stages.Commit;
         startTime = block.timestamp;
         commitDuration = _commitDuration;
