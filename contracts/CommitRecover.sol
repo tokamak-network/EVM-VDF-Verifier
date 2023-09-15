@@ -5,16 +5,16 @@ pragma solidity ^0.8.21;
 import "./libraries/Strings.sol";
 
 /* Errors */
-error CommitReveal__AlreadyRevealed();
-error CommitReveal__InvalidCommitValue();
-error CommitReveal__ANotMatchCommit();
-error CommitReveal__FunctionInvalidAtThisStage();
-error CommitReveal__StageNotFinished();
-error CommitReveal__HNotSet();
-error CommitReveal__AllFinished();
-error CommitReveal__OmegaAlreadyCompleted();
+error CommitRecover__AlreadyRevealed();
+error CommitRecover__InvalidCommitValue();
+error CommitRecover__ANotMatchCommit();
+error CommitRecover__FunctionInvalidAtThisStage();
+error CommitRecover__StageNotFinished();
+error CommitRecover__HNotSet();
+error CommitRecover__AllFinished();
+error CommitRecover__OmegaAlreadyCompleted();
 
-contract CommitReveal {
+contract CommitRecover {
     /* Type declaration */
     enum Stages {
         Commit,
@@ -65,7 +65,7 @@ contract CommitReveal {
 
     function commit(uint256 _commit) public {
         //check
-        if (_commit >= order) revert CommitReveal__InvalidCommitValue();
+        if (_commit >= order) revert CommitRecover__InvalidCommitValue();
         updateStage(Stages.Commit);
         commitsInfos[msg.sender] = Commit(_commit, false);
         commitsString = string.concat(commitsString, Strings.toString(_commit));
@@ -74,14 +74,14 @@ contract CommitReveal {
     }
 
     function reveal(uint256 _a) public {
-        if (isHSet == false) revert CommitReveal__HNotSet();
+        if (isHSet == false) revert CommitRecover__HNotSet();
         updateStage(Stages.Reveal);
         Commit memory _commit = commitsInfos[msg.sender];
         if (_commit.revealed == true) {
-            revert CommitReveal__AlreadyRevealed();
+            revert CommitRecover__AlreadyRevealed();
         }
         if (powerModOrder(g, _a) != _commit.c) {
-            revert CommitReveal__ANotMatchCommit();
+            revert CommitRecover__ANotMatchCommit();
         }
         omega =
             (omega *
@@ -97,10 +97,10 @@ contract CommitReveal {
 
     function recover(uint256 recov) public {
         if (stage == Stages.Commit) {
-            revert CommitReveal__FunctionInvalidAtThisStage();
+            revert CommitRecover__FunctionInvalidAtThisStage();
         }
         if (count == 0) {
-            revert CommitReveal__OmegaAlreadyCompleted();
+            revert CommitRecover__OmegaAlreadyCompleted();
         }
         /**
          * need to verify recov
@@ -111,7 +111,7 @@ contract CommitReveal {
 
     function start() public {
         if (stage != Stages.Finished) {
-            revert CommitReveal__StageNotFinished();
+            revert CommitRecover__StageNotFinished();
         }
         stage = Stages.Commit;
         startTime = block.timestamp;
@@ -150,7 +150,7 @@ contract CommitReveal {
             count = 0;
             isHSet = false;
         }
-        if (stage != _stage) revert CommitReveal__FunctionInvalidAtThisStage();
+        if (stage != _stage) revert CommitRecover__FunctionInvalidAtThisStage();
     }
 
     function verifyH(uint256 _h) public view returns (bool) {
@@ -162,7 +162,7 @@ contract CommitReveal {
     }
 
     function nextStage() internal {
-        if (stage == Stages.Finished) revert CommitReveal__AllFinished();
+        if (stage == Stages.Finished) revert CommitRecover__AllFinished();
         stage = Stages(addmod(uint256(stage), 1, 3));
     }
 
