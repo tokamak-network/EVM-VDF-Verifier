@@ -3,7 +3,6 @@
 pragma solidity ^0.8.21;
 
 import "./libraries/Strings.sol";
-import "hardhat/console.sol";
 
 /* Errors */
 error AlreadyCommitted();
@@ -110,7 +109,7 @@ contract CommitRecover {
         if (_g >= _order) revert GreaterOrEqualThanOrder();
         if (_commitDuration >= _commitRevealDuration)
             revert CommitRevealDurationLessThanCommitDuration();
-
+        checkIfPrimeNumber(_order);
         stage = Stages.Commit;
         startTime = block.timestamp;
         commitDuration = _commitDuration;
@@ -239,6 +238,7 @@ contract CommitRecover {
         if (_g >= _order) revert GreaterOrEqualThanOrder();
         if (_commitDuration >= _commitRevealDuration)
             revert CommitRevealDurationLessThanCommitDuration();
+        checkIfPrimeNumber(order);
         stage = Stages.Commit;
         startTime = block.timestamp;
         commitDuration = _commitDuration;
@@ -366,5 +366,84 @@ contract CommitRecover {
             b = b / 2;
         }
         return result;
+    }
+
+    /**
+     * @param _number the number to check
+     * @return true if the number is prime, false otherwise
+     * @notice checkIfPrimeNumber function
+     * @notice O(sqrt(n)) complexity
+     */
+    function checkIfPrimeNumber(uint256 _number) internal pure returns (bool) {
+        if (_number < 2) {
+            return false;
+        }
+        uint256 i = 2;
+        while (i <= sqrt(_number)) {
+            if (_number % i == 0) {
+                return false;
+            }
+            i++;
+        }
+        return true;
+    }
+
+    /**
+     * @notice sqrt function
+     * @notice Calculates the square root of x, rounding down.
+     * @notice from prb-math
+     * @dev Uses the Babylonian method https://en.wikipedia.org/wiki/Methods_of_computing_square_roots#Babylonian_method.
+     * @param x The uint256 number for which to calculate the square root.
+     * @return result The result as an uint256.
+     *
+     */
+    function sqrt(uint256 x) internal pure returns (uint256 result) {
+        if (x == 0) {
+            return 0;
+        }
+
+        // Calculate the square root of the perfect square of a power of two that is the closest to x.
+        uint256 xAux = uint256(x);
+        result = 1;
+        if (xAux >= 0x100000000000000000000000000000000) {
+            xAux >>= 128;
+            result <<= 64;
+        }
+        if (xAux >= 0x10000000000000000) {
+            xAux >>= 64;
+            result <<= 32;
+        }
+        if (xAux >= 0x100000000) {
+            xAux >>= 32;
+            result <<= 16;
+        }
+        if (xAux >= 0x10000) {
+            xAux >>= 16;
+            result <<= 8;
+        }
+        if (xAux >= 0x100) {
+            xAux >>= 8;
+            result <<= 4;
+        }
+        if (xAux >= 0x10) {
+            xAux >>= 4;
+            result <<= 2;
+        }
+        if (xAux >= 0x8) {
+            result <<= 1;
+        }
+
+        // The operations can never overflow because the result is max 2^127 when it enters this block.
+        unchecked {
+            result = (result + x / result) >> 1;
+            result = (result + x / result) >> 1;
+            result = (result + x / result) >> 1;
+            result = (result + x / result) >> 1;
+            result = (result + x / result) >> 1;
+            result = (result + x / result) >> 1;
+            result = (result + x / result) >> 1; // Seven iterations should be enough
+            uint256 roundedDownResult = x / result;
+            return result >= roundedDownResult ? roundedDownResult : result;
+        }
     }
 }
