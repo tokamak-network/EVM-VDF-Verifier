@@ -294,7 +294,8 @@ contract CommitRecover {
             } else {
                 stage = Stages.Finished;
             }
-        } else if (
+        }
+        if (
             _currentStage == Stages.Reveal && block.timestamp >= _startTime + commitRevealDuration
         ) {
             nextStage();
