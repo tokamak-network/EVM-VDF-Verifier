@@ -3,6 +3,7 @@
 pragma solidity ^0.8.21;
 
 import "./libraries/Strings.sol";
+import "hardhat/console.sol";
 
 /* Errors */
 error AlreadyCommitted();
@@ -16,6 +17,7 @@ error StageNotFinished();
 error HNotSet();
 error AllFinished();
 error OmegaAlreadyCompleted();
+error HAndBStarAlreadySet();
 
 /**
  * @title Bicorn-RX Commit-Reveal-Recover
@@ -48,6 +50,12 @@ contract CommitRecover {
         uint256 omega;
         bool isCompleted; // omega is finalized when this is true
         bytes32 bStar; //hash of commitsString
+    }
+    struct StartParams {
+        uint256 commitDuration;
+        uint256 commitRevealDuration;
+        uint256 order;
+        uint256 g;
     }
 
     /* State variables */
@@ -82,8 +90,17 @@ contract CommitRecover {
         uint256 revealLeftCount,
         uint256 revealTimestamp
     );
-    event SetHAndBStar(address msgSender, uint256 h, uint256 setHTimestamp);
+    event SetHAndBStar(address msgSender, uint256 h, bytes32 bStar, uint256 setHTimestamp);
     event Recovered(address msgSender, uint256 recov, uint256 omega, uint256 recoveredTimestamp);
+    event Start(
+        address msgSender,
+        uint256 startTime,
+        uint256 commitDuration,
+        uint256 commitRevealDuration,
+        uint256 order,
+        uint256 g,
+        uint256 round
+    );
 
     modifier shouldNotBeGreaterOrEqualThanOrder(uint256 _value) {
         if (_value >= order) revert GreaterOrEqualThanOrder();
@@ -92,30 +109,22 @@ contract CommitRecover {
 
     /* Functions */
     /**
-     *
-     * @param _commitDuration commit period
-     * @param _commitRevealDuration commit + reveal period
-     * @param _order modulor
-     * @param _g a value generated from the generator list
+     * @param params start parameters
+     * @notice CommitRecover constructor
      * @notice The constructor is called when the contract is deployed and commit starts right away
      *
      */
-    constructor(
-        uint256 _commitDuration,
-        uint256 _commitRevealDuration,
-        uint256 _order,
-        uint256 _g
-    ) {
-        if (_g >= _order) revert GreaterOrEqualThanOrder();
-        if (_commitDuration >= _commitRevealDuration)
+    constructor(StartParams memory params) {
+        if (params.g >= params.order) revert GreaterOrEqualThanOrder();
+        if (params.commitDuration >= params.commitRevealDuration)
             revert CommitRevealDurationLessThanCommitDuration();
-        checkIfPrimeNumber(_order);
+        checkIfPrimeNumber(params.order);
         stage = Stages.Commit;
         startTime = block.timestamp;
-        commitDuration = _commitDuration;
-        commitRevealDuration = _commitRevealDuration;
-        order = _order;
-        g = _g;
+        commitDuration = params.commitDuration;
+        commitRevealDuration = params.commitRevealDuration;
+        order = params.order;
+        g = params.g;
         omega = 1;
         round = 1;
     }
@@ -132,7 +141,8 @@ contract CommitRecover {
         if (commitsInfos[msg.sender][round].committed) {
             revert AlreadyCommitted();
         }
-        updateStage(Stages.Commit);
+        updateStage();
+        checkStage(Stages.Commit);
         _commitsString = string.concat(_commitsString, Strings.toString(_commit));
         commitsInfos[msg.sender][round] = Commit(_commit, 0, true, false);
         count += 1;
@@ -163,10 +173,12 @@ contract CommitRecover {
         if (_commit.revealed) {
             revert AlreadyRevealed();
         }
+        console.log("solidity contract:", powerModOrder(g, _a), _commit.c);
         if (powerModOrder(g, _a) != _commit.c) {
             revert ANotMatchCommit();
         }
-        updateStage(Stages.Reveal);
+        updateStage();
+        checkStage(Stages.Reveal);
         _omega =
             (_omega *
                 powerModOrder(
@@ -215,10 +227,7 @@ contract CommitRecover {
 
     /**
      *
-     * @param _commitDuration commit period
-     * @param _commitRevealDuration commit + reveal period, commitRevealDuration - commitDuration => revealDuration
-     * @param _order modulor
-     * @param _g a value generated from the generator list
+     * @param params start parameters
      * @notice Start function
      * @notice The contract must be in the Finished stage
      * @notice The commit period must be less than the commit + reveal period
@@ -226,30 +235,26 @@ contract CommitRecover {
      * @notice reset count, commitsString, isHAndBStarSet, stage, startTime, commitDuration, commitRevealDuration, order, g, omega
      * @notice increase round
      */
-    function start(
-        uint256 _commitDuration,
-        uint256 _commitRevealDuration,
-        uint256 _order,
-        uint256 _g
-    ) public {
+    function start(StartParams calldata params) public {
         if (stage != Stages.Finished) {
             revert StageNotFinished();
         }
-        if (_g >= _order) revert GreaterOrEqualThanOrder();
-        if (_commitDuration >= _commitRevealDuration)
+        if (params.g >= params.order) revert GreaterOrEqualThanOrder();
+        if (params.commitDuration >= params.commitRevealDuration)
             revert CommitRevealDurationLessThanCommitDuration();
         checkIfPrimeNumber(order);
         stage = Stages.Commit;
         startTime = block.timestamp;
-        commitDuration = _commitDuration;
-        commitRevealDuration = _commitRevealDuration;
-        order = _order;
-        g = _g;
+        commitDuration = params.commitDuration;
+        commitRevealDuration = params.commitRevealDuration;
+        order = params.order;
+        g = params.g;
         omega = 1;
         round += 1;
         count = 0;
         commitsString = "";
         isHAndBStarSet = false;
+        emit Start(msg.sender, startTime, commitDuration, commitRevealDuration, order, g, round);
     }
 
     /**
@@ -264,28 +269,24 @@ contract CommitRecover {
         /**
          * need to verify _h
          */
+        bytes32 _bStar = keccak256(abi.encodePacked(commitsString));
+        if (isHAndBStarSet) revert HAndBStarAlreadySet();
+        updateStage();
         if (stage == Stages.Commit) {
             revert FunctionInvalidAtThisStage();
-        }
-        if (omegaAtRound[round].bStar == 0) {
-            omegaAtRound[round].bStar = keccak256(abi.encodePacked(commitsString));
         }
         verifyVDFResult(g, _h);
         isHAndBStarSet = true;
         h = _h;
-        emit SetHAndBStar(msg.sender, _h, block.timestamp);
+        omegaAtRound[round].bStar = _bStar;
+        emit SetHAndBStar(msg.sender, _h, _bStar, block.timestamp);
     }
 
     /**
-     * @param _stage the stage to update to
-     * @notice UpdateStage function
-     * @notice update stage if needed and check if the stage is the same as the input stage
-     * @notice if the current stage is Commit and the commit period is over,
-     * and if there are commitments, update stage to Reveal stage, else update stage to Finished stage
-     * @notice if the current stage is Reveal and the reveal period is over, update stage to Finished stage
-     * @notice revert if the stage is not the same as the input stage
+     * @notice updateStage function
+     * @notice update stage if needed
      */
-    function updateStage(Stages _stage) public {
+    function updateStage() public {
         Stages _currentStage = stage;
         uint256 _startTime = startTime;
         if (_currentStage == Stages.Commit && block.timestamp >= _startTime + commitDuration) {
@@ -300,6 +301,15 @@ contract CommitRecover {
         ) {
             nextStage();
         }
+    }
+
+    /**
+     * @param _stage the stage to check
+     * @notice checkStage function
+     * @notice revert if the current stage is not the given stage
+     * @notice this function is used to check if the current stage is the given stage
+     */
+    function checkStage(Stages _stage) internal view {
         if (stage != _stage) revert FunctionInvalidAtThisStage();
     }
 
