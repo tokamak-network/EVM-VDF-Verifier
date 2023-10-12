@@ -14,10 +14,8 @@ error CommitRevealDurationLessThanCommitDuration();
 error ANotMatchCommit();
 error FunctionInvalidAtThisStage();
 error StageNotFinished();
-error HNotSet();
 error AllFinished();
 error OmegaAlreadyCompleted();
-error HAndBStarAlreadySet();
 
 /**
  * @title Bicorn-RX Commit-Reveal-Recover
@@ -25,12 +23,11 @@ error HAndBStarAlreadySet();
  * @notice This contract is for generating random number
  *    1. Commit: participants commit their value
  *    2. Reveal: participants reveal their value
- *    3. Recover: someone recovers the random number
- *    4. Start: start a new round
+ *    3. Finished: Calculate or recover the random number
+ *    4. go to 1
  */
 contract CommitRecover {
     /* Type declaration */
-
     /**
      * @notice Stages of the contract
      * @notice Recover can be performed in the Reveal and Finished stages.
@@ -40,40 +37,47 @@ contract CommitRecover {
         Reveal,
         Finished
     }
-    struct Commit {
-        uint256 c; // commit value
-        uint256 a; // reveal value
-        bool committed;
-        bool revealed;
-    }
     struct Omega {
-        uint256 omega;
-        bool isCompleted; // omega is finalized when this is true
+        uint256 omega; // the random number
         bytes32 bStar; //hash of commitsString
+        uint256 numOfParticipants; // number of participants
+        uint256[] proofs; //proofs of VDF
+        mapping(uint256 => CommitRevealValue) commitRevealValues; // 0 => CommitRevealValue(c, a, participantAddress), 1 => CommitRevealValue(c, a, participantAddress), ...
+        bool isCompleted; // omega is finalized when this is true
+        bool isCalculated; // omega is calculated when this is true
+    }
+    struct CommitRevealValue {
+        uint256 c;
+        uint256 a;
+        address participantAddress;
+    }
+    struct UserAtRound {
+        uint256 index; // index of the dynamic arrays(c_s, a_s) in Omega struct
+        bool committed; // true if committed
+        bool revealed; // true if revealed
     }
     struct StartParams {
         uint256 commitDuration;
         uint256 commitRevealDuration;
-        uint256 order;
-        uint256 g;
+        uint256 h;
+        uint256[] proofs;
     }
 
     /* State variables */
     uint256 public startTime;
     uint256 public commitDuration;
     uint256 public commitRevealDuration; //commit + reveal period, commitRevealDuration - commitDuration => revealDuration
-    uint256 public order; // modulor
-    uint256 public g; // a value generated from the generator list
+    uint256 public immutable N; // modulor
+    uint256 public immutable G; // a value generated from the generator list
     uint256 public h; // a value generated from the VDF(g)
-    uint256 public omega; // the random number
     uint256 public count; //This variable is used to keep track of the number of commitments and reveals, and to check if anything has been committed when moving to the reveal stage.
     uint256 public round; //first round is 1, second round is 2, ...
     string public commitsString; //concatenated string of commits
     Stages public stage;
-    bool public isHAndBStarSet;
+    //bool public isHAndBStarSet;
 
-    mapping(uint256 round => Omega omega) public omegaAtRound; // 1 => Omega(omega, isCompleted), 2 => Omega(omega, isCompleted), ...
-    mapping(address owner => mapping(uint256 round => Commit commit)) public commitsInfos;
+    mapping(uint256 round => Omega omega) public valuesAtRound; // 1 => Omega(omega, isCompleted, ...), 2 => Omega(omega, isCompleted, ...), ...
+    mapping(address owner => mapping(uint256 round => UserAtRound user)) public userInfos;
 
     /* Events */
     event CommitC(
@@ -83,27 +87,32 @@ contract CommitRecover {
         uint256 commitCount,
         uint256 commitTimestamp
     );
-    event RevealA(
-        address participant,
-        uint256 a,
+    event RevealA(address participant, uint256 a, uint256 revealLeftCount, uint256 revealTimestamp);
+    event Recovered(
+        address msgSender,
+        uint256 vdfInput,
+        uint256 recov,
         uint256 omega,
-        uint256 revealLeftCount,
-        uint256 revealTimestamp
+        uint256 recoveredTimestamp
     );
-    event SetHAndBStar(address msgSender, uint256 h, bytes32 bStar, uint256 setHTimestamp);
-    event Recovered(address msgSender, uint256 recov, uint256 omega, uint256 recoveredTimestamp);
     event Start(
         address msgSender,
         uint256 startTime,
         uint256 commitDuration,
         uint256 commitRevealDuration,
-        uint256 order,
+        uint256 N,
         uint256 g,
         uint256 round
     );
+    event CalculatedOmega(
+        uint256 round,
+        uint256 omega,
+        uint256 calculatedTimestamp,
+        bool isCompleted
+    );
 
-    modifier shouldNotBeGreaterOrEqualThanOrder(uint256 _value) {
-        if (_value >= order) revert GreaterOrEqualThanOrder();
+    modifier shouldBeLessThanN(uint256 _value) {
+        if (_value >= N) revert GreaterOrEqualThanOrder();
         _;
     }
 
@@ -114,19 +123,21 @@ contract CommitRecover {
      * @notice The constructor is called when the contract is deployed and commit starts right away
      *
      */
-    constructor(StartParams memory params) {
-        if (params.g >= params.order) revert GreaterOrEqualThanOrder();
+    constructor(StartParams memory params, uint256 _g, uint256 _n) {
+        if (_g >= _n) revert GreaterOrEqualThanOrder();
         if (params.commitDuration >= params.commitRevealDuration)
             revert CommitRevealDurationLessThanCommitDuration();
-        checkIfPrimeNumber(params.order);
+        verifyVDFResult(_g, params.h, params.proofs); // need to verify
+        //proof 변수 추가.(recover 함수에도 추가) 0 포함 자연수로된 array
         stage = Stages.Commit;
         startTime = block.timestamp;
         commitDuration = params.commitDuration;
         commitRevealDuration = params.commitRevealDuration;
-        order = params.order;
-        g = params.g;
-        omega = 1;
+        N = _n;
+        G = _g;
+        h = params.h;
         round = 1;
+        valuesAtRound[round].proofs = params.proofs;
     }
 
     /**
@@ -136,18 +147,19 @@ contract CommitRecover {
      * @notice The participant can only commit once
      * @notice check period, update stage if needed, revert if not currently at commit stage
      */
-    function commit(uint256 _commit) public shouldNotBeGreaterOrEqualThanOrder(_commit) {
-        string memory _commitsString = commitsString;
-        if (commitsInfos[msg.sender][round].committed) {
+    function commit(uint256 _commit) public shouldBeLessThanN(_commit) {
+        if (userInfos[msg.sender][round].committed) {
             revert AlreadyCommitted();
         }
-        updateStage();
+        uint256 _count = count;
         checkStage(Stages.Commit);
+        string memory _commitsString = commitsString;
         _commitsString = string.concat(_commitsString, Strings.toString(_commit));
-        commitsInfos[msg.sender][round] = Commit(_commit, 0, true, false);
-        count += 1;
+        userInfos[msg.sender][round] = UserAtRound(_count, true, false);
+        valuesAtRound[round].commitRevealValues[_count] = CommitRevealValue(_commit, 0, msg.sender); //index starts from 0, so _count -1
         commitsString = _commitsString;
-        emit CommitC(msg.sender, _commit, _commitsString, count, block.timestamp);
+        count = ++_count;
+        emit CommitC(msg.sender, _commit, _commitsString, _count, block.timestamp);
     }
 
     /**
@@ -160,45 +172,70 @@ contract CommitRecover {
      * @notice The participant's reveal value must be less than the modulor
      * @notice check period, update stage if needed, revert if not currently at reveal stage
      * @notice update omega, count
-     * @notice if count == 0, update omegaAtRound, stage
-     * @notice update commitsInfos
+     * @notice if count == 0, update valuesAtRound, stage
+     * @notice update userInfos
      */
-    function reveal(uint256 _a) public shouldNotBeGreaterOrEqualThanOrder(_a) {
-        uint256 _omega = omega;
-        if (!isHAndBStarSet) revert HNotSet();
-        Commit memory _commit = commitsInfos[msg.sender][round];
-        if (!_commit.committed) {
+    function reveal(uint256 _a) public shouldBeLessThanN(_a) {
+        UserAtRound memory _user = userInfos[msg.sender][round];
+        if (!_user.committed) {
             revert NotCommittedParticipant();
         }
-        if (_commit.revealed) {
+        if (_user.revealed) {
             revert AlreadyRevealed();
         }
-        console.log("solidity contract:", powerModOrder(g, _a), _commit.c);
-        if (powerModOrder(g, _a) != _commit.c) {
+        if (powerModOrder(G, _a) != valuesAtRound[round].commitRevealValues[_user.index].c) {
             revert ANotMatchCommit();
         }
-        updateStage();
         checkStage(Stages.Reveal);
-        _omega =
-            (_omega *
+        uint256 _count = --count;
+        valuesAtRound[round].commitRevealValues[_user.index].a = _a;
+        if (_count == 0) stage = Stages.Finished;
+        userInfos[msg.sender][round].revealed = true;
+        emit RevealA(msg.sender, _a, _count, block.timestamp);
+    }
+
+    function calculateOmega() public returns (uint256) {
+        uint256 _round = round;
+        if (valuesAtRound[_round].isCompleted) revert OmegaAlreadyCompleted();
+        checkStage(Stages.Finished);
+        uint256 _numOfParticipants = valuesAtRound[_round].numOfParticipants;
+        uint256 _omega = 1;
+        bytes32 _bStar = valuesAtRound[_round].bStar;
+        uint256 _h = h;
+        uint256 _n = N;
+        bool _isCompleted = true;
+        for (uint256 i = 0; i < _numOfParticipants; i++) {
+            if (
+                userInfos[valuesAtRound[_round].commitRevealValues[i].participantAddress][_round]
+                    .revealed == false
+            ) {
+                _isCompleted = false;
+                continue;
+            }
+            _omega = mulmod(
+                _omega,
                 powerModOrder(
                     powerModOrder(
-                        h,
-                        uint256(keccak256(abi.encodePacked(_commit.c, omegaAtRound[round].bStar)))
+                        _h,
+                        uint256(
+                            keccak256(
+                                abi.encodePacked(
+                                    valuesAtRound[_round].commitRevealValues[i].c,
+                                    _bStar
+                                )
+                            )
+                        )
                     ),
-                    _a
-                )) %
-            order;
-
-        count -= 1;
-        if (count == 0) {
-            finalizeOmega(_omega);
-        } else {
-            omega = _omega;
+                    valuesAtRound[_round].commitRevealValues[i].a
+                ),
+                _n
+            );
         }
-        commitsInfos[msg.sender][round].a = _a;
-        commitsInfos[msg.sender][round].revealed = true;
-        emit RevealA(msg.sender, _a, _omega, count, block.timestamp);
+        valuesAtRound[_round].omega = _omega;
+        valuesAtRound[_round].isCompleted = _isCompleted; //false when not all participants have revealed
+        valuesAtRound[_round].isCalculated = true;
+        emit CalculatedOmega(_round, _omega, block.timestamp, _isCompleted);
+        return _omega;
     }
 
     /**
@@ -209,20 +246,22 @@ contract CommitRecover {
      * @notice revert if count == 0 meaning no one has committed
      * @notice calculate and finalize omega
      */
-    function recover(uint256 recov) public shouldNotBeGreaterOrEqualThanOrder(recov) {
-        uint256 _omega = omega;
+    function recover(
+        uint256 vdfInput,
+        uint256 recov,
+        uint256[] calldata proofs
+    ) public shouldBeLessThanN(recov) {
+        uint256 _omega;
         if (stage == Stages.Commit) {
             revert FunctionInvalidAtThisStage();
         }
-        if (count == 0) {
-            revert OmegaAlreadyCompleted();
-        }
-        /**
-         * need to verify recov
-         */
-        _omega = mulmod(_omega, recov, order);
-        finalizeOmega(_omega);
-        emit Recovered(msg.sender, recov, _omega, block.timestamp);
+        if (valuesAtRound[round].isCompleted) revert OmegaAlreadyCompleted();
+        if (!valuesAtRound[round].isCalculated) _omega = calculateOmega();
+        else _omega = valuesAtRound[round].omega;
+        verifyVDFResult(vdfInput, recov, proofs); // need to verify
+        valuesAtRound[round].isCompleted = true;
+        valuesAtRound[round].omega = mulmod(_omega, recov, N);
+        emit Recovered(msg.sender, vdfInput, recov, _omega, block.timestamp);
     }
 
     /**
@@ -232,75 +271,26 @@ contract CommitRecover {
      * @notice The contract must be in the Finished stage
      * @notice The commit period must be less than the commit + reveal period
      * @notice The g value must be less than the modulor
-     * @notice reset count, commitsString, isHAndBStarSet, stage, startTime, commitDuration, commitRevealDuration, order, g, omega
+     * @notice reset count, commitsString, isHAndBStarSet, stage, startTime, commitDuration, commitRevealDuration, N, g, omega
      * @notice increase round
      */
     function start(StartParams calldata params) public {
+        uint256 g = G;
         if (stage != Stages.Finished) {
             revert StageNotFinished();
         }
-        if (params.g >= params.order) revert GreaterOrEqualThanOrder();
+        if (g >= N) revert GreaterOrEqualThanOrder();
         if (params.commitDuration >= params.commitRevealDuration)
             revert CommitRevealDurationLessThanCommitDuration();
-        checkIfPrimeNumber(order);
         stage = Stages.Commit;
         startTime = block.timestamp;
         commitDuration = params.commitDuration;
         commitRevealDuration = params.commitRevealDuration;
-        order = params.order;
-        g = params.g;
-        omega = 1;
+        h = params.h;
         round += 1;
         count = 0;
         commitsString = "";
-        isHAndBStarSet = false;
-        emit Start(msg.sender, startTime, commitDuration, commitRevealDuration, order, g, round);
-    }
-
-    /**
-     * @param _h a value generated from the VDF(g)
-     * @notice SetHAndBStar function
-     * @notice The contract must not be in the Commit stage
-     * @notice The h value must be less than the modulor
-     * @notice The h value must be verified
-     * @notice set isHAndBStarSet to true
-     */
-    function setHAndBStar(uint256 _h) public shouldNotBeGreaterOrEqualThanOrder(_h) {
-        /**
-         * need to verify _h
-         */
-        bytes32 _bStar = keccak256(abi.encodePacked(commitsString));
-        if (isHAndBStarSet) revert HAndBStarAlreadySet();
-        updateStage();
-        if (stage == Stages.Commit) {
-            revert FunctionInvalidAtThisStage();
-        }
-        verifyVDFResult(g, _h);
-        isHAndBStarSet = true;
-        h = _h;
-        omegaAtRound[round].bStar = _bStar;
-        emit SetHAndBStar(msg.sender, _h, _bStar, block.timestamp);
-    }
-
-    /**
-     * @notice updateStage function
-     * @notice update stage if needed
-     */
-    function updateStage() public {
-        Stages _currentStage = stage;
-        uint256 _startTime = startTime;
-        if (_currentStage == Stages.Commit && block.timestamp >= _startTime + commitDuration) {
-            if (count != 0) {
-                nextStage();
-            } else {
-                stage = Stages.Finished;
-            }
-        }
-        if (
-            _currentStage == Stages.Reveal && block.timestamp >= _startTime + commitRevealDuration
-        ) {
-            nextStage();
-        }
+        emit Start(msg.sender, startTime, commitDuration, commitRevealDuration, N, g, round);
     }
 
     /**
@@ -308,24 +298,29 @@ contract CommitRecover {
      * @notice checkStage function
      * @notice revert if the current stage is not the given stage
      * @notice this function is used to check if the current stage is the given stage
+     * @notice it will update the stage to the next stage if needed
      */
-    function checkStage(Stages _stage) internal view {
+    function checkStage(Stages _stage) internal {
+        Stages _currentStage = stage;
+        uint256 _startTime = startTime;
+        if (_currentStage == Stages.Commit && block.timestamp >= _startTime + commitDuration) {
+            if (count != 0) {
+                nextStage();
+                valuesAtRound[round].numOfParticipants = count;
+                bytes32 _bStar = keccak256(abi.encodePacked(commitsString));
+                valuesAtRound[round].bStar = _bStar;
+            } else {
+                //only one participant
+                stage = Stages.Finished;
+            }
+        }
+        if (
+            _currentStage == Stages.Reveal &&
+            (block.timestamp >= _startTime + commitRevealDuration || count == 0)
+        ) {
+            nextStage();
+        }
         if (stage != _stage) revert FunctionInvalidAtThisStage();
-    }
-
-    /**
-     * @param _omega omega that should be finalized
-     * @notice FinalizeOmega function
-     * @notice update omegaAtRound, stage
-     * @notice revert if the omega is already finalized
-     * @notice set isCompleted to true
-     * @notice set stage to Finished
-     */
-    function finalizeOmega(uint256 _omega) internal {
-        if (omegaAtRound[round].isCompleted) revert OmegaAlreadyCompleted();
-        omegaAtRound[round].omega = _omega;
-        omegaAtRound[round].isCompleted = true;
-        stage = Stages.Finished;
     }
 
     /**
@@ -349,8 +344,9 @@ contract CommitRecover {
      */
     function verifyVDFResult(
         uint256 _input,
-        uint256 _result
-    ) internal view shouldNotBeGreaterOrEqualThanOrder(_result) returns (bool) {
+        uint256 _result,
+        uint256[] memory _proofs
+    ) internal view shouldBeLessThanN(_result) returns (bool) {
         /**
          * need to verify
          */
@@ -361,42 +357,22 @@ contract CommitRecover {
      *
      * @param a base value
      * @param b exponent value
-     * @return result of a^b mod order
+     * @return result of a^b mod N
      * @notice powerModOrder function
-     * @notice calculate a^b mod order
+     * @notice calculate a^b mod N
      * @notice O(log b) complexity
      */
     function powerModOrder(uint256 a, uint256 b) internal view returns (uint256) {
-        uint256 _order = order;
+        uint256 _n = N;
         uint256 result = 1;
         while (b > 0) {
             if (b & 1 == 1) {
-                result = mulmod(result, a, _order);
+                result = mulmod(result, a, _n);
             }
-            a = mulmod(a, a, _order);
+            a = mulmod(a, a, _n);
             b = b / 2;
         }
         return result;
-    }
-
-    /**
-     * @param _number the number to check
-     * @return true if the number is prime, false otherwise
-     * @notice checkIfPrimeNumber function
-     * @notice O(sqrt(n)) complexity
-     */
-    function checkIfPrimeNumber(uint256 _number) internal pure returns (bool) {
-        if (_number < 2) {
-            return false;
-        }
-        uint256 i = 2;
-        while (i <= sqrt(_number)) {
-            if (_number % i == 0) {
-                return false;
-            }
-            i++;
-        }
-        return true;
     }
 
     /**
