@@ -2,7 +2,7 @@
 
 pragma solidity ^0.8.21;
 
-import "./libraries/Strings.sol";
+import "./libraries/Pietrzak_VDF.sol";
 import "hardhat/console.sol";
 
 /* Errors */
@@ -41,7 +41,6 @@ contract CommitRecover {
         uint256 omega; // the random number
         bytes32 bStar; //hash of commitsString
         uint256 numOfParticipants; // number of participants
-        uint256[] proofs; //proofs of VDF
         mapping(uint256 => CommitRevealValue) commitRevealValues; // 0 => CommitRevealValue(c, a, participantAddress), 1 => CommitRevealValue(c, a, participantAddress), ...
         bool isCompleted; // omega is finalized when this is true
         bool isCalculated; // omega is calculated when this is true
@@ -60,7 +59,7 @@ contract CommitRecover {
         uint256 commitDuration;
         uint256 commitRevealDuration;
         uint256 h;
-        uint256[] proofs;
+        Pietrzak_VDF.VDFClaim[] proofs;
     }
 
     /* State variables */
@@ -127,8 +126,8 @@ contract CommitRecover {
         if (_g >= _n) revert GreaterOrEqualThanOrder();
         if (params.commitDuration >= params.commitRevealDuration)
             revert CommitRevealDurationLessThanCommitDuration();
-        verifyVDFResult(_g, params.h, params.proofs); // need to verify
-        //proof 변수 추가.(recover 함수에도 추가) 0 포함 자연수로된 array
+        //verify
+        Pietrzak_VDF.verifyRecursiveHalvingProof(params.proofs);
         stage = Stages.Commit;
         startTime = block.timestamp;
         commitDuration = params.commitDuration;
@@ -137,7 +136,6 @@ contract CommitRecover {
         G = _g;
         h = params.h;
         round = 1;
-        valuesAtRound[round].proofs = params.proofs;
     }
 
     /**
@@ -151,10 +149,10 @@ contract CommitRecover {
         if (userInfos[msg.sender][round].committed) {
             revert AlreadyCommitted();
         }
-        uint256 _count = count;
         checkStage(Stages.Commit);
+        uint256 _count = count;
         string memory _commitsString = commitsString;
-        _commitsString = string.concat(_commitsString, Strings.toString(_commit));
+        _commitsString = string.concat(_commitsString, Pietrzak_VDF.toString(_commit));
         userInfos[msg.sender][round] = UserAtRound(_count, true, false);
         valuesAtRound[round].commitRevealValues[_count] = CommitRevealValue(_commit, 0, msg.sender); //index starts from 0, so _count -1
         commitsString = _commitsString;
@@ -183,7 +181,10 @@ contract CommitRecover {
         if (_user.revealed) {
             revert AlreadyRevealed();
         }
-        if (powerModOrder(G, _a) != valuesAtRound[round].commitRevealValues[_user.index].c) {
+        if (
+            Pietrzak_VDF.powerModOrder(G, _a, N) !=
+            valuesAtRound[round].commitRevealValues[_user.index].c
+        ) {
             revert ANotMatchCommit();
         }
         checkStage(Stages.Reveal);
@@ -214,8 +215,8 @@ contract CommitRecover {
             }
             _omega = mulmod(
                 _omega,
-                powerModOrder(
-                    powerModOrder(
+                Pietrzak_VDF.powerModOrder(
+                    Pietrzak_VDF.powerModOrder(
                         _h,
                         uint256(
                             keccak256(
@@ -224,9 +225,11 @@ contract CommitRecover {
                                     _bStar
                                 )
                             )
-                        )
+                        ),
+                        _n
                     ),
-                    valuesAtRound[_round].commitRevealValues[i].a
+                    valuesAtRound[_round].commitRevealValues[i].a,
+                    _n
                 ),
                 _n
             );
@@ -249,7 +252,7 @@ contract CommitRecover {
     function recover(
         uint256 vdfInput,
         uint256 recov,
-        uint256[] calldata proofs
+        Pietrzak_VDF.VDFClaim[] calldata proofs
     ) public shouldBeLessThanN(recov) {
         uint256 _omega;
         if (stage == Stages.Commit) {
@@ -258,7 +261,8 @@ contract CommitRecover {
         if (valuesAtRound[round].isCompleted) revert OmegaAlreadyCompleted();
         if (!valuesAtRound[round].isCalculated) _omega = calculateOmega();
         else _omega = valuesAtRound[round].omega;
-        verifyVDFResult(vdfInput, recov, proofs); // need to verify
+        //verify
+        Pietrzak_VDF.verifyRecursiveHalvingProof(proofs);
         valuesAtRound[round].isCompleted = true;
         valuesAtRound[round].omega = mulmod(_omega, recov, N);
         emit Recovered(msg.sender, vdfInput, recov, _omega, block.timestamp);
@@ -331,106 +335,5 @@ contract CommitRecover {
     function nextStage() internal {
         if (stage == Stages.Finished) revert AllFinished();
         stage = Stages(addmod(uint256(stage), 1, 3));
-    }
-
-    /**
-     *
-     * @param _input input value of VDF
-     * @param _result result of VDF
-     * @return true if the result is correct, false otherwise
-     * @notice verifyVDFResult function
-     * @notice need to verify _result is generated from _input
-     * @notice need to verify _result is less than the modulor
-     */
-    function verifyVDFResult(
-        uint256 _input,
-        uint256 _result,
-        uint256[] memory _proofs
-    ) internal view shouldBeLessThanN(_result) returns (bool) {
-        /**
-         * need to verify
-         */
-        return true;
-    }
-
-    /**
-     *
-     * @param a base value
-     * @param b exponent value
-     * @return result of a^b mod N
-     * @notice powerModOrder function
-     * @notice calculate a^b mod N
-     * @notice O(log b) complexity
-     */
-    function powerModOrder(uint256 a, uint256 b) internal view returns (uint256) {
-        uint256 _n = N;
-        uint256 result = 1;
-        while (b > 0) {
-            if (b & 1 == 1) {
-                result = mulmod(result, a, _n);
-            }
-            a = mulmod(a, a, _n);
-            b = b / 2;
-        }
-        return result;
-    }
-
-    /**
-     * @notice sqrt function
-     * @notice Calculates the square root of x, rounding down.
-     * @notice from prb-math
-     * @dev Uses the Babylonian method https://en.wikipedia.org/wiki/Methods_of_computing_square_roots#Babylonian_method.
-     * @param x The uint256 number for which to calculate the square root.
-     * @return result The result as an uint256.
-     *
-     */
-    function sqrt(uint256 x) internal pure returns (uint256 result) {
-        if (x == 0) {
-            return 0;
-        }
-
-        // Calculate the square root of the perfect square of a power of two that is the closest to x.
-        uint256 xAux = uint256(x);
-        result = 1;
-        if (xAux >= 0x100000000000000000000000000000000) {
-            xAux >>= 128;
-            result <<= 64;
-        }
-        if (xAux >= 0x10000000000000000) {
-            xAux >>= 64;
-            result <<= 32;
-        }
-        if (xAux >= 0x100000000) {
-            xAux >>= 32;
-            result <<= 16;
-        }
-        if (xAux >= 0x10000) {
-            xAux >>= 16;
-            result <<= 8;
-        }
-        if (xAux >= 0x100) {
-            xAux >>= 8;
-            result <<= 4;
-        }
-        if (xAux >= 0x10) {
-            xAux >>= 4;
-            result <<= 2;
-        }
-        if (xAux >= 0x8) {
-            result <<= 1;
-        }
-
-        // The operations can never overflow because the result is max 2^127 when it enters this block.
-        unchecked {
-            result = (result + x / result) >> 1;
-            result = (result + x / result) >> 1;
-            result = (result + x / result) >> 1;
-            result = (result + x / result) >> 1;
-            result = (result + x / result) >> 1;
-            result = (result + x / result) >> 1;
-            result = (result + x / result) >> 1; // Seven iterations should be enough
-            uint256 roundedDownResult = x / result;
-            return result >= roundedDownResult ? roundedDownResult : result;
-        }
     }
 }
