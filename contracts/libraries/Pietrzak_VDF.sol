@@ -21,7 +21,7 @@ library Pietrzak_VDF {
         uint256 T_half;
     }
 
-    function modHash(uint256 n, string memory strings) public pure returns (uint256) {
+    function modHash(uint256 n, string memory strings) internal pure returns (uint256) {
         return uint256(keccak256(abi.encodePacked(strings))) % n;
     }
 
