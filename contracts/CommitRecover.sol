@@ -232,7 +232,7 @@ contract CommitRecover {
                         _h,
                         uint256(
                             keccak256(abi.encodePacked(Pietrzak_VDF.toString(commitRevealValues[_round][i].c), Pietrzak_VDF.toString(_bStar)))
-                        ),
+                        ) % _n,
                         _n
                     ),
                     commitRevealValues[_round][i].a,
@@ -266,6 +266,8 @@ contract CommitRecover {
         Pietrzak_VDF.VDFClaim[] calldata proofs
     ) public shouldBeLessThanN(proofs[0].y) {
         uint256 recov = 1;
+        uint256 _n = valuesAtRound[round].n;
+        uint256 _bStar = valuesAtRound[round].bStar;
         if (stage == Stages.Commit) {
             revert FunctionInvalidAtThisStage();
         }
@@ -276,10 +278,10 @@ contract CommitRecover {
             uint256 _c = commitRevealValues[round][i].c;
             uint256 temp = Pietrzak_VDF.powerModOrder(
                 _c,
-                uint256(keccak256(abi.encodePacked(_c, valuesAtRound[round].bStar))),
-                valuesAtRound[round].n
+                uint256(keccak256(abi.encodePacked(Pietrzak_VDF.toString(_c), Pietrzak_VDF.toString(_bStar)))) % _n,
+                _n
             );
-            recov = mulmod(recov, temp, valuesAtRound[round].n);
+            recov = mulmod(recov, temp, _n);
         }
         if (recov != proofs[0].x) revert RecovNotMatchX();
         valuesAtRound[round].isCompleted = true;
@@ -345,7 +347,7 @@ contract CommitRecover {
                 valuesAtRound[round].numOfParticipants = count;
                 console.log("----");
                 console.log(commitsString);
-                uint256 _bStar = uint256(keccak256(abi.encodePacked(commitsString)));
+                uint256 _bStar = uint256(keccak256(abi.encodePacked(commitsString))) % valuesAtRound[round].n;
                 console.log(_bStar);
                 valuesAtRound[round].bStar = _bStar;
             } else {

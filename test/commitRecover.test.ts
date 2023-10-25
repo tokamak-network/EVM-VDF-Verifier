@@ -122,6 +122,26 @@ const { time } = require("@nomicfoundation/hardhat-network-helpers")
                           testcases[testCaseNum].recoveredOmega,
                       )
                   })
+                  it("Recovered Omega should be correct", async () => {
+                      const { commitRecover } = await loadFixture(
+                          deployFirstTestCaseCommitRevealContract,
+                      )
+                      for (let i = 0; i < firstcommitList.length; i++) {
+                          await commit(commitRecover, signers[i], firstcommitList[i], i, 1)
+                      }
+                      await time.increase(networkConfig[network.config.chainId!].commitDuration)
+                      for (let i = 0; i < firstrandomList.length - 2; i++) {
+                          await reveal(commitRecover, signers[i], firstrandomList[i], i, 1)
+                      }
+                      const tx = await commitRecover.recover(testcases[testCaseNum].recoveryProofs)
+                      const receipt = await tx.wait()
+                      const omega = (await commitRecover.valuesAtRound(1)).omega
+                      console.log(
+                          omega,
+                          testcases[testCaseNum].omega,
+                          testcases[testCaseNum].recoveredOmega,
+                      )
+                  })
               })
           })
       })

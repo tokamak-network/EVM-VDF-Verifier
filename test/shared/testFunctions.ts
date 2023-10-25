@@ -304,7 +304,7 @@ export const revealCheck = async (
         userInfosAtRound,
         commitRevealValue,
     } = await getStatesAfterCommitOrReveal(commitRevealContract, receipt, signer, i)
-    console.log("valuesAtRoundvaluesAtRound, ", valuesAtRound)
+    //console.log("valuesAtRoundvaluesAtRound, ", valuesAtRound)
     const { omega, bStar, numOfParticipants, isCompleted } = valuesAtRound
 }
 
