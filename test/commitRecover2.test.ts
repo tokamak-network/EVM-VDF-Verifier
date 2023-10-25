@@ -8,9 +8,9 @@ import {
     ContractTransactionResponse,
 } from "ethers"
 import { network, deployments, ethers } from "hardhat"
-import { developmentChains, networkConfig } from "../../helper-hardhat-config"
-import { CommitRecover, CommitRecover__factory } from "../../typechain-types"
-import { simpleVDF, getRandomInt, randomNoRepeats, powerMod, gGen } from "../shared/utils"
+import { developmentChains, networkConfig } from "../helper-hardhat-config"
+import { CommitRecover, CommitRecover__factory } from "../typechain-types"
+import { simpleVDF, getRandomInt, randomNoRepeats, powerMod, gGen } from "./shared/utils"
 const { time } = require("@nomicfoundation/hardhat-network-helpers")
 
 !developmentChains.includes(network.name)
@@ -20,7 +20,7 @@ const { time } = require("@nomicfoundation/hardhat-network-helpers")
           let commitRecover: CommitRecover
           let accounts: SignerWithAddress[]
           let deployer: SignerWithAddress
-          let order: number
+          let N: number
           let g: number
           let h: number
           let c: number[] = []
@@ -50,22 +50,22 @@ const { time } = require("@nomicfoundation/hardhat-network-helpers")
                   deployed = await deployments.fixture(["commitRecover"])
                   commitRecoverContract = await ethers.getContract("CommitRecover")
                   commitRecover = commitRecoverContract.connect(deployer)
-                  order = Number(await commitRecover.order())
+                  N = Number(await commitRecover.N())
                   g = Number(await commitRecover.g())
-                  console.log("\t - Order of Group: ", order)
+                  console.log("\t - Order of Group: ", N)
                   console.log("\t - Time Delay for VDF: ", vdfTime)
                   console.log("")
                   console.log("g is generated as ", g)
                   vdfTime = 10
-                  h = simpleVDF(g, order, vdfTime)
+                  h = simpleVDF(g, N, vdfTime)
                   console.log("h is generated as ", h)
                   console.log("")
                   console.log("[+] Number of participants: ", member)
                   console.log("")
                   for (let i = 0; i < member; i++) {
-                      a.push(getRandomInt(0, order))
+                      a.push(getRandomInt(0, N))
                       console.log(`a_${i} is generated as `, a[i])
-                      c.push(powerMod(g, BigInt(a[i]), order))
+                      c.push(powerMod(g, BigInt(a[i]), N))
                       console.log(`c_${i} is generated as `, c[i])
                   }
                   console.log("[+] Random list : ", a)
@@ -109,40 +109,40 @@ const { time } = require("@nomicfoundation/hardhat-network-helpers")
                           "commitDuration should be the same as networkConfig[network.name].commitDuration",
                       )
                   })
-                  it("intitiallizes the commitRecoverDuration correctly, should be greater than commitDuration", async () => {
+                  it("intitiallizes the commitRevealDuration correctly, should be greater than commitDuration", async () => {
                       /// check commitRevealDuration
-                      const commitRecoverDuration = Number(
+                      const commitRevealDuration = Number(
                           await commitRecover.commitRevealDuration(),
                       )
                       assert.equal(
-                          commitRecoverDuration,
-                          networkConfig[network.config.chainId!].commitRecoverDuration,
-                          "commitRevealDuration should be the same as networkConfig[network.name].CommitRecoverDuration",
+                          commitRevealDuration,
+                          networkConfig[network.config.chainId!].commitRevealDuration,
+                          "commitRevealDuration should be the same as networkConfig[network.name].commitRevealDuration",
                       )
                       assert.isAbove(
-                          commitRecoverDuration,
+                          commitRevealDuration,
                           Number(await commitRecover.commitDuration()),
                       )
-                      console.log("commitRecoverDuration(commit + recover):", commitRecoverDuration)
+                      console.log("commitRevealDuration(commit + recover):", commitRevealDuration)
                   })
-                  it("intitiallizes the order correctly", async () => {
-                      /// check order
-                      const order = Number(await commitRecover.order())
+                  it("intitiallizes the N correctly", async () => {
+                      /// check N
+                      const N = Number(await commitRecover.N())
                       assert.equal(
-                          order,
-                          networkConfig[network.config.chainId!].order,
-                          "order should be the same as networkConfig[network.name].order",
+                          N,
+                          networkConfig[network.config.chainId!].N,
+                          "N should be the same as networkConfig[network.name].N",
                       )
-                      console.log("order:", order)
+                      console.log("N:", N)
                   })
-                  it("initializes the g correctly, should be less than order", async () => {
+                  it("initializes the g correctly, should be less than N", async () => {
                       /// check g
                       assert.equal(
                           Number(await commitRecover.g()),
                           g,
                           "g should be the same as networkConfig[network.name].g",
                       )
-                      assert.isBelow(g, order, "g should be less than order")
+                      assert.isBelow(g, N, "g should be less than N")
                       console.log("g:", g)
                   })
                   it("intitiallizes the omega correctly\n", async () => {
@@ -322,12 +322,12 @@ const { time } = require("@nomicfoundation/hardhat-network-helpers")
                                                   [c[memberToReveal], bStar],
                                               ),
                                           ),
-                                          order,
+                                          N,
                                       ),
                                       BigInt(a[memberToReveal]),
-                                      order,
+                                      N,
                                   )) %
-                              order
+                              N
 
                           await expect(txReceipt)
                               .to.emit(commitRecoverContract, "RevealA")
@@ -440,12 +440,12 @@ const { time } = require("@nomicfoundation/hardhat-network-helpers")
                                       [c[recovery_index], bStar],
                                   ),
                               ),
-                              order,
+                              N,
                           )
-                          recov = (recov * temp) % order
+                          recov = (recov * temp) % N
                       }
-                      recov = simpleVDF(recov, order, time)
-                      omega = (omega * recov) % order
+                      recov = simpleVDF(recov, N, time)
+                      omega = (omega * recov) % N
                       tx = await commitRecover.connect(deployer).recover(recov)
                       txReceipt = (await tx.wait(1)) as ContractTransactionReceipt
                       const recoveredTxBlock = await ethers.provider.getBlock(
@@ -499,8 +499,8 @@ const { time } = require("@nomicfoundation/hardhat-network-helpers")
                   console.log("starting again...")
                   args = {
                       commitDuration: networkConfig[chainId!].commitDuration,
-                      commitRevealDuration: networkConfig[chainId!].commitRecoverDuration,
-                      order: networkConfig[chainId!].order,
+                      commitRevealDuration: networkConfig[chainId!].commitRevealDuration,
+                      N: networkConfig[chainId!].N,
                       g: gGen(),
                   }
                   tx = await commitRecover.connect(deployer).start(args)
@@ -519,7 +519,7 @@ const { time } = require("@nomicfoundation/hardhat-network-helpers")
                           startedTimestamp,
                           args.commitDuration,
                           args.commitRevealDuration,
-                          args.order,
+                          args.N,
                           args.g,
                           round,
                       )
@@ -727,12 +727,12 @@ const { time } = require("@nomicfoundation/hardhat-network-helpers")
                                                       [c[memberToReveal], bStar],
                                                   ),
                                               ),
-                                              order,
+                                              N,
                                           ),
                                           BigInt(a[memberToReveal]),
-                                          order,
+                                          N,
                                       )) %
-                                  order
+                                  N
 
                               await expect(txReceipt)
                                   .to.emit(commitRecoverContract, "RevealA")
@@ -849,12 +849,12 @@ const { time } = require("@nomicfoundation/hardhat-network-helpers")
                                           [c[recovery_index], bStar],
                                       ),
                                   ),
-                                  order,
+                                  N,
                               )
-                              recov = (recov * temp) % order
+                              recov = (recov * temp) % N
                           }
-                          recov = simpleVDF(recov, order, time)
-                          omega = (omega * recov) % order
+                          recov = simpleVDF(recov, N, time)
+                          omega = (omega * recov) % N
                           tx = await commitRecover.connect(deployer).recover(recov)
                           txReceipt = (await tx.wait(1)) as ContractTransactionReceipt
                           const recoveredTxBlock = await ethers.provider.getBlock(
