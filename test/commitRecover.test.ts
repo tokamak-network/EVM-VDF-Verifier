@@ -42,6 +42,7 @@ const { time } = require("@nomicfoundation/hardhat-network-helpers")
           describe("deploy contract and check", () => {
               it("every testcase, deploy should pass", async () => {
                   for (let i = 0; i < testcases.length; i++) {
+                      console.log(i, i)
                       params.proofs = testcases[i].setupProofs
                       params.n = testcases[i].n
                       const { commitRecover, receipt } = await deployCommitRevealContract(params)
@@ -115,6 +116,7 @@ const { time } = require("@nomicfoundation/hardhat-network-helpers")
                       }
                       const tx = await commitRecover.calculateOmega()
                       const receipt = await tx.wait()
+                      console.log("calculateOmega gas used", receipt.gasUsed.toString())
                       const omega = (await commitRecover.valuesAtRound(1)).omega
                       console.log(
                           omega,
@@ -135,6 +137,7 @@ const { time } = require("@nomicfoundation/hardhat-network-helpers")
                       }
                       const tx = await commitRecover.recover(testcases[testCaseNum].recoveryProofs)
                       const receipt = await tx.wait()
+                      console.log("recover gas used", receipt.gasUsed.toString())
                       const omega = (await commitRecover.valuesAtRound(1)).omega
                       console.log(
                           omega,

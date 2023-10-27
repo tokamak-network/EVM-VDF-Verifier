@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity ^0.8.21;
+pragma solidity ^0.8.19;
 
 library Pietrzak_VDF {
     bytes16 private constant _SYMBOLS = "0123456789abcdef";

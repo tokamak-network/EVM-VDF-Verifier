@@ -61,10 +61,13 @@ export interface StartParams {
 }
 
 export const deployCommitRevealContract = async (params: StartParams) => {
-    let commitRecover = await ethers.deployContract("CommitRecover", [params])
+    let commitRecover = await ethers.deployContract("CommitRecover", [])
     commitRecover = await commitRecover.waitForDeployment()
     const tx = commitRecover.deploymentTransaction()
-    const receipt = await tx?.wait()
+    await tx?.wait()
+    const startTx = await commitRecover.start(params)
+    const receipt = await startTx.wait()
+    console.log("deploy gas used: ", receipt?.gasUsed?.toString())
     return { commitRecover, receipt }
 }
 
@@ -124,6 +127,7 @@ export const getStatesAfterDeployment = async (
     const commitDuration = await commitRevealContract.commitDuration()
     const commitRevealDuration = await commitRevealContract.commitRevealDuration()
     const round = await commitRevealContract.round()
+    console.log("round", round)
     const valuesAtRound = await commitRevealContract.valuesAtRound(round)
     const n = valuesAtRound.n
     const g = valuesAtRound.g
