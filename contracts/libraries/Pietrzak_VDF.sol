@@ -29,7 +29,7 @@ library Pietrzak_VDF {
         VDFClaim memory vdfClaim
     ) internal pure returns (SingHalvProofOutput memory) {
         if (vdfClaim.T == 1) {
-            if (vdfClaim.y == powerModOrder(vdfClaim.x, 2, vdfClaim.n)) {
+            if (vdfClaim.y == powerModN(vdfClaim.x, 2, vdfClaim.n)) {
                 return SingHalvProofOutput(true, false, 0, 0, 0);
             } else {
                 return SingHalvProofOutput(false, false, 0, 0, 0);
@@ -52,8 +52,8 @@ library Pietrzak_VDF {
                 SingHalvProofOutput(
                     true,
                     true,
-                    powerModOrder(powerModOrder(vdfClaim.x, r, vdfClaim.n), vdfClaim.v, vdfClaim.n),
-                    powerModOrder(powerModOrder(vdfClaim.v, r, vdfClaim.n), y, vdfClaim.n),
+                    powerModN(powerModN(vdfClaim.x, r, vdfClaim.n), vdfClaim.v, vdfClaim.n),
+                    powerModN(powerModN(vdfClaim.v, r, vdfClaim.n), y, vdfClaim.n),
                     tHalf
                 );
         }
@@ -81,11 +81,11 @@ library Pietrzak_VDF {
      * @param a base value
      * @param b exponent value
      * @return result of a^b mod N
-     * @notice powerModOrder function
+     * @notice powerModN function
      * @notice calculate a^b mod N
      * @notice O(log b) complexity
      */
-    function powerModOrder(uint256 a, uint256 b, uint256 n) internal pure returns (uint256) {
+    function powerModN(uint256 a, uint256 b, uint256 n) internal pure returns (uint256) {
         uint256 result = 1;
         while (b > 0) {
             if (b & 1 == 1) {
