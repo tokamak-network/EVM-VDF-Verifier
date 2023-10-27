@@ -205,7 +205,12 @@ contract CommitRecover {
                     Pietrzak_VDF.powerModOrder(
                         _h,
                         uint256(
-                            keccak256(abi.encodePacked(Pietrzak_VDF.toString(commitRevealValues[_round][i].c), Pietrzak_VDF.toString(_bStar)))
+                            keccak256(
+                                abi.encodePacked(
+                                    Pietrzak_VDF.toString(commitRevealValues[_round][i].c),
+                                    Pietrzak_VDF.toString(_bStar)
+                                )
+                            )
                         ) % _n,
                         _n
                     ),
@@ -220,6 +225,7 @@ contract CommitRecover {
         }
         valuesAtRound[_round].omega = _omega;
         valuesAtRound[_round].isCompleted = _isCompleted; //false when not all participants have revealed
+        stage = Stages.Finished;
         emit CalculatedOmega(_round, _omega, block.timestamp, _isCompleted);
         return _omega;
     }
@@ -248,7 +254,11 @@ contract CommitRecover {
             uint256 _c = commitRevealValues[round][i].c;
             uint256 temp = Pietrzak_VDF.powerModOrder(
                 _c,
-                uint256(keccak256(abi.encodePacked(Pietrzak_VDF.toString(_c), Pietrzak_VDF.toString(_bStar)))) % _n,
+                uint256(
+                    keccak256(
+                        abi.encodePacked(Pietrzak_VDF.toString(_c), Pietrzak_VDF.toString(_bStar))
+                    )
+                ) % _n,
                 _n
             );
             recov = mulmod(recov, temp, _n);
@@ -256,6 +266,7 @@ contract CommitRecover {
         if (recov != proofs[0].x) revert RecovNotMatchX();
         valuesAtRound[round].isCompleted = true;
         valuesAtRound[round].omega = proofs[0].y;
+        stage = Stages.Finished;
         emit Recovered(msg.sender, recov, proofs[0].y, block.timestamp);
     }
 
@@ -315,10 +326,10 @@ contract CommitRecover {
             if (count != 0) {
                 nextStage();
                 valuesAtRound[round].numOfParticipants = count;
-                uint256 _bStar = uint256(keccak256(abi.encodePacked(commitsString))) % valuesAtRound[round].n;
+                uint256 _bStar = uint256(keccak256(abi.encodePacked(commitsString))) %
+                    valuesAtRound[round].n;
                 valuesAtRound[round].bStar = _bStar;
             } else {
-                //only one participant
                 stage = Stages.Finished;
             }
         }
