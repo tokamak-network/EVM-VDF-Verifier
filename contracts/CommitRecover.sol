@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity ^0.8.21;
+pragma solidity ^0.8.19;
 
 import "./libraries/Pietrzak_VDF.sol";
 import "hardhat/console.sol";
@@ -121,35 +121,9 @@ contract CommitRecover {
 
     /* Functions */
     /**
-     * @param params start parameters
-     * @notice CommitRecover constructor
-     * @notice The constructor is called when the contract is deployed and commit starts right away
      */
-    constructor(StartParams memory params) {
-        if (params.proofs[0].x >= params.n) revert GreaterOrEqualThanOrder();
-        if (params.commitDuration >= params.commitRevealDuration)
-            revert CommitRevealDurationLessThanCommitDuration();
-        Pietrzak_VDF.verifyRecursiveHalvingProof(params.proofs);
-        stage = Stages.Commit;
-        startTime = block.timestamp;
-        commitDuration = params.commitDuration;
-        commitRevealDuration = params.commitRevealDuration;
-        round = 1;
-        valuesAtRound[1].T = params.proofs[0].T;
-        valuesAtRound[1].g = params.proofs[0].x;
-        valuesAtRound[1].h = params.proofs[0].y;
-        valuesAtRound[1].n = params.n;
-        emit Start(
-            msg.sender,
-            block.timestamp,
-            params.commitDuration,
-            params.commitRevealDuration,
-            params.n,
-            params.proofs[0].x,
-            params.proofs[0].y,
-            params.proofs[0].T,
-            round
-        );
+    constructor() {
+        stage = Stages.Finished;
     }
 
     /**
@@ -240,13 +214,9 @@ contract CommitRecover {
                 ),
                 _n
             );
-            console.log("omega", _omega);
-            console.log(_h, commitRevealValues[_round][i].c, _n, commitRevealValues[_round][i].a);
-            console.log(_bStar);
-            console.log(uint256(
-                            keccak256(abi.encodePacked(commitRevealValues[_round][i].c, _bStar))
-                        ));
-
+            console.log(_h, commitRevealValues[_round][i].c, _bStar);
+            console.log(_n);
+            console.log(_omega);
         }
         valuesAtRound[_round].omega = _omega;
         valuesAtRound[_round].isCompleted = _isCompleted; //false when not all participants have revealed
@@ -307,6 +277,7 @@ contract CommitRecover {
             revert StageNotFinished();
         }
         Pietrzak_VDF.verifyRecursiveHalvingProof(params.proofs);
+        round += 1;
         stage = Stages.Commit;
         startTime = block.timestamp;
         commitDuration = params.commitDuration;
@@ -315,7 +286,6 @@ contract CommitRecover {
         valuesAtRound[round].g = params.proofs[0].x;
         valuesAtRound[round].h = params.proofs[0].y;
         valuesAtRound[round].n = params.n;
-        round += 1;
         count = 0;
         commitsString = "";
         emit Start(
@@ -345,10 +315,7 @@ contract CommitRecover {
             if (count != 0) {
                 nextStage();
                 valuesAtRound[round].numOfParticipants = count;
-                console.log("----");
-                console.log(commitsString);
                 uint256 _bStar = uint256(keccak256(abi.encodePacked(commitsString))) % valuesAtRound[round].n;
-                console.log(_bStar);
                 valuesAtRound[round].bStar = _bStar;
             } else {
                 //only one participant
