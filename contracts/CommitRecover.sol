@@ -320,9 +320,8 @@ contract CommitRecover {
      * @notice it will update the stage to the next stage if needed
      */
     function checkStage(Stages _stage) internal {
-        Stages _currentStage = stage;
         uint256 _startTime = startTime;
-        if (_currentStage == Stages.Commit && block.timestamp >= _startTime + commitDuration) {
+        if (stage == Stages.Commit && block.timestamp >= _startTime + commitDuration) {
             if (count != 0) {
                 nextStage();
                 valuesAtRound[round].numOfParticipants = count;
@@ -334,7 +333,7 @@ contract CommitRecover {
             }
         }
         if (
-            _currentStage == Stages.Reveal &&
+            stage == Stages.Reveal &&
             (block.timestamp >= _startTime + commitRevealDuration || count == 0)
         ) {
             nextStage();
