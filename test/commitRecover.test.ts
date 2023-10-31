@@ -7,7 +7,6 @@ import { CommitRecover, CommitRecover__factory } from "../typechain-types"
 import { testCases, TestCase } from "./shared/testcases"
 import {
     createTestCases,
-    StartParams,
     deployCommitRevealContract,
     initializedContractCorrectly,
     deployFirstTestCaseCommitRevealContract,
@@ -23,12 +22,8 @@ const { time } = require("@nomicfoundation/hardhat-network-helpers")
           const testcases: TestCase[] = createTestCases(testCases)
           const chainId = network.config.chainId
           let deployer: SignerWithAddress
-          let params: StartParams = {
-              commitDuration: networkConfig[chainId!].commitDuration,
-              commitRevealDuration: networkConfig[chainId!].commitRevealDuration,
-              proofs: [],
-              n: 0n,
-          }
+          let commitDuration = networkConfig[chainId!].commitDuration
+          let commitRevealDuration = networkConfig[chainId!].commitRevealDuration
           let _n: BigNumberish
           before(async () => {
               deployer = await ethers.getSigner((await getNamedAccounts()).deployer)
@@ -43,8 +38,7 @@ const { time } = require("@nomicfoundation/hardhat-network-helpers")
               it("every testcase, deploy should pass", async () => {
                   for (let i = 0; i < testcases.length; i++) {
                       console.log(i, i)
-                      params.proofs = testcases[i].setupProofs
-                      params.n = testcases[i].n
+                      let params = [commitDuration, commitRevealDuration, testcases[i].n, testcases[i].setupProofs]
                       const { commitRecover, receipt } = await deployCommitRevealContract(params)
                       expect(commitRecover.target).to.properAddress
                       await initializedContractCorrectly(
@@ -85,9 +79,12 @@ const { time } = require("@nomicfoundation/hardhat-network-helpers")
                       for (let i = 0; i < firstcommitList.length; i++) {
                           await commit(commitRecover, signers[i], firstcommitList[i], i, 1)
                       }
-                      await expect(
-                          commitRecover.reveal(firstrandomList[0]),
-                      ).to.be.revertedWithCustomError(commitRecover, "FunctionInvalidAtThisStage")
+                    //   await expect(
+                    //       commitRecover.reveal(firstrandomList[0]),
+                    //   ).to.be.revertedWithCustomError(commitRecover, "FunctionInvalidAtThisStage")
+                    await expect(
+                        commitRecover.reveal(firstrandomList[0]),
+                    ).to.be.revertedWith("FunctionInvalidAtThisStage");
                   })
                   it("reveal should pass", async () => {
                       const { commitRecover } = await loadFixture(
@@ -131,11 +128,12 @@ const { time } = require("@nomicfoundation/hardhat-network-helpers")
                       for (let i = 0; i < firstcommitList.length; i++) {
                           await commit(commitRecover, signers[i], firstcommitList[i], i, 1)
                       }
+                      //await commit(commitRecover, signers[0], firstcommitList[0], 0, 1)
                       await time.increase(networkConfig[network.config.chainId!].commitDuration)
                       for (let i = 0; i < firstrandomList.length - 2; i++) {
                           await reveal(commitRecover, signers[i], firstrandomList[i], i, 1)
                       }
-                      const tx = await commitRecover.recover(testcases[testCaseNum].recoveryProofs)
+                      const tx = await commitRecover.recover(1, testcases[testCaseNum].recoveryProofs)
                       const receipt = await tx.wait()
                       console.log("recover gas used", receipt.gasUsed.toString())
                       const omega = (await commitRecover.valuesAtRound(1)).omega
