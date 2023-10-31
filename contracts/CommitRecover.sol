@@ -3,6 +3,8 @@
 pragma solidity ^0.8.19;
 
 import "./libraries/Pietrzak_VDF.sol";
+//import ownable
+import "@openzeppelin/contracts/access/Ownable.sol";
 
 /**
  * @title Bicorn-RX Commit-Reveal-Recover
@@ -13,7 +15,7 @@ import "./libraries/Pietrzak_VDF.sol";
  *    3. Finished: Calculate or recover the random number
  *    4. go to 1
  */
-contract CommitRecover {
+contract CommitRecover is Ownable {
     /* Type declaration */
     /**
      * @notice Stages of the contract
@@ -111,7 +113,7 @@ contract CommitRecover {
      * @notice The participant can only commit once
      * @notice check period, update stage if needed, revert if not currently at commit stage
      */
-    function commit(uint256 _commit) public shouldBeLessThanN(_commit) {
+    function commit(uint256 _commit) public shouldBeLessThanN(_commit) onlyOwner {
         require(!userInfosAtRound[msg.sender][round].committed, "AlreadyCommitted");
         checkStage();
         equalStage(Stages.Commit);
