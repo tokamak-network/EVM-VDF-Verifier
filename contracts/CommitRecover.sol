@@ -45,12 +45,6 @@ contract CommitRecover {
         bool committed; // true if committed
         bool revealed; // true if revealed
     }
-    struct StartParams {
-        uint256 commitDuration;
-        uint256 commitRevealDuration;
-        uint256 n;
-        Pietrzak_VDF.VDFClaim[] proofs;
-    }
 
     /* State variables */
     uint256 public startTime;
@@ -119,7 +113,8 @@ contract CommitRecover {
      */
     function commit(uint256 _commit) public shouldBeLessThanN(_commit) {
         require(!userInfosAtRound[msg.sender][round].committed, "AlreadyCommitted");
-        checkStage(Stages.Commit);
+        checkStage();
+        equalStage(Stages.Commit);
         uint256 _count = count;
         string memory _commitsString = commitsString;
         _commitsString = string.concat(_commitsString, Pietrzak_VDF.toString(_commit));
@@ -153,7 +148,8 @@ contract CommitRecover {
                 commitRevealValues[_round][_user.index].c,
             "ANotMatchCommit"
         );
-        checkStage(Stages.Reveal);
+        checkStage();
+        equalStage(Stages.Reveal);
         uint256 _count = --count;
         commitRevealValues[_round][_user.index].a = _a;
         if (_count == 0) {
@@ -168,7 +164,8 @@ contract CommitRecover {
         uint256 _round = round;
         require(valuesAtRound[_round].isAllRevealed, "NotAllRevealed");
         require(!valuesAtRound[_round].isCompleted, "OmegaAlreadyCompleted");
-        checkStage(Stages.Finished);
+        checkStage();
+        equalStage(Stages.Finished);
         uint256 _numOfParticipants = valuesAtRound[_round].numOfParticipants;
         uint256 _omega = 1;
         uint256 _bStar = valuesAtRound[_round].bStar;
@@ -219,7 +216,9 @@ contract CommitRecover {
         uint256 recov = 1;
         uint256 _n = valuesAtRound[_round].n;
         uint256 _bStar = valuesAtRound[_round].bStar;
-        require(stage != Stages.Commit, "FunctionInvalidAtThisStage");
+        //require(stage != Stages.Commit, "FunctionInvalidAtThisStage");
+        checkStage();
+        overStage(Stages.Commit);
         require(!valuesAtRound[_round].isCompleted, "OmegaAlreadyCompleted");
         require(valuesAtRound[_round].T == proofs[0].T, "TNotMatched");
         Pietrzak_VDF.verifyRecursiveHalvingProof(proofs);
@@ -245,7 +244,6 @@ contract CommitRecover {
 
     /**
      *
-     * @param params start parameters
      * @notice Start function
      * @notice The contract must be in the Finished stage
      * @notice The commit period must be less than the commit + reveal period
@@ -253,46 +251,51 @@ contract CommitRecover {
      * @notice reset count, commitsString, isHAndBStarSet, stage, startTime, commitDuration, commitRevealDuration, n, g, omega
      * @notice increase round
      */
-    function start(StartParams calldata params) public {
-        require(params.proofs[0].x < params.n, "GreaterOrEqualThanN");
+    function start(
+        uint256 _commitDuration,
+        uint256 _commitRevealDuration,
+        uint256 _n,
+        Pietrzak_VDF.VDFClaim[] memory _proofs
+    ) public {
+        require(_proofs[0].x < _n, "GreaterOrEqualThanN");
+
         require(
-            params.commitDuration < params.commitRevealDuration,
+            _commitDuration < _commitRevealDuration,
             "CommitRevealDurationLessThanCommitDuration"
         );
         require(stage == Stages.Finished, "StageNotFinished");
-        Pietrzak_VDF.verifyRecursiveHalvingProof(params.proofs);
+        Pietrzak_VDF.verifyRecursiveHalvingProof(_proofs);
         round += 1;
         stage = Stages.Commit;
         startTime = block.timestamp;
-        commitDuration = params.commitDuration;
-        commitRevealDuration = params.commitRevealDuration;
-        valuesAtRound[round].T = params.proofs[0].T;
-        valuesAtRound[round].g = params.proofs[0].x;
-        valuesAtRound[round].h = params.proofs[0].y;
-        valuesAtRound[round].n = params.n;
+        commitDuration = _commitDuration;
+        commitRevealDuration = _commitRevealDuration;
+        valuesAtRound[round].T = _proofs[0].T;
+        valuesAtRound[round].g = _proofs[0].x;
+        valuesAtRound[round].h = _proofs[0].y;
+        valuesAtRound[round].n = _n;
         count = 0;
         commitsString = "";
         emit Start(
             msg.sender,
             block.timestamp,
-            params.commitDuration,
-            params.commitRevealDuration,
-            params.n,
-            params.proofs[0].x,
-            params.proofs[0].y,
-            params.proofs[0].T,
+            _commitDuration,
+            _commitRevealDuration,
+            _n,
+            _proofs[0].x,
+            _proofs[0].y,
+            _proofs[0].T,
             round
         );
     }
 
     /**
-     * @param _stage the stage to check
      * @notice checkStage function
      * @notice revert if the current stage is not the given stage
      * @notice this function is used to check if the current stage is the given stage
      * @notice it will update the stage to the next stage if needed
      */
-    function checkStage(Stages _stage) public {
+    function checkStage() public {
         uint256 _startTime = startTime;
         if (stage == Stages.Commit && block.timestamp >= _startTime + commitDuration) {
             if (count != 0) {
@@ -311,7 +314,14 @@ contract CommitRecover {
         ) {
             nextStage();
         }
+    }
+
+    function equalStage(Stages _stage) internal view {
         require(stage == _stage, "FunctionInvalidAtThisStage");
+    }
+
+    function overStage(Stages _stage) internal view {
+        require(stage > _stage, "FunctionInvalidAtThisStage");
     }
 
     /**
