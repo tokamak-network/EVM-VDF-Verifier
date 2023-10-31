@@ -215,10 +215,10 @@ contract CommitRecover {
     ) public shouldBeLessThanN(proofs[0].y) {
         uint256 recov = 1;
         uint256 _n = valuesAtRound[_round].n;
-        uint256 _bStar = valuesAtRound[_round].bStar;
         //require(stage != Stages.Commit, "FunctionInvalidAtThisStage");
         checkStage();
         overStage(Stages.Commit);
+        uint256 _bStar = valuesAtRound[_round].bStar;
         require(!valuesAtRound[_round].isCompleted, "OmegaAlreadyCompleted");
         require(valuesAtRound[_round].T == proofs[0].T, "TNotMatched");
         Pietrzak_VDF.verifyRecursiveHalvingProof(proofs);
