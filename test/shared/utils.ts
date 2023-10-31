@@ -11,9 +11,9 @@ export const gGen = () => {
     return generatorList[index]
 }
 
-export const simpleVDF = (a: number, order: number, time: number) => {
+export const simpleVDF = (a: number, N: number, time: number) => {
     for (let i = 0; i < time; i++) {
-        a = (a * a) % order
+        a = (a * a) % N
     }
     return a
 }
