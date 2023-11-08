@@ -26,7 +26,7 @@ library Pietrzak_VDF {
     }
 
     function processSingleHalvingProof(
-        VDFClaim memory vdfClaim
+        VDFClaim calldata vdfClaim
     ) internal pure returns (SingHalvProofOutput memory) {
         if (vdfClaim.T == 1) {
             if (vdfClaim.y == powerModN(vdfClaim.x, 2, vdfClaim.n)) {
@@ -59,7 +59,9 @@ library Pietrzak_VDF {
         }
     }
 
-    function verifyRecursiveHalvingProof(VDFClaim[] memory proofList) internal pure returns (bool) {
+    function verifyRecursiveHalvingProof(
+        VDFClaim[] calldata proofList
+    ) internal pure returns (bool) {
         uint256 proofSize = proofList.length;
 
         for (uint256 i = 0; i < proofSize; i++) {

@@ -105,27 +105,6 @@ contract CommitRecover {
     }
 
     /**
-     * @param _commit participant's commit value
-     * @notice Commit function
-     * @notice The participant's commit value must be less than the modulor
-     * @notice The participant can only commit once
-     * @notice check period, update stage if needed, revert if not currently at commit stage
-     */
-    function commit(uint256 _commit) public shouldBeLessThanN(_commit) {
-        require(!userInfosAtRound[msg.sender][round].committed, "AlreadyCommitted");
-        checkStage();
-        equalStage(Stages.Commit);
-        uint256 _count = count;
-        string memory _commitsString = commitsString;
-        _commitsString = string.concat(_commitsString, Pietrzak_VDF.toString(_commit));
-        userInfosAtRound[msg.sender][round] = UserAtRound(_count, true, false);
-        commitRevealValues[round][_count] = CommitRevealValue(_commit, 0, msg.sender); //index starts from 0, so _count -1
-        commitsString = _commitsString;
-        count = ++_count;
-        emit CommitC(msg.sender, _commit, _commitsString, _count, block.timestamp);
-    }
-
-    /**
      * @param _a participant's reveal value
      * @notice Reveal function
      * @notice h must be set before reveal
@@ -255,7 +234,7 @@ contract CommitRecover {
         uint256 _commitDuration,
         uint256 _commitRevealDuration,
         uint256 _n,
-        Pietrzak_VDF.VDFClaim[] memory _proofs
+        Pietrzak_VDF.VDFClaim[] calldata _proofs
     ) public {
         require(_proofs[0].x < _n, "GreaterOrEqualThanN");
 
@@ -314,6 +293,27 @@ contract CommitRecover {
         ) {
             nextStage();
         }
+    }
+
+    /**
+     * @param _commit participant's commit value
+     * @notice Commit function
+     * @notice The participant's commit value must be less than the modulor
+     * @notice The participant can only commit once
+     * @notice check period, update stage if needed, revert if not currently at commit stage
+     */
+    function commit(uint256 _commit) public shouldBeLessThanN(_commit) {
+        require(!userInfosAtRound[msg.sender][round].committed, "AlreadyCommitted");
+        checkStage();
+        equalStage(Stages.Commit);
+        uint256 _count = count;
+        string memory _commitsString = commitsString;
+        _commitsString = string.concat(_commitsString, Pietrzak_VDF.toString(_commit));
+        userInfosAtRound[msg.sender][round] = UserAtRound(_count, true, false);
+        commitRevealValues[round][_count] = CommitRevealValue(_commit, 0, msg.sender); //index starts from 0, so _count -1
+        commitsString = _commitsString;
+        count = ++_count;
+        emit CommitC(msg.sender, _commit, _commitsString, _count, block.timestamp);
     }
 
     function equalStage(Stages _stage) internal view {
