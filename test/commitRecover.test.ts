@@ -130,9 +130,10 @@ const { time } = require("@nomicfoundation/hardhat-network-helpers")
                       }
                       //await commit(commitRecover, signers[0], firstcommitList[0], 0, 1)
                       await time.increase(networkConfig[network.config.chainId!].commitDuration)
-                      for (let i = 0; i < firstrandomList.length - 2; i++) {
-                          await reveal(commitRecover, signers[i], firstrandomList[i], i, 1)
-                      }
+                    //   for (let i = 0; i < firstrandomList.length - 2; i++) {
+                    //     console.log("i", i);
+                    //       await reveal(commitRecover, signers[i], firstrandomList[i], i, 1)
+                    //   }
                       const tx = await commitRecover.recover(1, testcases[testCaseNum].recoveryProofs)
                       const receipt = await tx.wait()
                       console.log("recover gas used", receipt.gasUsed.toString())
