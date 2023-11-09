@@ -37,7 +37,7 @@ const { time } = require("@nomicfoundation/hardhat-network-helpers")
           describe("deploy contract and check", () => {
               it("every testcase, deploy should pass", async () => {
                   for (let i = 0; i < testcases.length; i++) {
-                      console.log(i, i)
+                      //console.log(i, i)
                       let params = [commitDuration, commitRevealDuration, testcases[i].n, testcases[i].setupProofs]
                       const { commitRecover, receipt } = await deployCommitRevealContract(params)
                       expect(commitRecover.target).to.properAddress
@@ -79,9 +79,6 @@ const { time } = require("@nomicfoundation/hardhat-network-helpers")
                       for (let i = 0; i < firstcommitList.length; i++) {
                           await commit(commitRecover, signers[i], firstcommitList[i], i, 1)
                       }
-                    //   await expect(
-                    //       commitRecover.reveal(firstrandomList[0]),
-                    //   ).to.be.revertedWithCustomError(commitRecover, "FunctionInvalidAtThisStage")
                     await expect(
                         commitRecover.reveal(firstrandomList[0]),
                     ).to.be.revertedWith("FunctionInvalidAtThisStage");
@@ -100,7 +97,7 @@ const { time } = require("@nomicfoundation/hardhat-network-helpers")
                   })
               })
               describe("calculate Omega", () => {
-                  it("Omega should be correct", async () => {
+                  it("All Revealed, Calculated Omega should be correct", async () => {
                       const { commitRecover } = await loadFixture(
                           deployFirstTestCaseCommitRevealContract,
                       )
@@ -115,11 +112,11 @@ const { time } = require("@nomicfoundation/hardhat-network-helpers")
                       const receipt = await tx.wait()
                       console.log("calculateOmega gas used", receipt.gasUsed.toString())
                       const omega = (await commitRecover.valuesAtRound(1)).omega
-                      console.log(
-                          omega,
-                          testcases[testCaseNum].omega,
-                          testcases[testCaseNum].recoveredOmega,
-                      )
+                    //   console.log(
+                    //       omega,
+                    //       testcases[testCaseNum].omega,
+                    //       testcases[testCaseNum].recoveredOmega,
+                    //   )
                   })
                   it("Recovered Omega should be correct", async () => {
                       const { commitRecover } = await loadFixture(
@@ -138,11 +135,11 @@ const { time } = require("@nomicfoundation/hardhat-network-helpers")
                       const receipt = await tx.wait()
                       console.log("recover gas used", receipt.gasUsed.toString())
                       const omega = (await commitRecover.valuesAtRound(1)).omega
-                      console.log(
-                          omega,
-                          testcases[testCaseNum].omega,
-                          testcases[testCaseNum].recoveredOmega,
-                      )
+                    //   console.log(
+                    //       omega,
+                    //       testcases[testCaseNum].omega,
+                    //       testcases[testCaseNum].recoveredOmega,
+                    //   )
                   })
               })
           })

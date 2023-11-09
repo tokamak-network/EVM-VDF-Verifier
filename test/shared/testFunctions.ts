@@ -116,7 +116,7 @@ export const getStatesAfterDeployment = async (
     const commitDuration = await commitRevealContract.commitDuration()
     const commitRevealDuration = await commitRevealContract.commitRevealDuration()
     const round = await commitRevealContract.round()
-    console.log("round", round)
+    //console.log("round", round)
     const valuesAtRound = await commitRevealContract.valuesAtRound(round)
     const n = valuesAtRound.n
     const g = valuesAtRound.g
