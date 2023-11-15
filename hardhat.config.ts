@@ -7,6 +7,7 @@ import "dotenv/config"
 import "solidity-coverage"
 import "hardhat-deploy"
 import "@nomicfoundation/hardhat-chai-matchers"
+import "hardhat-contract-sizer"
 import { HardhatUserConfig } from "hardhat/config"
 /** @type import('hardhat/config').HardhatUserConfig */
 
@@ -110,10 +111,11 @@ const config: HardhatUserConfig = {
         ],
     },
     gasReporter: {
-        enabled: false,
+        enabled: true,
         currency: "USD",
         outputFile: "gas-report.txt",
         noColors: true,
+        gasPriceApi: "https://api.etherscan.io/api?module=proxy&action=eth_gasPrice",
         coinmarketcap: process.env.COINMARKETCAP_API_KEY,
     },
     namedAccounts: {

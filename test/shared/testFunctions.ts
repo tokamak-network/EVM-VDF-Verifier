@@ -221,6 +221,7 @@ export const commit = async (
 ) => {
     const tx = await (commitRecoverContract.connect(signer) as Contract).commit(commit)
     const receipt = await tx.wait()
+    console.log(receipt.gasUsed.toString())
     await commitCheck(commitRecoverContract, receipt, commit, signer, i, round)
 }
 
