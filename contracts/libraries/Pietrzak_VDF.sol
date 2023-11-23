@@ -4,49 +4,56 @@ pragma solidity ^0.8.19;
 
 library Pietrzak_VDF {
     bytes16 private constant _SYMBOLS = "0123456789abcdef";
+    //abi.encodePacked(uint256(1))
+    bytes private constant _ONE = abi.encodePacked(uint256(1));
+    bytes private constant _TWO = abi.encodePacked(uint256(2));
+
+    struct BigNumber {
+        bytes val;
+        uint256 bitlen;
+    }
 
     struct VDFClaim {
-        uint256 n;
-        uint256 x;
-        uint256 y;
         uint256 T;
-        uint256 v;
+        bytes n;
+        bytes x;
+        bytes y;
+        bytes v;
     }
 
     struct SingHalvProofOutput {
         bool verified;
         bool calculated;
-        uint256 x_prime;
-        uint256 y_prime;
+        bytes x_prime;
+        bytes y_prime;
         uint256 T_half;
     }
 
-    function modHash(uint256 n, string memory strings) internal pure returns (uint256) {
-        return uint256(keccak256(abi.encodePacked(strings))) % n;
+    function modHash(bytes memory n, bytes memory _strings) internal view returns (bytes memory) {
+        //return uint256(keccak256(abi.encodePacked(strings))) % n;
+        return powerModN(abi.encodePacked(keccak256(_strings)), _ONE, n);
     }
 
     function processSingleHalvingProof(
         VDFClaim calldata vdfClaim
-    ) internal pure returns (SingHalvProofOutput memory) {
+    ) internal view returns (SingHalvProofOutput memory) {
         if (vdfClaim.T == 1) {
-            if (vdfClaim.y == powerModN(vdfClaim.x, 2, vdfClaim.n)) {
-                return SingHalvProofOutput(true, false, 0, 0, 0);
+            //if (vdfClaim.y == powerModN(vdfClaim.x, 2, vdfClaim.n)) {
+            if (equal(vdfClaim.y, powerModN(vdfClaim.x, vdfClaim.v, vdfClaim.n))) {
+                return SingHalvProofOutput(true, false, "", "", 0);
             } else {
-                return SingHalvProofOutput(false, false, 0, 0, 0);
+                return SingHalvProofOutput(false, false, "", "", 0);
             }
         } else {
             uint256 tHalf;
-            uint256 y = vdfClaim.y;
-            uint256 r = modHash(
-                vdfClaim.x,
-                string.concat(toString(vdfClaim.y), toString(vdfClaim.v))
-            );
+            bytes memory y = vdfClaim.y;
+            bytes memory r = modHash(vdfClaim.x, bytes.concat(vdfClaim.y, vdfClaim.v));
 
             if (vdfClaim.T & 1 == 0) {
                 tHalf = vdfClaim.T / 2;
             } else {
                 tHalf = (vdfClaim.T + 1) / 2;
-                y = (y * y) % vdfClaim.n;
+                y = powerModN(y, _TWO, vdfClaim.n);
             }
             return
                 SingHalvProofOutput(
@@ -61,7 +68,7 @@ library Pietrzak_VDF {
 
     function verifyRecursiveHalvingProof(
         VDFClaim[] calldata proofList
-    ) internal pure returns (bool) {
+    ) internal view returns (bool) {
         uint256 proofSize = proofList.length;
 
         for (uint256 i = 0; i < proofSize; i++) {
@@ -70,97 +77,140 @@ library Pietrzak_VDF {
                 return false;
             } else {
                 if (!output.calculated) return true;
-                else if (output.x_prime != proofList[i + 1].x) return false;
-                else if (output.y_prime != proofList[i + 1].y) return false;
+                //else if (output.x_prime != proofList[i + 1].x) return false;
+                else if (!equal(output.x_prime, proofList[i + 1].x)) return false;
+                //else if (output.y_prime != proofList[i + 1].y) return false;
+                else if (!equal(output.y_prime, proofList[i + 1].y)) return false;
                 else if (output.T_half != proofList[i + 1].T) return false;
             }
         }
         return true;
     }
 
-    /**
-     *
-     * @param a base value
-     * @param b exponent value
-     * @return result of a^b mod N
-     * @notice powerModN function
-     * @notice calculate a^b mod N
-     * @notice O(log b) complexity
-     */
-    function powerModN(uint256 a, uint256 b, uint256 n) internal pure returns (uint256) {
-        uint256 result = 1;
-        while (b > 0) {
-            if (b & 1 == 1) {
-                result = mulmod(result, a, n);
-            }
-            a = mulmod(a, a, n);
-            b = b / 2;
-        }
-        return result;
-    }
+    // /**
+    //  *
+    //  * @param a base value
+    //  * @param b exponent value
+    //  * @return result of a^b mod N
+    //  * @notice powerModN function
+    //  * @notice calculate a^b mod N
+    //  * @notice O(log b) complexity
+    //  */
+    // function powerModN(uint256 a, uint256 b, uint256 n) internal pure returns (uint256) {
+    //     uint256 result = 1;
+    //     while (b > 0) {
+    //         if (b & 1 == 1) {
+    //             result = mulmod(result, a, n);
+    //         }
+    //         a = mulmod(a, a, n);
+    //         b = b / 2;
+    //     }
+    //     return result;
+    // }
 
-    /**
-     * OpenZeppelin Contracts (last updated v4.9.0) (utils/Strings.sol)
-     * @dev Converts a `uint256` to its ASCII `string` decimal representation.
-     */
-    function toString(uint256 value) internal pure returns (string memory) {
-        unchecked {
-            uint256 length = log10(value) + 1;
-            string memory buffer = new string(length);
-            uint256 ptr;
-            /// @solidity memory-safe-assembly
-            assembly {
-                ptr := add(buffer, add(32, length))
+    function powerModN(
+        bytes memory _base,
+        bytes memory _exp,
+        bytes memory _mod
+    ) public view returns (bytes memory result) {
+        assembly {
+            let bl := mload(_base)
+            let el := mload(_exp)
+            let ml := mload(_mod)
+            let fmp := mload(0x40)
+
+            mstore(fmp, bl)
+            mstore(add(fmp, 32), el)
+            mstore(add(fmp, 64), ml)
+            if iszero(staticcall(gas(), 0x4, add(_base, 32), bl, add(fmp, 96), bl)) {
+                revert(0, 0)
             }
-            while (true) {
-                ptr--;
-                /// @solidity memory-safe-assembly
-                assembly {
-                    mstore8(ptr, byte(mod(value, 10), _SYMBOLS))
+            let offset := add(96, bl)
+            if iszero(staticcall(gas(), 0x4, add(_exp, 32), el, add(fmp, offset), el)) {
+                revert(0, 0)
+            }
+            offset := add(offset, el)
+            if iszero(staticcall(gas(), 0x4, add(_mod, 32), ml, add(fmp, offset), ml)) {
+                revert(0, 0)
+            }
+            offset := add(offset, ml)
+            if iszero(staticcall(gas(), 0x5, fmp, offset, add(fmp, 96), ml)) {
+                revert(0, 0)
+            }
+            // point to the location of the return value (length, bits)
+            //result := add(fmp, 64)
+            let length := ml
+            let ptr := add(fmp, 96)
+            /// the following code removes any leading words containing all zeros in the result.
+            for {
+
+            } eq(eq(length, 32), 0) {
+
+            } {
+                switch eq(mload(ptr), 0)
+                case 1 {
+                    ptr := add(ptr, 32)
                 }
-                value /= 10;
-                if (value == 0) break;
+                default {
+                    break
+                }
+                length := sub(length, 32)
             }
-            return buffer;
+            result := sub(ptr, 32)
+            mstore(result, length)
+
+            mstore(0x40, add(add(fmp, 96), ml))
         }
     }
 
-    /**
-     * openzeppelin-contracts/contracts/utils/math/Math.sol
-     * @dev Return the log in base 10, rounded down, of a positive value.
-     * Returns 0 if given 0.
-     */
-    function log10(uint256 value) internal pure returns (uint256) {
-        uint256 result = 0;
-        unchecked {
-            if (value >= 10 ** 64) {
-                value /= 10 ** 64;
-                result += 64;
+    // function mul(bytes memory _a, bytes memory _b) internal view returns (bytes memory) {
+    //     bytes memory addResult = _add(_a, _b);
+    // }
+
+    function init(bytes memory val) internal view returns (BigNumber memory result) {
+        return BigNumber(val, val.length * 8);
+    }
+
+    function equal(bytes memory _preBytes, bytes memory _postBytes) internal pure returns (bool) {
+        bool success = true;
+
+        assembly {
+            let length := mload(_preBytes)
+
+            // if lengths don't match the arrays are not equal
+            switch eq(length, mload(_postBytes))
+            case 1 {
+                // cb is a circuit breaker in the for loop since there's
+                //  no said feature for inline assembly loops
+                // cb = 1 - don't breaker
+                // cb = 0 - break
+                let cb := 1
+
+                let mc := add(_preBytes, 0x20)
+                let end := add(mc, length)
+
+                for {
+                    let cc := add(_postBytes, 0x20)
+                    // the next line is the loop condition:
+                    // while(uint256(mc < end) + cb == 2)
+                } eq(add(lt(mc, end), cb), 2) {
+                    mc := add(mc, 0x20)
+                    cc := add(cc, 0x20)
+                } {
+                    // if any of these checks fails then arrays are not equal
+                    if iszero(eq(mload(mc), mload(cc))) {
+                        // unsuccess:
+                        success := 0
+                        cb := 0
+                    }
+                }
             }
-            if (value >= 10 ** 32) {
-                value /= 10 ** 32;
-                result += 32;
-            }
-            if (value >= 10 ** 16) {
-                value /= 10 ** 16;
-                result += 16;
-            }
-            if (value >= 10 ** 8) {
-                value /= 10 ** 8;
-                result += 8;
-            }
-            if (value >= 10 ** 4) {
-                value /= 10 ** 4;
-                result += 4;
-            }
-            if (value >= 10 ** 2) {
-                value /= 10 ** 2;
-                result += 2;
-            }
-            if (value >= 10 ** 1) {
-                result += 1;
+            default {
+                // unsuccess:
+                success := 0
             }
         }
-        return result;
+
+        return success;
     }
 }
