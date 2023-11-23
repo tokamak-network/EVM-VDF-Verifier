@@ -33,7 +33,27 @@ contract WrapperForEIP198 {
                 revert(0, 0)
             }
             // point to the location of the return value (length, bits)
-            result := add(fmp, 64)
+            //result := add(fmp, 64)
+            let length := ml
+            let ptr := add(fmp, 96)
+            /// the following code removes any leading words containing all zeros in the result.
+            for {
+
+            } eq(eq(length, 32), 0) {
+
+            } {
+                switch eq(mload(ptr), 0)
+                case 1 {
+                    ptr := add(ptr, 32)
+                }
+                default {
+                    break
+                }
+                length := sub(length, 32)
+            }
+            result := sub(ptr, 32)
+            mstore(result, length)
+
             mstore(0x40, add(add(fmp, 96), ml))
         }
     }
