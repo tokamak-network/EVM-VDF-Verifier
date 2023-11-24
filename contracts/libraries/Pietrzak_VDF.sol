@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.19;
 import "./BigNumbers.sol";
+import "hardhat/console.sol";
 
 library Pietrzak_VDF {
     bytes16 private constant _SYMBOLS = "0123456789abcdef";
@@ -28,6 +29,7 @@ library Pietrzak_VDF {
     ) internal view returns (BigNumber memory) {
         //return uint256(keccak256(abi.encodePacked(strings))) % n;
         //return powerModN(abi.encodePacked(keccak256(_strings)), _one, n);
+        console.logBytes(abi.encodePacked(keccak256(_strings)));
         return abi.encodePacked(keccak256(_strings)).init(false).mod(n);
     }
 
@@ -47,20 +49,29 @@ library Pietrzak_VDF {
         } else {
             uint256 tHalf;
             BigNumber memory y = vdfClaim.y;
+            console.logBytes(vdfClaim.x.val);
+            console.logBytes(vdfClaim.y.val);
+            console.logBytes(vdfClaim.v.val);
+            console.logBytes(bytes.concat(vdfClaim.y.val, vdfClaim.v.val));
+            console.logBytes(bytes.concat(vdfClaim.y.val, hex"0c1f12"));
             BigNumber memory r = modHash(vdfClaim.x, bytes.concat(vdfClaim.y.val, vdfClaim.v.val));
-
+            console.logBytes(r.val);
             if (vdfClaim.T & 1 == 0) {
                 tHalf = vdfClaim.T / 2;
             } else {
                 tHalf = (vdfClaim.T + 1) / 2;
                 y = y.modexp(_two, vdfClaim.n);
             }
+            console.logBytes(vdfClaim.x.val);
+            console.logBytes(r.val);
+            console.logBytes(vdfClaim.n.val);
+            console.logBytes(vdfClaim.x.modexp(r, vdfClaim.n).val);
             return
                 SingHalvProofOutput(
                     true,
                     true,
-                    vdfClaim.x.modexp(r, vdfClaim.n).modexp(vdfClaim.v, vdfClaim.n),
-                    vdfClaim.v.modexp(r, vdfClaim.n).modexp(y, vdfClaim.n),
+                    (vdfClaim.x.modexp(r, vdfClaim.n)).modmul(vdfClaim.v, vdfClaim.n),
+                    (vdfClaim.v.modexp(r, vdfClaim.n)).modmul(y, vdfClaim.n),
                     tHalf
                 );
         }
@@ -70,16 +81,23 @@ library Pietrzak_VDF {
         VDFClaim[] calldata proofList
     ) internal view returns (bool) {
         uint256 proofSize = proofList.length;
-
         for (uint256 i = 0; i < proofSize; i++) {
             SingHalvProofOutput memory output = processSingleHalvingProof(proofList[i]);
             if (!output.verified) {
                 return false;
             } else {
                 if (!output.calculated) return true;
-                else if (!output.x_prime.eq(proofList[i + 1].x)) return false;
-                else if (!output.y_prime.eq(proofList[i + 1].y)) return false;
-                else if (output.T_half != proofList[i + 1].T) return false;
+                else if (!output.x_prime.eq(proofList[i + 1].x)) {
+                    console.logBytes(output.x_prime.val);
+                    console.logBytes(proofList[i + 1].x.val);
+                    return false;
+                } else if (!output.y_prime.eq(proofList[i + 1].y)) {
+                    console.log("2");
+                    return false;
+                } else if (output.T_half != proofList[i + 1].T) {
+                    console.log("3");
+                    return false;
+                }
             }
         }
         return true;

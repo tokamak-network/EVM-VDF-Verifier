@@ -3,7 +3,7 @@
 pragma solidity ^0.8.19;
 import "./libraries/Pietrzak_VDF.sol";
 
-//import "hardhat/console.sol";
+import "hardhat/console.sol";
 
 /**
  * @title Bicorn-RX Commit-Reveal-Recover
@@ -204,7 +204,7 @@ contract CommitRecover {
         bytes memory _bStar = valuesAtRound[_round].bStar;
         require(!valuesAtRound[_round].isCompleted, "OmegaAlreadyCompleted");
         require(valuesAtRound[_round].T == proofs[0].T, "TNotMatched");
-        Pietrzak_VDF.verifyRecursiveHalvingProof(proofs);
+        require(Pietrzak_VDF.verifyRecursiveHalvingProof(proofs));
         for (uint256 i = 0; i < valuesAtRound[_round].numOfParticipants; i++) {
             BigNumber memory _c = commitRevealValues[_round][i].c;
             BigNumber memory temp = _c.modexp(_n.modHash(bytes.concat(_c.val, _bStar)), _n);
@@ -241,7 +241,8 @@ contract CommitRecover {
             "CommitRevealDurationLessThanCommitDuration"
         );
         require(stage == Stages.Finished, "StageNotFinished");
-        //require(Pietrzak_VDF.verifyRecursiveHalvingProof(_proofs), "not verified");
+        console.log("hi");
+        require(Pietrzak_VDF.verifyRecursiveHalvingProof(_proofs), "not verified");
         round += 1;
         stage = Stages.Commit;
         startTime = block.timestamp;

@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.17;
-import "hardhat/console.sol";
 
 // Definition here allows both the lib and inheriting contracts to use BigNumber directly.
 struct BigNumber { 
@@ -490,32 +489,18 @@ library BigNumbers {
         uint b_word;
 
         uint len = a.val.length; //bitlen is same so no need to check length.
-        console.log("cmp function-----!");
-        // console.logBytes(a.val);
-        // console.logBytes(b.val);
-        // console.log(a.bitlen);
-        // console.log(b.bitlen);
-        // console.log(a.neg);
-        // console.log(b.neg);
+
         assembly{
             a_ptr := add(mload(a),0x20) 
             b_ptr := add(mload(b),0x20)
         }
-        // ///
-        uint256 temp1;
-        uint256 temp2;
-        assembly{
-            temp1 := mload(a_ptr)
-            temp2 := mload(b_ptr)
-        }
-        console.log(temp1);
-        console.log(temp2);
-        ///
+
         for(uint i=0; i<len;i+=32){
             assembly{
                 a_word := mload(add(a_ptr,i))
                 b_word := mload(add(b_ptr,i))
             }
+
             if(a_word>b_word) return    trigger; // 1*trigger
             if(b_word>a_word) return -1*trigger; 
 
@@ -960,7 +945,7 @@ library BigNumbers {
 
             let result_ptr := add(add(result_start,0x20), mload(max))         // set result_ptr end.
 
-            for { let i := mload(max) } eq(eq(i,0),0) { i := sub(i, 0x20) } { // for(int i=max_length; i!=0; i-=32)
+            for { let i := mload(max) } eq(sgt(i,0),1) { i := sub(i, 0x20) } { // for(int i=max_length; i!=0; i-=32)
                 let max_val := mload(max_ptr)                                 // get next word for 'max'
                 switch gt(i,sub(mload(max),mload(min)))                       // if(i>(max_length-min_length)). while 
                                                                               // 'min' words are still available.
@@ -1061,7 +1046,7 @@ library BigNumbers {
             let memory_end := add(result_ptr,0x20)                          // save memory_end to update free memory
                                                                             // pointer at the end.
             
-            for { let i := max_len } eq(eq(i,0),0) { i := sub(i, 0x20) } {  // for(int i=max_length; i!=0; i-=32)
+            for { let i := max_len } eq(sgt(i,0),1) { i := sub(i, 0x20) } {  // for(int i=max_length; i!=0; i-=32)
                 let max_val := mload(max_ptr)                               // get next word for 'max'
                 switch gt(i,len_diff)                                       // if(i>(max_length-min_length)). while
                                                                             // 'min' words are still available.

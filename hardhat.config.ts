@@ -29,6 +29,7 @@ const config: HardhatUserConfig = {
             // }
             chainId: 31337,
             allowUnlimitedContractSize: true,
+            
         },
         localhost: {
             chainId: 31337,
@@ -141,6 +142,12 @@ const config: HardhatUserConfig = {
                 version:"0.8.17",
             }
         ],
+        settings: {
+            optimizer: {
+              enabled: true,
+              runs: 1000,
+            },
+          },
     },
     mocha: {
         timeout: 200000, // 200 seconds max for running tests
