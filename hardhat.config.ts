@@ -7,6 +7,7 @@ import "dotenv/config"
 import "solidity-coverage"
 import "hardhat-deploy"
 import "@nomicfoundation/hardhat-chai-matchers"
+import "hardhat-contract-sizer"
 import { HardhatUserConfig } from "hardhat/config"
 /** @type import('hardhat/config').HardhatUserConfig */
 
@@ -27,9 +28,12 @@ const config: HardhatUserConfig = {
             //   url: MAINNET_RPC_URL
             // }
             chainId: 31337,
+            allowUnlimitedContractSize: true,
+            
         },
         localhost: {
             chainId: 31337,
+            allowUnlimitedContractSize: true,
         },
         sepolia: {
             url: SEPOLIA_RPC_URL,
@@ -110,10 +114,11 @@ const config: HardhatUserConfig = {
         ],
     },
     gasReporter: {
-        enabled: false,
+        enabled: true,
         currency: "USD",
         outputFile: "gas-report.txt",
         noColors: true,
+        gasPriceApi: "https://api.etherscan.io/api?module=proxy&action=eth_gasPrice",
         coinmarketcap: process.env.COINMARKETCAP_API_KEY,
     },
     namedAccounts: {
@@ -133,7 +138,16 @@ const config: HardhatUserConfig = {
             {
                 version: "0.8.19",
             },
+            {
+                version:"0.8.17",
+            }
         ],
+        settings: {
+            optimizer: {
+              enabled: true,
+              runs: 1000,
+            },
+          },
     },
     mocha: {
         timeout: 200000, // 200 seconds max for running tests
