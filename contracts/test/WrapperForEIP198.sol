@@ -33,6 +33,7 @@ contract WrapperForEIP198 {
                 revert(0, 0)
             }
             // point to the location of the return value (length, bits)
+
             //result := add(fmp, 64)
             let length := ml
             let ptr := add(fmp, 96)
