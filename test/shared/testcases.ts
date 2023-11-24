@@ -2,26 +2,31 @@
  * [N, g, h, T, [Proof List for Setup], [Random List], [Commit List], Omega, Recovered Omega, [Proof List for Recovery] ]
  **/
 
-import { BigNumberish } from "ethers"
+import { BigNumberish, BytesLike } from "ethers"
+export interface BigNumber {
+    val: BytesLike
+    neg: boolean
+    bitlen: BigNumberish
+}
 
 export interface VDFClaim {
-    n: BigNumberish
-    x: BigNumberish
-    y: BigNumberish
+    n: BigNumber
+    x: BigNumber
+    y: BigNumber
     T: BigNumberish
-    v: BigNumberish
+    v: BigNumber
 }
 
 export interface TestCase {
-    n: BigNumberish
-    g: BigNumberish
-    h: BigNumberish
+    n: BigNumber
+    g: BigNumber
+    h: BigNumber
     T: BigNumberish
     setupProofs: VDFClaim[]
-    randomList: BigNumberish[]
-    commitList: BigNumberish[]
-    omega: BigNumberish
-    recoveredOmega: BigNumberish
+    randomList: BigNumber[]
+    commitList: BigNumber[]
+    omega: BigNumber
+    recoveredOmega: BigNumber
     recoveryProofs: VDFClaim[]
 }
 

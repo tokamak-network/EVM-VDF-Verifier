@@ -28,9 +28,11 @@ const config: HardhatUserConfig = {
             //   url: MAINNET_RPC_URL
             // }
             chainId: 31337,
+            allowUnlimitedContractSize: true,
         },
         localhost: {
             chainId: 31337,
+            allowUnlimitedContractSize: true,
         },
         sepolia: {
             url: SEPOLIA_RPC_URL,
@@ -135,6 +137,9 @@ const config: HardhatUserConfig = {
             {
                 version: "0.8.19",
             },
+            {
+                version:"0.8.17",
+            }
         ],
     },
     mocha: {
