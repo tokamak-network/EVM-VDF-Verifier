@@ -5,6 +5,7 @@ import { network, deployments, ethers, getNamedAccounts } from "hardhat"
 import { developmentChains, networkConfig } from "../helper-hardhat-config"
 import { CommitRecover, CommitRecover__factory } from "../typechain-types"
 import { testCases, TestCase, BigNumber } from "./shared/testcases"
+import { testCases4 } from "./shared/testcases4"
 import {
     createTestCases,
     deployAndStartCommitRevealContract,
@@ -19,7 +20,7 @@ const { time } = require("@nomicfoundation/hardhat-network-helpers")
 !developmentChains.includes(network.name)
     ? describe.skip
     : describe("CommitRecover", () => {
-          const testcases: TestCase[] = createTestCases(testCases)
+          const testcases: TestCase[] = createTestCases(testCases4)
           const chainId = network.config.chainId
           let deployer: SignerWithAddress
           let commitDuration = networkConfig[chainId!].commitDuration
@@ -38,8 +39,14 @@ const { time } = require("@nomicfoundation/hardhat-network-helpers")
               it("every testcase, deploy should pass", async () => {
                   for (let i = 0; i < testcases.length; i++) {
                       console.log(i, i)
-                      let params = [commitDuration, commitRevealDuration, testcases[i].n, testcases[i].setupProofs]
-                      const { commitRecover, receipt } = await deployAndStartCommitRevealContract(params)
+                      let params = [
+                          commitDuration,
+                          commitRevealDuration,
+                          testcases[i].n,
+                          testcases[i].setupProofs,
+                      ]
+                      const { commitRecover, receipt } =
+                          await deployAndStartCommitRevealContract(params)
                       expect(commitRecover.target).to.properAddress
                       await initializedContractCorrectly(
                           commitRecover,
@@ -48,101 +55,110 @@ const { time } = require("@nomicfoundation/hardhat-network-helpers")
                       )
                   }
               })
-          })
-          let firstTestCases: TestCase
-          let firstrandomList: BigNumber[] = []
-          let firstcommitList: BigNumber[] = []
-          let signers: SignerWithAddress[]
-          const testCaseNum = 0
-          describe("test 1 round", () => {
-              describe("test commit, first testcase", () => {
-                  before(async () => {
-                      signers = await ethers.getSigners()
-                      firstTestCases = testcases[testCaseNum]
-                      firstcommitList = firstTestCases.commitList
-                      firstrandomList = firstTestCases.randomList
+
+              let firstTestCases: TestCase
+              let firstrandomList: BigNumber[] = []
+              let firstcommitList: BigNumber[] = []
+              let signers: SignerWithAddress[]
+              const testCaseNum = 0
+              describe("test 1 round", () => {
+                  describe("test commit, first testcase", () => {
+                      before(async () => {
+                          signers = await ethers.getSigners()
+                          firstTestCases = testcases[testCaseNum]
+                          firstcommitList = firstTestCases.commitList
+                          firstrandomList = firstTestCases.randomList
+                      })
+                      it("commit should pass", async () => {
+                          const { commitRecover, testcases } = await loadFixture(
+                              deployFirstTestCaseCommitRevealContract,
+                          )
+                          for (let i = 0; i < firstcommitList.length; i++) {
+                              await commit(commitRecover, signers[i], firstcommitList[i], i, 1)
+                          }
+                      })
                   })
-                  it("commit should pass", async () => {
-                      const { commitRecover, testcases } = await loadFixture(
-                          deployFirstTestCaseCommitRevealContract,
-                      )
-                      for (let i = 0; i < firstcommitList.length; i++) {
-                          await commit(commitRecover, signers[i], firstcommitList[i], i, 1)
-                      }
+                  describe("test reveal, first testcase", () => {
+                      it("reveal should not pass", async () => {
+                          const { commitRecover } = await loadFixture(
+                              deployFirstTestCaseCommitRevealContract,
+                          )
+                          for (let i = 0; i < firstcommitList.length; i++) {
+                              await commit(commitRecover, signers[i], firstcommitList[i], i, 1)
+                          }
+                          await expect(commitRecover.reveal(firstrandomList[0])).to.be.revertedWith(
+                              "FunctionInvalidAtThisStage",
+                          )
+                      })
+
+                      it("reveal should pass", async () => {
+                          const { commitRecover } = await loadFixture(
+                              deployFirstTestCaseCommitRevealContract,
+                          )
+                          for (let i = 0; i < firstcommitList.length; i++) {
+                              await commit(commitRecover, signers[i], firstcommitList[i], i, 1)
+                          }
+                          await time.increase(networkConfig[network.config.chainId!].commitDuration)
+                          for (let i = 0; i < firstrandomList.length; i++) {
+                              await reveal(commitRecover, signers[i], firstrandomList[i], i, 1)
+                          }
+                      })
+
+                      describe("calculate Omega", () => {
+                          it("All Revealed, Calculated Omega should be correct", async () => {
+                              const { commitRecover } = await loadFixture(
+                                  deployFirstTestCaseCommitRevealContract,
+                              )
+                              for (let i = 0; i < firstcommitList.length; i++) {
+                                  await commit(commitRecover, signers[i], firstcommitList[i], i, 1)
+                              }
+                              await time.increase(
+                                  networkConfig[network.config.chainId!].commitDuration,
+                              )
+                              for (let i = 0; i < firstrandomList.length; i++) {
+                                  await reveal(commitRecover, signers[i], firstrandomList[i], i, 1)
+                              }
+                              const tx = await commitRecover.calculateOmega()
+                              const receipt = await tx.wait()
+                              console.log("calculateOmega gas used", receipt.gasUsed.toString())
+                              const omega = (await commitRecover.valuesAtRound(1)).omega
+                              console.log(
+                                  omega,
+                                  testcases[testCaseNum].omega,
+                                  testcases[testCaseNum].recoveredOmega,
+                              )
+                          })
+                          it("Recovered Omega should be correct", async () => {
+                              const { commitRecover } = await loadFixture(
+                                  deployFirstTestCaseCommitRevealContract,
+                              )
+                              for (let i = 0; i < firstcommitList.length; i++) {
+                                  await commit(commitRecover, signers[i], firstcommitList[i], i, 1)
+                              }
+                              //await commit(commitRecover, signers[0], firstcommitList[0], 0, 1)
+                              await time.increase(
+                                  networkConfig[network.config.chainId!].commitDuration,
+                              )
+                              //   for (let i = 0; i < firstrandomList.length - 2; i++) {
+                              //     console.log("i", i);
+                              //       await reveal(commitRecover, signers[i], firstrandomList[i], i, 1)
+                              //   }
+                              //console.log(testcases[testCaseNum].recoveryProofs)
+                              const tx = await commitRecover.recover(
+                                  1,
+                                  testcases[testCaseNum].recoveryProofs,
+                              )
+                              const receipt = await tx.wait()
+                              console.log("recover gas used", receipt.gasUsed.toString())
+                              const omega = (await commitRecover.valuesAtRound(1)).omega
+                              //   console.log(
+                              //       omega,
+                              //       testcases[testCaseNum].omega,
+                              //       testcases[testCaseNum].recoveredOmega,
+                              //   )
+                          })
+                      })
                   })
               })
-              describe("test reveal, first testcase", () => {
-                  it("reveal should not pass", async () => {
-                      const { commitRecover } = await loadFixture(
-                          deployFirstTestCaseCommitRevealContract,
-                      )
-                      for (let i = 0; i < firstcommitList.length; i++) {
-                          await commit(commitRecover, signers[i], firstcommitList[i], i, 1)
-                      }
-                    await expect(
-                        commitRecover.reveal(firstrandomList[0]),
-                    ).to.be.revertedWith("FunctionInvalidAtThisStage");
-                  })
-                })
-            })
-        //           it("reveal should pass", async () => {
-        //               const { commitRecover } = await loadFixture(
-        //                   deployFirstTestCaseCommitRevealContract,
-        //               )
-        //               for (let i = 0; i < firstcommitList.length; i++) {
-        //                   await commit(commitRecover, signers[i], firstcommitList[i], i, 1)
-        //               }
-        //               await time.increase(networkConfig[network.config.chainId!].commitDuration)
-        //               for (let i = 0; i < firstrandomList.length; i++) {
-        //                   await reveal(commitRecover, signers[i], firstrandomList[i], i, 1)
-        //               }
-        //           })
-        //       })
-        //       describe("calculate Omega", () => {
-        //           it("All Revealed, Calculated Omega should be correct", async () => {
-        //               const { commitRecover } = await loadFixture(
-        //                   deployFirstTestCaseCommitRevealContract,
-        //               )
-        //               for (let i = 0; i < firstcommitList.length; i++) {
-        //                   await commit(commitRecover, signers[i], firstcommitList[i], i, 1)
-        //               }
-        //               await time.increase(networkConfig[network.config.chainId!].commitDuration)
-        //               for (let i = 0; i < firstrandomList.length; i++) {
-        //                   await reveal(commitRecover, signers[i], firstrandomList[i], i, 1)
-        //               }
-        //               const tx = await commitRecover.calculateOmega()
-        //               const receipt = await tx.wait()
-        //               console.log("calculateOmega gas used", receipt.gasUsed.toString())
-        //               const omega = (await commitRecover.valuesAtRound(1)).omega
-        //             //   console.log(
-        //             //       omega,
-        //             //       testcases[testCaseNum].omega,
-        //             //       testcases[testCaseNum].recoveredOmega,
-        //             //   )
-        //           })
-        //           it("Recovered Omega should be correct", async () => {
-        //               const { commitRecover } = await loadFixture(
-        //                   deployFirstTestCaseCommitRevealContract,
-        //               )
-        //               for (let i = 0; i < firstcommitList.length; i++) {
-        //                   await commit(commitRecover, signers[i], firstcommitList[i], i, 1)
-        //               }
-        //               //await commit(commitRecover, signers[0], firstcommitList[0], 0, 1)
-        //               await time.increase(networkConfig[network.config.chainId!].commitDuration)
-        //             //   for (let i = 0; i < firstrandomList.length - 2; i++) {
-        //             //     console.log("i", i);
-        //             //       await reveal(commitRecover, signers[i], firstrandomList[i], i, 1)
-        //             //   }
-        //               const tx = await commitRecover.recover(1, testcases[testCaseNum].recoveryProofs)
-        //               const receipt = await tx.wait()
-        //               console.log("recover gas used", receipt.gasUsed.toString())
-        //               const omega = (await commitRecover.valuesAtRound(1)).omega
-        //             //   console.log(
-        //             //       omega,
-        //             //       testcases[testCaseNum].omega,
-        //             //       testcases[testCaseNum].recoveredOmega,
-        //             //   )
-        //           })
-        //       })
-        //   })
+          })
       })
