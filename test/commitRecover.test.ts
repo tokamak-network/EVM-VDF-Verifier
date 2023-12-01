@@ -5,7 +5,7 @@ import { network, deployments, ethers, getNamedAccounts } from "hardhat"
 import { developmentChains, networkConfig } from "../helper-hardhat-config"
 import { CommitRecover, CommitRecover__factory } from "../typechain-types"
 import { testCases, TestCase, BigNumber } from "./shared/testcases"
-import { testCases4 } from "./shared/testcases4"
+import { testCases3 } from "./shared/testcases3"
 import {
     createTestCases,
     deployAndStartCommitRevealContract,
@@ -20,7 +20,7 @@ const { time } = require("@nomicfoundation/hardhat-network-helpers")
 !developmentChains.includes(network.name)
     ? describe.skip
     : describe("CommitRecover", () => {
-          const testcases: TestCase[] = createTestCases(testCases4)
+          const testcases: TestCase[] = createTestCases(testCases3)
           const chainId = network.config.chainId
           let deployer: SignerWithAddress
           let commitDuration = networkConfig[chainId!].commitDuration
@@ -151,11 +151,11 @@ const { time } = require("@nomicfoundation/hardhat-network-helpers")
                               const receipt = await tx.wait()
                               console.log("recover gas used", receipt.gasUsed.toString())
                               const omega = (await commitRecover.valuesAtRound(1)).omega
-                              //   console.log(
-                              //       omega,
-                              //       testcases[testCaseNum].omega,
-                              //       testcases[testCaseNum].recoveredOmega,
-                              //   )
+                              console.log(
+                                  omega,
+                                  testcases[testCaseNum].omega,
+                                  testcases[testCaseNum].recoveredOmega,
+                              )
                           })
                       })
                   })
