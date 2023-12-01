@@ -54,7 +54,6 @@ const { time } = require("@nomicfoundation/hardhat-network-helpers")
                       )
                   }
               })
-
               let firstTestCases: TestCase
               let firstrandomList: BigNumber[] = []
               let firstcommitList: BigNumber[] = []
