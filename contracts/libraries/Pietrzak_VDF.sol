@@ -29,7 +29,6 @@ library Pietrzak_VDF {
     ) internal view returns (BigNumber memory) {
         //return uint256(keccak256(abi.encodePacked(strings))) % n;
         //return powerModN(abi.encodePacked(keccak256(_strings)), _one, n);
-        console.logBytes(abi.encodePacked(keccak256(_strings)));
         return abi.encodePacked(keccak256(_strings)).init(false).mod(n);
     }
 
@@ -41,7 +40,7 @@ library Pietrzak_VDF {
         if (vdfClaim.T == 1) {
             //if (vdfClaim.y == powerModN(vdfClaim.x, 2, vdfClaim.n)) {
             //if (equal(vdfClaim.y, powerModN(vdfClaim.x, vdfClaim.v, vdfClaim.n))) {
-            if (vdfClaim.y.eq(vdfClaim.x.modexp(vdfClaim.v, vdfClaim.n))) {
+            if (vdfClaim.y.eq(vdfClaim.x.modexp(_two, vdfClaim.n))) {
                 return SingHalvProofOutput(true, false, _zero, _zero, 0);
             } else {
                 return SingHalvProofOutput(false, false, _zero, _zero, 0);
@@ -49,13 +48,7 @@ library Pietrzak_VDF {
         } else {
             uint256 tHalf;
             BigNumber memory y = vdfClaim.y;
-            console.logBytes(vdfClaim.x.val);
-            console.logBytes(vdfClaim.y.val);
-            console.logBytes(vdfClaim.v.val);
-            console.logBytes(bytes.concat(vdfClaim.y.val, vdfClaim.v.val));
-            console.logBytes(bytes.concat(vdfClaim.y.val, hex"0c1f12"));
             BigNumber memory r = modHash(vdfClaim.x, bytes.concat(vdfClaim.y.val, vdfClaim.v.val));
-            console.logBytes(r.val);
             if (vdfClaim.T & 1 == 0) {
                 tHalf = vdfClaim.T / 2;
             } else {
@@ -86,16 +79,13 @@ library Pietrzak_VDF {
             if (!output.verified) {
                 return false;
             } else {
-                if (!output.calculated) return true;
-                else if (!output.x_prime.eq(proofList[i + 1].x)) {
-                    console.logBytes(output.x_prime.val);
-                    console.logBytes(proofList[i + 1].x.val);
+                if (!output.calculated) {
+                    return true;
+                } else if (!output.x_prime.eq(proofList[i + 1].x)) {
                     return false;
                 } else if (!output.y_prime.eq(proofList[i + 1].y)) {
-                    console.log("2");
                     return false;
                 } else if (output.T_half != proofList[i + 1].T) {
-                    console.log("3");
                     return false;
                 }
             }

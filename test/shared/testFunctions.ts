@@ -1,13 +1,28 @@
 import { assert, expect } from "chai"
 import { SignerWithAddress } from "@nomicfoundation/hardhat-ethers/signers"
-import { BigNumberish, Contract, ContractTransactionReceipt, Log, BytesLike, toBeHex } from "ethers"
+import {
+    BigNumberish,
+    Contract,
+    ContractTransactionReceipt,
+    Log,
+    BytesLike,
+    toBeHex,
+    dataLength,
+} from "ethers"
 import { network, ethers } from "hardhat"
-import { VDFClaim, TestCase, testCases, BigNumber } from "./testcases"
+import { VDFClaim, TestCase, BigNumber } from "./testcases"
+import { testCases3 } from "./testcases3"
 import { developmentChains, networkConfig } from "../../helper-hardhat-config"
 import { get } from "http"
 
 const getBitLenth = (num: bigint): BigNumberish => {
     return num.toString(2).length
+}
+
+function getLength(value: number): number {
+    let length: number = 32
+    while (length < value) length += 32
+    return length
 }
 
 export const createTestCases = (testcases: any[]) => {
@@ -20,47 +35,144 @@ export const createTestCases = (testcases: any[]) => {
         let commitList: BigNumber[] = []
         for (let i = 0; i < (testcase[4] as []).length; i++) {
             setUpProofs.push({
-                n: {val: toBeHex(testcase[4][i][0]), neg: false, bitlen:getBitLenth(testcase[4][i][0])
+                n: {
+                    //val: toBeHex(testcase[4][i][0]),
+                    val: toBeHex(
+                        testcase[4][i][0],
+                        getLength(dataLength(toBeHex(testcase[4][i][0]))),
+                    ),
+                    neg: false,
+                    bitlen: getBitLenth(testcase[4][i][0]),
                 },
-                x: {val: toBeHex(testcase[4][i][1]), neg: false, bitlen: getBitLenth(testcase[4][i][1])},
-                y: {val: toBeHex(testcase[4][i][2]), neg: false, bitlen: getBitLenth(testcase[4][i][2])},
+                x: {
+                    //val: toBeHex(testcase[4][i][1]),
+                    val: toBeHex(
+                        testcase[4][i][1],
+                        getLength(dataLength(toBeHex(testcase[4][i][1]))),
+                    ),
+                    neg: false,
+                    bitlen: getBitLenth(testcase[4][i][1]),
+                },
+                y: {
+                    //val: toBeHex(testcase[4][i][2]),
+                    val: toBeHex(
+                        testcase[4][i][2],
+                        getLength(dataLength(toBeHex(testcase[4][i][2]))),
+                    ),
+                    neg: false,
+                    bitlen: getBitLenth(testcase[4][i][2]),
+                },
                 T: testcase[4][i][3],
-                v: {val: toBeHex(testcase[4][i][4]), neg: false, bitlen: getBitLenth(testcase[4][i][4])},
+                v: {
+                    //val: toBeHex(testcase[4][i][4]),
+                    val: toBeHex(
+                        testcase[4][i][4],
+                        getLength(dataLength(toBeHex(testcase[4][i][4]))),
+                    ),
+                    neg: false,
+                    bitlen: getBitLenth(testcase[4][i][4]),
+                },
             })
         }
         for (let i = 0; i < (testcase[9] as []).length; i++) {
             recoveryProofs.push({
-                n: {val: toBeHex(testcase[9][i][0]), neg: false, bitlen: getBitLenth(testcase[9][i][0])},
-                x: {val: toBeHex(testcase[9][i][1]), neg: false, bitlen: getBitLenth(testcase[9][i][1])},
-                y: {val: toBeHex(testcase[9][i][2]), neg: false, bitlen: getBitLenth(testcase[9][i][2])},
+                n: {
+                    //val: toBeHex(testcase[9][i][0]),
+                    val: toBeHex(
+                        testcase[9][i][0],
+                        getLength(dataLength(toBeHex(testcase[9][i][0]))),
+                    ),
+                    neg: false,
+                    bitlen: getBitLenth(testcase[9][i][0]),
+                },
+                x: {
+                    //val: toBeHex(testcase[9][i][1]),
+                    val: toBeHex(
+                        testcase[9][i][1],
+                        getLength(dataLength(toBeHex(testcase[9][i][1]))),
+                    ),
+                    neg: false,
+                    bitlen: getBitLenth(testcase[9][i][1]),
+                },
+                y: {
+                    //val: toBeHex(testcase[9][i][2]),
+                    val: toBeHex(
+                        testcase[9][i][2],
+                        getLength(dataLength(toBeHex(testcase[9][i][2]))),
+                    ),
+                    neg: false,
+                    bitlen: getBitLenth(testcase[9][i][2]),
+                },
                 T: testcase[9][i][3],
-                v: {val: toBeHex(testcase[9][i][4]), neg: false, bitlen: getBitLenth(testcase[9][i][4])},
+                v: {
+                    //val: toBeHex(testcase[9][i][4]),
+                    val: toBeHex(
+                        testcase[9][i][4],
+                        getLength(dataLength(toBeHex(testcase[9][i][4]))),
+                    ),
+                    neg: false,
+                    bitlen: getBitLenth(testcase[9][i][4]),
+                },
             })
         }
         for (let i = 0; i < (testcase[5] as []).length; i++) {
-            randomList.push({val: toBeHex(testcase[5][i]), neg: false, bitlen: getBitLenth(testcase[5][i])})
+            randomList.push({
+                //val: toBeHex(testcase[5][i]),
+                val: toBeHex(testcase[5][i], getLength(dataLength(toBeHex(testcase[5][i])))),
+                neg: false,
+                bitlen: getBitLenth(testcase[5][i]),
+            })
         }
         for (let i = 0; i < (testcase[6] as []).length; i++) {
             //commitList.push(testcase[6][i])
-            commitList.push({val: toBeHex(testcase[6][i]), neg: false, bitlen: getBitLenth(testcase[6][i])})
+            commitList.push({
+                //val: toBeHex(testcase[6][i]),
+                val: toBeHex(testcase[6][i], getLength(dataLength(toBeHex(testcase[6][i])))),
+                neg: false,
+                bitlen: getBitLenth(testcase[6][i]),
+            })
         }
         result.push({
-            n: {val: toBeHex(testcase[0]), neg: false, bitlen: getBitLenth(testcase[0])},
-            g: {val: toBeHex(testcase[1]), neg: false, bitlen: getBitLenth(testcase[1])},
-            h: {val: toBeHex(testcase[2]), neg: false, bitlen: getBitLenth(testcase[2])},
+            //n: { val: toBeHex(testcase[0]), neg: false, bitlen: getBitLenth(testcase[0]) },
+            n: {
+                val: toBeHex(testcase[0], getLength(dataLength(toBeHex(testcase[0])))),
+                neg: false,
+                bitlen: getBitLenth(testcase[0]),
+            },
+            //g: { val: toBeHex(testcase[1]), neg: false, bitlen: getBitLenth(testcase[1]) },
+            g: {
+                val: toBeHex(testcase[1], getLength(dataLength(toBeHex(testcase[1])))),
+                neg: false,
+                bitlen: getBitLenth(testcase[1]),
+            },
+            //h: { val: toBeHex(testcase[2]), neg: false, bitlen: getBitLenth(testcase[2]) },
+            h: {
+                val: toBeHex(testcase[2], getLength(dataLength(toBeHex(testcase[2])))),
+                neg: false,
+                bitlen: getBitLenth(testcase[2]),
+            },
             T: testcase[3],
             setupProofs: setUpProofs,
             randomList: randomList,
             commitList: commitList,
-            omega: {val: toBeHex(testcase[7]), neg: false, bitlen: getBitLenth(testcase[7])},
-            recoveredOmega: {val: toBeHex(testcase[8]), neg: false, bitlen: getBitLenth(testcase[8])},
+            //omega: { val: toBeHex(testcase[7]), neg: false, bitlen: getBitLenth(testcase[7]) },
+            omega: {
+                val: toBeHex(testcase[7], getLength(dataLength(toBeHex(testcase[7])))),
+                neg: false,
+                bitlen: getBitLenth(testcase[7]),
+            },
+            recoveredOmega: {
+                //val: toBeHex(testcase[8]),
+                val: toBeHex(testcase[8], getLength(dataLength(toBeHex(testcase[8])))),
+                neg: false,
+                bitlen: getBitLenth(testcase[8]),
+            },
             recoveryProofs: recoveryProofs,
         })
     })
     return result
 }
-
-export const deployAndStartCommitRevealContract = async (params : any) => {
+export const deployAndStartCommitRevealContract = async (params: any) => {
     let commitRecover = await ethers.deployContract("CommitRecover", [])
     commitRecover = await commitRecover.waitForDeployment()
     const tx = commitRecover.deploymentTransaction()
@@ -73,10 +185,15 @@ export const deployAndStartCommitRevealContract = async (params : any) => {
 }
 
 export const deployFirstTestCaseCommitRevealContract = async () => {
-    const testcases = createTestCases(testCases)
+    const testcases = createTestCases(testCases3)
     const testcaseNum = 0
-    let params = [networkConfig[network.config.chainId!].commitDuration, networkConfig[network.config.chainId!].commitRevealDuration, testcases[testcaseNum].n, testcases[testcaseNum].setupProofs]
-     const { commitRecover, receipt } = await deployAndStartCommitRevealContract(params)
+    let params = [
+        networkConfig[network.config.chainId!].commitDuration,
+        networkConfig[network.config.chainId!].commitRevealDuration,
+        testcases[testcaseNum].n,
+        testcases[testcaseNum].setupProofs,
+    ]
+    const { commitRecover, receipt } = await deployAndStartCommitRevealContract(params)
     //get states
     const {
         stage,
@@ -237,7 +354,7 @@ export const commit = async (
 export const reveal = async (
     commitRecoverContract: Contract,
     signer: SignerWithAddress,
-    random: BigNumberish,
+    random: BigNumber,
     i: number,
     round: number,
 ) => {
@@ -291,7 +408,7 @@ export const getStatesAfterCommitOrReveal = async (
 export const revealCheck = async (
     commitRevealContract: Contract,
     receipt: ContractTransactionReceipt,
-    random: BigNumberish,
+    random: BigNumber,
     signer: SignerWithAddress,
     i: number,
     roundTest: number,
@@ -351,7 +468,7 @@ export const commitCheck = async (
     // //assert.equal(index, ii, "index should be equal to i")
     // assert.equal(committed, true, "committed should be true")
     // assert.equal(revealed, false, "revealed should be false")
-//     assert.equal(commitRevealValue.c, commit, "commitRevealValue.c should be equal to commit")
-//     assert.equal(commitRevealValue.participantAddress, signer.address)
-//     assert.equal(commitRevealValue.a, 0, "commitRevealValue.a should be 0")
- }
+    //     assert.equal(commitRevealValue.c, commit, "commitRevealValue.c should be equal to commit")
+    //     assert.equal(commitRevealValue.participantAddress, signer.address)
+    //     assert.equal(commitRevealValue.a, 0, "commitRevealValue.a should be 0")
+}

@@ -204,7 +204,7 @@ contract CommitRecover {
         bytes memory _bStar = valuesAtRound[_round].bStar;
         require(!valuesAtRound[_round].isCompleted, "OmegaAlreadyCompleted");
         require(valuesAtRound[_round].T == proofs[0].T, "TNotMatched");
-        require(Pietrzak_VDF.verifyRecursiveHalvingProof(proofs));
+        require(Pietrzak_VDF.verifyRecursiveHalvingProof(proofs), "not verified");
         for (uint256 i = 0; i < valuesAtRound[_round].numOfParticipants; i++) {
             BigNumber memory _c = commitRevealValues[_round][i].c;
             BigNumber memory temp = _c.modexp(_n.modHash(bytes.concat(_c.val, _bStar)), _n);
@@ -241,7 +241,6 @@ contract CommitRecover {
             "CommitRevealDurationLessThanCommitDuration"
         );
         require(stage == Stages.Finished, "StageNotFinished");
-        console.log("hi");
         require(Pietrzak_VDF.verifyRecursiveHalvingProof(_proofs), "not verified");
         round += 1;
         stage = Stages.Commit;
@@ -281,7 +280,7 @@ contract CommitRecover {
                 valuesAtRound[round].numOfParticipants = count;
                 // uint256 _bStar = uint256(keccak256(abi.encodePacked(commitsString))) %
                 //     valuesAtRound[round].n;
-                bytes memory _bStar = valuesAtRound[round].n.modHash(bytes(commitsString)).val;
+                bytes memory _bStar = valuesAtRound[round].n.modHash(commitsString).val;
                 valuesAtRound[round].bStar = _bStar;
             } else {
                 stage = Stages.Finished;
