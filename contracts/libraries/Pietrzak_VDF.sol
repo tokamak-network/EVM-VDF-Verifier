@@ -48,8 +48,6 @@ library Pietrzak_VDF {
         } else {
             uint256 tHalf;
             BigNumber memory y = vdfClaim.y;
-            console.logBytes(vdfClaim.y.val);
-            console.logBytes(bytes.concat(vdfClaim.y.val, vdfClaim.v.val));
             BigNumber memory r = modHash(vdfClaim.x, bytes.concat(vdfClaim.y.val, vdfClaim.v.val));
             if (vdfClaim.T & 1 == 0) {
                 tHalf = vdfClaim.T / 2;
@@ -57,14 +55,6 @@ library Pietrzak_VDF {
                 tHalf = (vdfClaim.T + 1) / 2;
                 y = y.modexp(_two, vdfClaim.n);
             }
-            console.log("-0-0-");
-            console.logBytes(vdfClaim.x.val);
-            console.logBytes(r.val);
-            console.logBytes(vdfClaim.n.val);
-            console.logBytes(vdfClaim.v.val);
-            console.logBytes(vdfClaim.n.val);
-            console.logBytes(vdfClaim.x.modexp(r, vdfClaim.n).val);
-            console.log("----");
             return
                 SingHalvProofOutput(
                     true,
@@ -80,43 +70,21 @@ library Pietrzak_VDF {
         VDFClaim[] calldata proofList
     ) internal view returns (bool) {
         uint256 proofSize = proofList.length;
-        console.log("proofSize");
-        console.log(proofSize);
         for (uint256 i = 0; i < proofSize; i++) {
-            console.log(i);
             SingHalvProofOutput memory output = processSingleHalvingProof(proofList[i]);
-            if (i == 4 || i == 5) {
-                console.log("i5");
-                console.log(output.verified);
-                console.log(output.calculated);
-                console.logBytes(output.x_prime.val);
-                console.logBytes(output.y_prime.val);
-                console.log(output.T_half);
-            }
             if (!output.verified) {
                 return false;
             } else {
                 if (!output.calculated) {
                     return true;
                 } else if (!output.x_prime.eq(proofList[i + 1].x)) {
-                    console.log("1", i);
-                    console.logBytes(proofList[i + 1].x.val);
                     return false;
                 } else if (!output.y_prime.eq(proofList[i + 1].y)) {
-                    console.log("2", i);
-                    //console length
-                    console.log(output.y_prime.bitlen);
-                    console.log(proofList[i + 1].y.bitlen);
-
-                    console.logBytes(proofList[i + 1].y.val);
                     return false;
                 } else if (output.T_half != proofList[i + 1].T) {
-                    console.log("3", i);
-                    console.log(proofList[i + 1].T);
                     return false;
                 }
             }
-            console.log(i);
         }
         return true;
     }

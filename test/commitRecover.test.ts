@@ -38,7 +38,6 @@ const { time } = require("@nomicfoundation/hardhat-network-helpers")
           describe("deploy contract and check", () => {
               it("every testcase, deploy should pass", async () => {
                   for (let i = 0; i < testcases.length; i++) {
-                      console.log(i, i)
                       let params = [
                           commitDuration,
                           commitRevealDuration,

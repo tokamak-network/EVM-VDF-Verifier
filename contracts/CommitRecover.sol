@@ -131,13 +131,6 @@ contract CommitRecover {
         UserAtRound memory _user = userInfosAtRound[msg.sender][_round];
         require(_user.committed, "NotCommittedParticipant");
         require(!_user.revealed, "AlreadyRevealed");
-        // console.log("reveal contract-----!");
-        // console.logBytes(commitRevealValues[_round][_user.index].c.val);
-        // console.logBytes(valuesAtRound[_round].g.modexp(_a, valuesAtRound[_round].n).val);
-        // console.log(commitRevealValues[_round][_user.index].c.bitlen);
-        // console.log(valuesAtRound[_round].g.modexp(_a, valuesAtRound[_round].n).bitlen);
-        // console.log(commitRevealValues[_round][_user.index].c.neg);
-        // console.log(valuesAtRound[_round].g.modexp(_a, valuesAtRound[_round].n).neg);
         require(
             (valuesAtRound[_round].g.modexp(_a, valuesAtRound[_round].n)).eq(
                 commitRevealValues[_round][_user.index].c
@@ -201,16 +194,10 @@ contract CommitRecover {
         //require(stage != Stages.Commit, "FunctionInvalidAtThisStage");
         checkStage();
         overStage(Stages.Commit);
-        console.log("1");
         bytes memory _bStar = valuesAtRound[_round].bStar;
         require(!valuesAtRound[_round].isCompleted, "OmegaAlreadyCompleted");
         require(valuesAtRound[_round].T == proofs[0].T, "TNotMatched");
-        console.log("2");
         require(Pietrzak_VDF.verifyRecursiveHalvingProof(proofs), "not verified");
-        console.log("3");
-        console.log("bStar: ");
-        console.logBytes(_bStar);
-        console.log(valuesAtRound[_round].numOfParticipants);
         for (uint256 i = 0; i < valuesAtRound[_round].numOfParticipants; i++) {
             BigNumber memory _c = commitRevealValues[_round][i].c;
             BigNumber memory temp = _c.modexp(_n.modHash(bytes.concat(_c.val, _bStar)), _n);
@@ -247,7 +234,6 @@ contract CommitRecover {
             "CommitRevealDurationLessThanCommitDuration"
         );
         require(stage == Stages.Finished, "StageNotFinished");
-        console.log("hi");
         require(Pietrzak_VDF.verifyRecursiveHalvingProof(_proofs), "not verified");
         round += 1;
         stage = Stages.Commit;

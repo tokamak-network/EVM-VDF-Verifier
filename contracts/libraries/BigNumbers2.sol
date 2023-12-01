@@ -110,8 +110,6 @@ library BigNumbers {
         bytes memory val;
         uint bitlen;
         int compare = cmp(a,b,false);
-        console.log("compare:");
-        console.logInt(compare);
 
         if(a.neg || b.neg){
             if(a.neg && b.neg){
@@ -213,13 +211,7 @@ library BigNumbers {
         BigNumber memory a, 
         BigNumber memory b
     ) internal view returns(BigNumber memory r){
-        console.logBytes(a.val);
-        console.log(a.bitlen);
-        console.logBytes(b.val);
-        console.log(b.bitlen);
-        console.log("a+b");
         BigNumber memory lhs = add(a,b);
-        console.logBytes(lhs.val);
         BigNumber memory fst = modexp(lhs, two(), _powModulus(lhs, 2)); // (a+b)^2
         
         // no need to do subtraction part of the equation if a == b; if so, it has no effect on final result.
@@ -577,16 +569,10 @@ library BigNumbers {
         uint a_index = findStartIndex(a.val, len);
         uint b_index = findStartIndex(b.val, lenb);
         if (a_index > 0) {
-            console.log("a_index>0");
-            console.logBytes(a.val);
             a.val = slice(a.val, a_index, len - a_index);
-            console.logBytes(a.val);
         }
         if (b_index > 0) {
-            console.log("b_index>0");
-            console.logBytes(b.val);
             b.val = slice(b.val, b_index, lenb - b_index);
-            console.logBytes(b.val);
         }
 
         assembly{
