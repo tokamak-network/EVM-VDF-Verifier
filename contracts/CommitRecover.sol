@@ -206,7 +206,7 @@ contract CommitRecover {
         require(!valuesAtRound[_round].isCompleted, "OmegaAlreadyCompleted");
         require(valuesAtRound[_round].T == proofs[0].T, "TNotMatched");
         console.log("2");
-        require(Pietrzak_VDF.verifyRecursiveHalvingProof(proofs));
+        require(Pietrzak_VDF.verifyRecursiveHalvingProof(proofs), "not verified");
         console.log("3");
         console.log("bStar: ");
         console.logBytes(_bStar);
