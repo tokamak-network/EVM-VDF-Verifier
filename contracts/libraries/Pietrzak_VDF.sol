@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.19;
 import "./BigNumbers.sol";
-import "hardhat/console.sol";
 
 library Pietrzak_VDF {
     bytes16 private constant _SYMBOLS = "0123456789abcdef";
@@ -55,10 +54,6 @@ library Pietrzak_VDF {
                 tHalf = (vdfClaim.T + 1) / 2;
                 y = y.modexp(_two, vdfClaim.n);
             }
-            console.logBytes(vdfClaim.x.val);
-            console.logBytes(r.val);
-            console.logBytes(vdfClaim.n.val);
-            console.logBytes(vdfClaim.x.modexp(r, vdfClaim.n).val);
             return
                 SingHalvProofOutput(
                     true,

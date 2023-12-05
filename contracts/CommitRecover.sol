@@ -3,8 +3,6 @@
 pragma solidity ^0.8.19;
 import "./libraries/Pietrzak_VDF.sol";
 
-import "hardhat/console.sol";
-
 /**
  * @title Bicorn-RX Commit-Reveal-Recover
  * @author Justin g
@@ -131,13 +129,6 @@ contract CommitRecover {
         UserAtRound memory _user = userInfosAtRound[msg.sender][_round];
         require(_user.committed, "NotCommittedParticipant");
         require(!_user.revealed, "AlreadyRevealed");
-        // console.log("reveal contract-----!");
-        // console.logBytes(commitRevealValues[_round][_user.index].c.val);
-        // console.logBytes(valuesAtRound[_round].g.modexp(_a, valuesAtRound[_round].n).val);
-        // console.log(commitRevealValues[_round][_user.index].c.bitlen);
-        // console.log(valuesAtRound[_round].g.modexp(_a, valuesAtRound[_round].n).bitlen);
-        // console.log(commitRevealValues[_round][_user.index].c.neg);
-        // console.log(valuesAtRound[_round].g.modexp(_a, valuesAtRound[_round].n).neg);
         require(
             (valuesAtRound[_round].g.modexp(_a, valuesAtRound[_round].n)).eq(
                 commitRevealValues[_round][_user.index].c
