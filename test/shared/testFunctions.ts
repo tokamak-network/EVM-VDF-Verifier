@@ -172,7 +172,6 @@ export const createTestCases = (testcases: any[]) => {
     })
     return result
 }
-
 export const deployAndStartCommitRevealContract = async (params: any) => {
     let commitRecover = await ethers.deployContract("CommitRecover", [])
     commitRecover = await commitRecover.waitForDeployment()
