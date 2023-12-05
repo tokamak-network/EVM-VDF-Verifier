@@ -3,8 +3,6 @@
 pragma solidity ^0.8.19;
 import "./libraries/Pietrzak_VDF.sol";
 
-import "hardhat/console.sol";
-
 /**
  * @title Bicorn-RX Commit-Reveal-Recover
  * @author Justin g
