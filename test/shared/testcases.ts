@@ -5,7 +5,6 @@
 import { BigNumberish, BytesLike } from "ethers"
 export interface BigNumber {
     val: BytesLike
-    neg: boolean
     bitlen: BigNumberish
 }
 
