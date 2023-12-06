@@ -28,7 +28,7 @@ library Pietrzak_VDF {
     ) internal view returns (BigNumber memory) {
         //return uint256(keccak256(abi.encodePacked(strings))) % n;
         //return powerModN(abi.encodePacked(keccak256(_strings)), _one, n);
-        return abi.encodePacked(keccak256(_strings)).init(false).mod(n);
+        return abi.encodePacked(keccak256(_strings)).init().mod(n);
     }
 
     function processSingleHalvingProof(
@@ -44,25 +44,24 @@ library Pietrzak_VDF {
             } else {
                 return SingHalvProofOutput(false, false, _zero, _zero, 0);
             }
-        } else {
-            uint256 tHalf;
-            BigNumber memory y = vdfClaim.y;
-            BigNumber memory r = modHash(vdfClaim.x, bytes.concat(vdfClaim.y.val, vdfClaim.v.val));
-            if (vdfClaim.T & 1 == 0) {
-                tHalf = vdfClaim.T / 2;
-            } else {
-                tHalf = (vdfClaim.T + 1) / 2;
-                y = y.modexp(_two, vdfClaim.n);
-            }
-            return
-                SingHalvProofOutput(
-                    true,
-                    true,
-                    (vdfClaim.x.modexp(r, vdfClaim.n)).modmul(vdfClaim.v, vdfClaim.n),
-                    (vdfClaim.v.modexp(r, vdfClaim.n)).modmul(y, vdfClaim.n),
-                    tHalf
-                );
         }
+        uint256 tHalf;
+        BigNumber memory y = vdfClaim.y;
+        BigNumber memory r = modHash(vdfClaim.x, bytes.concat(vdfClaim.y.val, vdfClaim.v.val));
+        if (vdfClaim.T & 1 == 0) {
+            tHalf = vdfClaim.T / 2;
+        } else {
+            tHalf = (vdfClaim.T + 1) / 2;
+            y = y.modexp(_two, vdfClaim.n);
+        }
+        return
+            SingHalvProofOutput(
+                true,
+                true,
+                (vdfClaim.x.modexp(r, vdfClaim.n)).modmul(vdfClaim.v, vdfClaim.n),
+                (vdfClaim.v.modexp(r, vdfClaim.n)).modmul(y, vdfClaim.n),
+                tHalf
+            );
     }
 
     function verifyRecursiveHalvingProof(
