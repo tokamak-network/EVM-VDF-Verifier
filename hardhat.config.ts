@@ -60,7 +60,7 @@ const config: HardhatUserConfig = {
             chainId: 137,
         },
         titangoerli: {
-            url: "https://rpc.titan-goerli.tokamak.network",
+            url: "https://rpc.titan-goerli.tokamak.network", 
             accounts: [`${process.env.PRIVATE_KEY}`],
             chainId: 5050,
             //gasPrice: 250000,
@@ -115,9 +115,9 @@ const config: HardhatUserConfig = {
     },
     gasReporter: {
         enabled: true,
-        currency: "USD",
-        outputFile: "gas-report.txt",
-        noColors: true,
+        currency: "ETH",
+        //outputFile: "gas-report.txt",
+        //noColors: true,
         gasPriceApi: "https://api.etherscan.io/api?module=proxy&action=eth_gasPrice",
         coinmarketcap: process.env.COINMARKETCAP_API_KEY,
     },

@@ -4,7 +4,6 @@ pragma solidity ^0.8.17;
 // Definition here allows both the lib and inheriting contracts to use BigNumber directly.
 struct BigNumber { 
     bytes val;
-    bool neg;
     uint bitlen;
 }
 
@@ -44,30 +43,26 @@ library BigNumbers {
      *       explicitly known; otherwise use the other init function.
      *
      *  @param val BN value. may be of any size.
-     *  @param neg neg whether the BN is +/-
      *  @param bitlen bit length of output.
      *  @return BigNumber instance
      */
     function init(
         bytes memory val, 
-        bool neg, 
         uint bitlen
     ) internal view returns(BigNumber memory){
-        return _init(val, neg, bitlen);
+        return _init(val, bitlen);
     }
     
     /** @notice initialize a BN instance
      *  @dev wrapper function for _init. initializes from bytes value.
      *
      *  @param val BN value. may be of any size.
-     *  @param neg neg whether the BN is +/-
      *  @return BigNumber instance
      */
     function init(
-        bytes memory val, 
-        bool neg
+        bytes memory val
     ) internal view returns(BigNumber memory){
-        return _init(val, neg, 0);
+        return _init(val, 0);
     }
 
     /** @notice initialize a BN instance
@@ -75,14 +70,12 @@ library BigNumbers {
      *       tf. resulting BN is in the range -2^256-1 ... 2^256-1.
      *
      *  @param val uint value.
-     *  @param neg neg whether the BN is +/-
      *  @return BigNumber instance
      */
     function init(
-        uint val, 
-        bool neg
+        uint val
     ) internal view returns(BigNumber memory){
-        return _init(abi.encodePacked(val), neg, 0);
+        return _init(abi.encodePacked(val), 0);
     }
     // ***************** END EXPOSED MANAGEMENT FUNCTIONS ******************
 
@@ -109,36 +102,13 @@ library BigNumbers {
         if(b.bitlen==0) return a;
         bytes memory val;
         uint bitlen;
-        int compare = cmp(a,b,false);
-
-        if(a.neg || b.neg){
-            if(a.neg && b.neg){
-                if(compare>=0) (val, bitlen) = _add(a.val,b.val,a.bitlen);
-                else (val, bitlen) = _add(b.val,a.val,b.bitlen);
-                r.neg = true;
-            }
-            else {
-                if(compare==1){
-                    (val, bitlen) = _sub(a.val,b.val);
-                    r.neg = a.neg;
-                }
-                else if(compare==-1){
-                    (val, bitlen) = _sub(b.val,a.val);
-                    r.neg = !a.neg;
-                }
-                else return zero();//one pos and one neg, and same value.
-            }
+        int compare = cmp(a,b);
+        if(compare>=0){ // a>=b
+            (val, bitlen) = _add(a.val,b.val,a.bitlen);
         }
-        else{
-            if(compare>=0){ // a>=b
-                (val, bitlen) = _add(a.val,b.val,a.bitlen);
-            }
-            else {
-                (val, bitlen) = _add(b.val,a.val,b.bitlen);
-            }
-            r.neg = false;
+        else {
+            (val, bitlen) = _add(b.val,a.val,b.bitlen);
         }
-
         r.val = val;
         r.bitlen = (bitlen);
     }
@@ -161,39 +131,16 @@ library BigNumbers {
         bytes memory val;
         int compare;
         uint bitlen;
-        compare = cmp(a,b,false);
-        if(a.neg || b.neg) {
-            if(a.neg && b.neg){           
-                if(compare == 1) { 
-                    (val,bitlen) = _sub(a.val,b.val); 
-                    r.neg = true;
-                }
-                else if(compare == -1) { 
+        compare = cmp(a,b);
 
-                    (val,bitlen) = _sub(b.val,a.val); 
-                    r.neg = false;
-                }
-                else return zero();
-            }
-            else {
-                if(compare >= 0) (val,bitlen) = _add(a.val,b.val,a.bitlen);
-                else (val,bitlen) = _add(b.val,a.val,b.bitlen);
-                
-                r.neg = (a.neg) ? true : false;
-            }
+        if(compare == 1) {
+            (val,bitlen) = _sub(a.val,b.val);
         }
-        else {
-            if(compare == 1) {
-                (val,bitlen) = _sub(a.val,b.val);
-                r.neg = false;
-             }
-            else if(compare == -1) { 
-                (val,bitlen) = _sub(b.val,a.val);
-                r.neg = true;
-            }
-            else return zero(); 
+        else if(compare == -1) { 
+            (val,bitlen) = _sub(b.val,a.val);
+            //r.neg = true;
         }
-        
+        else return zero(); 
         r.val = val;
         r.bitlen = (bitlen);
     }
@@ -226,68 +173,6 @@ library BigNumbers {
         }
     }
 
-    /** @notice BigNumber division verification: a * b.
-      * @dev div: takes three BigNumbers (a,b and result), and verifies that a/b == result.
-      * Performing BigNumber division on-chain is a significantly expensive operation. As a result, 
-      * we expose the ability to verify the result of a division operation, which is a constant time operation. 
-      *              (a/b = result) == (a = b * result)
-      *              Integer division only; therefore:
-      *                verify ((b*result) + (a % (b*result))) == a.
-      *              eg. 17/7 == 2:
-      *                verify  (7*2) + (17 % (7*2)) == 17.
-      * The function returns a bool on successful verification. The require statements will ensure that false can never
-      *  be returned, however inheriting contracts may also want to put this function inside a require statement.
-      *  
-      * @param a first BigNumber
-      * @param b second BigNumber
-      * @param r result BigNumber
-      * @return bool whether or not the operation was verified
-      */
-    function divVerify(
-        BigNumber memory a, 
-        BigNumber memory b, 
-        BigNumber memory r
-    ) internal view returns(bool) {
-
-        // first do zero check.
-        // if a<b (always zero) and r==zero (input check), return true.
-        if(cmp(a, b, false) == -1){
-            require(cmp(zero(), r, false)==0);
-            return true;
-        }
-
-        // Following zero check:
-        //if both negative: result positive
-        //if one negative: result negative
-        //if neither negative: result positive
-        bool positiveResult = ( a.neg && b.neg ) || (!a.neg && !b.neg);
-        require(positiveResult ? !r.neg : r.neg);
-        
-        // require denominator to not be zero.
-        require(!(cmp(b,zero(),true)==0));
-        
-        // division result check assumes inputs are positive.
-        // we have already checked for result sign so this is safe.
-        bool[3] memory negs = [a.neg, b.neg, r.neg];
-        a.neg = false;
-        b.neg = false;
-        r.neg = false;
-
-        // do multiplication (b * r)
-        BigNumber memory fst = mul(b,r);
-        // check if we already have 'a' (ie. no remainder after division). if so, no mod necessary, and return true.
-        if(cmp(fst,a,true)==0) return true;
-        //a mod (b*r)
-        BigNumber memory snd = modexp(a,one(),fst); 
-        // ((b*r) + a % (b*r)) == a
-        require(cmp(add(fst,snd),a,true)==0); 
-
-        a.neg = negs[0];
-        b.neg = negs[1];
-        r.neg = negs[2];
-
-        return true;
-    }
 
     /** @notice BigNumber exponentiation: a ^ b.
       * @dev pow: takes a BigNumber and a uint (a,e), and calculates a^e.
@@ -302,7 +187,7 @@ library BigNumbers {
         BigNumber memory a, 
         uint e
     ) internal view returns(BigNumber memory){
-        return modexp(a, init(e, false), _powModulus(a, e));
+        return modexp(a, init(e), _powModulus(a, e));
     }
 
     /** @notice BigNumber modulus: a % n.
@@ -335,9 +220,7 @@ library BigNumbers {
     ) internal view returns(BigNumber memory) {
         //if exponent is negative, other method with this same name should be used.
         //if modulus is negative or zero, we cannot perform the operation.
-        require(  e.neg==false
-                && n.neg==false
-                && !isZero(n.val));
+        require(!isZero(n.val));
 
         bytes memory _result = _modexp(a.val,e.val,n.val);
         //get bitlen of result (TODO: optimise. we know bitlen is in the same byte as the modulus bitlen byte)
@@ -345,51 +228,8 @@ library BigNumbers {
         
         // if result is 0, immediately return.
         if(bitlen == 0) return zero();
-        // if base is negative AND exponent is odd, base^exp is negative, and tf. result is negative;
-        // in that case we make the result positive by adding the modulus.
-        if(a.neg && isOdd(e)) return add(BigNumber(_result, true, bitlen), n);
         // in any other case we return the positive result.
-        return BigNumber(_result, false, bitlen);
-    }
-
-    /** @notice BigNumber modular exponentiation with negative base: inv(a)==a_inv && a_inv^e mod n.
-    /** @dev modexp: takes base, base inverse, exponent, and modulus, asserts inverse(base)==base inverse, 
-      *              internally computes base_inverse^exponent % modulus and creates new BigNumber.
-      *              this function is overloaded: it assumes the exponent is negative. 
-      *              if not, the other method is used, where the inverse of the base is not passed.
-      *
-      * @param a base BigNumber
-      * @param ai base inverse BigNumber
-      * @param e exponent BigNumber
-      * @param a modulus
-      * @return BigNumber memory result.
-      */ 
-    function modexp(
-        BigNumber memory a, 
-        BigNumber memory ai, 
-        BigNumber memory e, 
-        BigNumber memory n) 
-    internal view returns(BigNumber memory) {
-        // base^-exp = (base^-1)^exp
-        require(!a.neg && e.neg);
-
-        //if modulus is negative or zero, we cannot perform the operation.
-        require(!n.neg && !isZero(n.val));
-
-        //base_inverse == inverse(base, modulus)
-        require(modinvVerify(a, n, ai)); 
-            
-        bytes memory _result = _modexp(ai.val,e.val,n.val);
-        //get bitlen of result (TODO: optimise. we know bitlen is in the same byte as the modulus bitlen byte)
-        uint bitlen = bitLength(_result);
-
-        // if result is 0, immediately return.
-        if(bitlen == 0) return zero();
-        // if base_inverse is negative AND exponent is odd, base_inverse^exp is negative, and tf. result is negative;
-        // in that case we make the result positive by adding the modulus.
-        if(ai.neg && isOdd(e)) return add(BigNumber(_result, true, bitlen), n);
-        // in any other case we return the positive result.
-        return BigNumber(_result, false, bitlen);
+        return BigNumber(_result, bitlen);
     }
  
     /** @notice modular multiplication: (a*b) % n.
@@ -409,31 +249,6 @@ library BigNumbers {
         return mod(mul(a,b), n);       
     }
 
-    /** @notice modular inverse verification: Verifies that (a*r) % n == 1.
-      * @dev modinvVerify: Takes BigNumbers for base, modulus, and result, verifies (base*result)%modulus==1, and returns result.
-      *              Similar to division, it's far cheaper to verify an inverse operation on-chain than it is to calculate it, so we allow the user to pass their own result.
-      *
-      * @param a base BigNumber
-      * @param n modulus BigNumber
-      * @param r result BigNumber
-      * @return boolean result
-      */
-    function modinvVerify(
-        BigNumber memory a, 
-        BigNumber memory n, 
-        BigNumber memory r
-    ) internal view returns(bool) {
-        require(!a.neg && !n.neg); //assert positivity of inputs.
-        /*
-         * the following proves:
-         * - user result passed is correct for values base and modulus
-         * - modular inverse exists for values base and modulus.
-         * otherwise it fails.
-         */        
-        require(cmp(modmul(a, r, n),one(),true)==0);
-        
-        return true;
-    }
     // ***************** END EXPOSED CORE CALCULATION FUNCTIONS ******************
 
 
@@ -465,20 +280,13 @@ library BigNumbers {
       *           
       * @param a BigNumber
       * @param b BigNumber
-      * @param signed whether to consider sign of inputs
       * @return int result
       */
     function cmp(
         BigNumber memory a, 
-        BigNumber memory b, 
-        bool signed
+        BigNumber memory b
     ) internal pure returns(int){
         int trigger = 1;
-        if(signed){
-            if(a.neg && b.neg) trigger = -1;
-            else if(a.neg==false && b.neg==true) return 1;
-            else if(a.neg==true && b.neg==false) return -1;
-        }
 
         if(a.bitlen>b.bitlen) return    trigger;   // 1*trigger
         if(b.bitlen>a.bitlen) return -1*trigger;
@@ -520,7 +328,7 @@ library BigNumbers {
         BigNumber memory a, 
         BigNumber memory b
     ) internal pure returns(bool){
-        int result = cmp(a, b, true);
+        int result = cmp(a, b);
         return (result==0) ? true : false;
     }
 
@@ -535,7 +343,7 @@ library BigNumbers {
         BigNumber memory a, 
         BigNumber memory b
     ) internal pure returns(bool){
-        int result = cmp(a, b, true);
+        int result = cmp(a, b);
         return (result==1) ? true : false;
     }
 
@@ -550,7 +358,7 @@ library BigNumbers {
         BigNumber memory a, 
         BigNumber memory b
     ) internal pure returns(bool){
-        int result = cmp(a, b, true);
+        int result = cmp(a, b);
         return (result==1 || result==0) ? true : false;
     }
 
@@ -565,7 +373,7 @@ library BigNumbers {
         BigNumber memory a, 
         BigNumber memory b
     ) internal pure returns(bool){
-        int result = cmp(a, b, true);
+        int result = cmp(a, b);
         return (result==-1) ? true : false;
     }
 
@@ -580,7 +388,7 @@ library BigNumbers {
         BigNumber memory a, 
         BigNumber memory b
     ) internal pure returns(bool){
-        int result = cmp(a, b, true);
+        int result = cmp(a, b);
         return (result==-1 || result==0) ? true : false;
     }
 
@@ -595,7 +403,6 @@ library BigNumbers {
         BigNumber memory a, 
         uint bits
     ) internal view returns(BigNumber memory){
-        require(!a.neg);
         return _shr(a, bits);
     }
 
@@ -612,7 +419,7 @@ library BigNumbers {
         assembly { length := mload(mload(bn)) }
 
         // if bits is >= the bitlength of the value the result is always 0
-        if(bits >= bn.bitlen) return BigNumber(ZERO,false,0); 
+        if(bits >= bn.bitlen) return BigNumber(ZERO,0); 
         
         // set bitlen initially as we will be potentially modifying 'bits'
         bn.bitlen = bn.bitlen-(bits);
@@ -685,25 +492,7 @@ library BigNumbers {
         BigNumber memory a, 
         uint bits
     ) internal view returns(BigNumber memory){
-        require(!a.neg);
         return _shl(a, bits);
-    }
-
-    /** @notice sha3 hash a BigNumber.
-      * @dev hash: takes a BigNumber and performs sha3 hash on it.
-      *            we hash each BigNumber WITHOUT it's first word - first word is a pointer to the start of the bytes value,
-      *            and so is different for each struct.
-      *             
-      * @param a BigNumber
-      * @return h bytes32 hash.
-      */
-    function hash(
-        BigNumber memory a
-    ) internal pure returns(bytes32 h) {
-        //amount of words to hash = all words of the value and three extra words: neg, bitlen & value length.     
-        assembly {
-            h := keccak256( add(a,0x20), add (mload(mload(a)), 0x60 ) ) 
-        }
     }
 
     /** @notice BigNumber full zero check
@@ -715,7 +504,7 @@ library BigNumbers {
     function isZero(
         BigNumber memory a
     ) internal pure returns(bool) {
-        return isZero(a.val) && a.val.length==0x20 && !a.neg && a.bitlen == 0;
+        return isZero(a.val) && a.val.length==0x20 && a.bitlen == 0;
     }
 
 
@@ -829,7 +618,7 @@ library BigNumbers {
       */
     function zero(
     ) internal pure returns(BigNumber memory) {
-        return BigNumber(ZERO, false, 0);
+        return BigNumber(ZERO, 0);
     }
 
     /** @notice BigNumber one value
@@ -838,7 +627,7 @@ library BigNumbers {
       */
     function one(
     ) internal pure returns(BigNumber memory) {
-        return BigNumber(ONE, false, 1);
+        return BigNumber(ONE, 1);
     }
 
     /** @notice BigNumber two value
@@ -847,7 +636,7 @@ library BigNumbers {
       */
     function two(
     ) internal pure returns(BigNumber memory) {
-        return BigNumber(TWO, false, 2);
+        return BigNumber(TWO, 2);
     }
     // ***************** END EXPOSED HELPER FUNCTIONS ******************
 
@@ -862,13 +651,11 @@ library BigNumbers {
       *            'copy' parameter indicates whether or not to copy the contents of val to a new location in memory (for example where you pass 
       *            the contents of another variable's value in)
       * @param val bytes - bignum value.
-      * @param neg bool - sign of value
       * @param bitlen uint - bit length of value
       * @return r BigNumber initialized value.
       */
     function _init(
         bytes memory val, 
-        bool neg, 
         uint bitlen
     ) private view returns(BigNumber memory r){ 
         // use identity at location 0x4 for cheap memcpy.
@@ -902,7 +689,6 @@ library BigNumbers {
             mstore(freemem, bn_length)                             
 
             mstore(r, freemem)                                    // store new bytes value in r
-            mstore(add(r, 0x20), neg)                             // store neg value in r
         }
 
         r.bitlen = bitlen == 0 ? bitLength(r.val) : bitlen;
@@ -1124,9 +910,8 @@ library BigNumbers {
     ) private pure returns(BigNumber memory){
         bytes memory _modulus = ZERO;
         uint mod_index;
-
         assembly {
-            mod_index := mul(mload(add(a, 0x40)), e)               // a.bitlen * e is the max bitlength of result
+            mod_index := mul(mload(add(a, 0x20)), e)               // a.bitlen * e is the max bitlength of result
             let first_word_modulus := shl(mod(mod_index, 256), 1)  // set bit in first modulus word.
             mstore(_modulus, mul(add(div(mod_index,256),1),0x20))  // store length of modulus
             mstore(add(_modulus,0x20), first_word_modulus)         // set first modulus word
@@ -1135,7 +920,7 @@ library BigNumbers {
         }
 
         //create modulus BigNumber memory for modexp function
-        return BigNumber(_modulus, false, mod_index); 
+        return BigNumber(_modulus, mod_index); 
     }
 
     /** @notice Modular Exponentiation: Takes bytes values for base, exp, mod and calls precompile for (base^exp)%^mod
@@ -1236,7 +1021,6 @@ library BigNumbers {
         uint total_length = length + (extra_words * 0x20);
 
         r.bitlen = bn.bitlen+(bits);
-        r.neg = bn.neg;
         bits %= 256;
 
         
