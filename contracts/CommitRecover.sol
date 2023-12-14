@@ -2,7 +2,6 @@
 
 pragma solidity ^0.8.19;
 import "./libraries/Pietrzak_VDF.sol";
-import "hardhat/console.sol";
 
 error AlreadyCommitted();
 error NotCommittedParticipant();
@@ -22,32 +21,31 @@ error AllFinished();
  * @title Bicorn-RX Commit-Reveal-Recover
  * @author Justin g
  * @notice This contract is for generating random number
- *    1. Commit: participants commit their value
- *    2. Reveal: participants reveal their value
- *    3. Finished: Calculate or recover the random number
- *    4. go to 1
+ *    1. Finished: Not Started | Calculate or recover the random number
+ *    2. Commit: participants commit their value
+ *    3. Reveal: participants reveal their value
  */
 contract CommitRecover {
+    using BigNumbers for BigNumber;
+    using Pietrzak_VDF for *;
     /* Type declaration */
     /**
      * @notice Stages of the contract
      * @notice Recover can be performed in the Reveal and Finished stages.
      */
-    using BigNumbers for BigNumber;
-    using Pietrzak_VDF for *;
     enum Stages {
         Finished,
         Commit,
         Reveal
     }
     struct StartValueAtRound {
-        uint256 startTime;
-        uint256 commitDuration;
+        uint256 startTime; // start time of the round
+        uint256 commitDuration; // commit period
         uint256 commitRevealDuration; //commit + reveal period, commitRevealDuration - commitDuration => revealDuration
+        uint256 T;
         BigNumber n; // modulor
         BigNumber g; // a value generated from the generator list
         BigNumber h; // a value generated from the VDF(g)
-        uint256 T;
     }
     struct ValueAtRound {
         BigNumber omega; // the random number
@@ -120,7 +118,7 @@ contract CommitRecover {
      * @notice check period, update stage if needed, revert if not currently at commit stage
      */
     function commit(uint256 _round, BigNumber memory _commit) public {
-        if(userInfosAtRound[msg.sender][_round].committed) revert AlreadyCommitted();
+        if (userInfosAtRound[msg.sender][_round].committed) revert AlreadyCommitted();
         checkStage(_round);
         equalStage(_round, Stages.Commit);
         uint256 _count = valuesAtRound[_round].count;
@@ -129,7 +127,7 @@ contract CommitRecover {
         userInfosAtRound[msg.sender][_round] = UserAtRound(_count, true, false);
         commitRevealValues[_round][_count] = CommitRevealValue(
             _commit,
-            BigNumbers.one(),
+            BigNumbers.zero(),
             msg.sender
         ); //index starts from 0, so _count -1
         valuesAtRound[_round].commitsString = _commitsString;
@@ -152,11 +150,13 @@ contract CommitRecover {
      */
     function reveal(uint256 _round, BigNumber calldata _a) public {
         UserAtRound memory _user = userInfosAtRound[msg.sender][_round];
-        if(!_user.committed) revert NotCommittedParticipant();
-        if(_user.revealed) revert AlreadyRevealed();
-        if(!(startValuesAtRound[_round].g.modexp(_a, startValuesAtRound[_round].n)).eq(
+        if (!_user.committed) revert NotCommittedParticipant();
+        if (_user.revealed) revert AlreadyRevealed();
+        if (
+            !(startValuesAtRound[_round].g.modexp(_a, startValuesAtRound[_round].n)).eq(
                 commitRevealValues[_round][_user.index].c
-            )) revert ModExpRevealNotMatchCommit();
+            )
+        ) revert ModExpRevealNotMatchCommit();
         checkStage(_round);
         equalStage(_round, Stages.Reveal);
         //uint256 _count = --count;
@@ -171,8 +171,8 @@ contract CommitRecover {
     }
 
     function calculateOmega(uint256 _round) public returns (BigNumber memory) {
-        if(!valuesAtRound[_round].isAllRevealed) revert NotAllRevealed();
-        if(valuesAtRound[_round].isCompleted) return valuesAtRound[_round].omega;
+        if (!valuesAtRound[_round].isAllRevealed) revert NotAllRevealed();
+        if (valuesAtRound[_round].isCompleted) return valuesAtRound[_round].omega;
         checkStage(_round);
         equalStage(_round, Stages.Finished);
         uint256 _numOfParticipants = valuesAtRound[_round].numOfParticipants;
@@ -211,18 +211,20 @@ contract CommitRecover {
         BigNumber memory recov = BigNumbers.one();
         BigNumber memory _n = startValuesAtRound[_round].n;
         checkStage(_round);
-        if(valuesAtRound[_round].stage <= Stages.Commit) revert FunctionInvalidAtThisStage();
+        if (valuesAtRound[_round].stage <= Stages.Commit) revert FunctionInvalidAtThisStage();
         bytes memory _bStar = valuesAtRound[_round].bStar;
-        if(valuesAtRound[_round].isCompleted) revert OmegaAlreadyCompleted();
-        if(startValuesAtRound[_round].T != proofs[0].T) revert TNotMatched();
-        if(!Pietrzak_VDF.verifyRecursiveHalvingProof(proofs)) revert NotVerified();
+        if (valuesAtRound[_round].isCompleted) revert OmegaAlreadyCompleted();
+        if (startValuesAtRound[_round].T != proofs[0].T) revert TNotMatched();
+        if (!Pietrzak_VDF.verifyRecursiveHalvingProof(proofs)) revert NotVerified();
         for (uint256 i = 0; i < valuesAtRound[_round].numOfParticipants; i++) {
             BigNumber memory _c = commitRevealValues[_round][i].c;
             BigNumber memory temp = _c.modexp(_n.modHash(bytes.concat(_c.val, _bStar)), _n);
             //recov = mulmod(recov, temp, _n);
             recov = recov.modmul(temp, _n);
+            console.log("recov");
+            console.logBytes(recov.val);
         }
-        if(!recov.eq(proofs[0].x)) revert RecovNotMatchX();
+        if (!recov.eq(proofs[0].x)) revert RecovNotMatchX();
         valuesAtRound[_round].isCompleted = true;
         valuesAtRound[_round].omega = proofs[0].y;
         valuesAtRound[_round].stage = Stages.Finished;
@@ -243,10 +245,11 @@ contract CommitRecover {
         BigNumber calldata _n,
         Pietrzak_VDF.VDFClaim[] calldata _proofs
     ) public returns (uint256 _round) {
-        _round = ++mostRecentRound;
-        if(valuesAtRound[_round].stage != Stages.Finished) revert StageNotFinished();
-        if(_commitDuration >= _commitRevealDuration) revert CommitRevealDurationLessThanCommitDuration();
-        if(!Pietrzak_VDF.verifyRecursiveHalvingProof(_proofs)) revert NotVerified();
+        _round = mostRecentRound++;
+        if (valuesAtRound[_round].stage != Stages.Finished) revert StageNotFinished();
+        if (_commitDuration >= _commitRevealDuration)
+            revert CommitRevealDurationLessThanCommitDuration();
+        if (!Pietrzak_VDF.verifyRecursiveHalvingProof(_proofs)) revert NotVerified();
         valuesAtRound[_round].stage = Stages.Commit;
         startValuesAtRound[_round].startTime = block.timestamp;
         startValuesAtRound[_round].commitDuration = _commitDuration;
@@ -307,7 +310,7 @@ contract CommitRecover {
     }
 
     function equalStage(uint256 _round, Stages _stage) internal view {
-        if(valuesAtRound[_round].stage != _stage) revert FunctionInvalidAtThisStage();
+        if (valuesAtRound[_round].stage != _stage) revert FunctionInvalidAtThisStage();
     }
 
     /**
@@ -317,7 +320,7 @@ contract CommitRecover {
      */
     function nextStage(uint256 _round) internal {
         Stages _stage = valuesAtRound[_round].stage;
-        if(_stage == Stages.Finished) revert AllFinished();
+        if (_stage == Stages.Finished) revert AllFinished();
         valuesAtRound[_round].stage = Stages(addmod(uint256(_stage), 1, 3));
     }
 }

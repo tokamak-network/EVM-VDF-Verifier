@@ -1,10 +1,12 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.19;
 import "./BigNumbers.sol";
+import "hardhat/console.sol";
 
 library Pietrzak_VDF {
-    bytes16 private constant _SYMBOLS = "0123456789abcdef";
     using BigNumbers for *;
+    bytes16 private constant _SYMBOLS = "0123456789abcdef";
+    bytes private constant MODFORHASH = hex"0000000000000000000000000000000100000000000000000000000000000000";
 
     struct VDFClaim {
         uint256 T;
@@ -23,12 +25,13 @@ library Pietrzak_VDF {
     }
 
     function modHash(
-        BigNumber memory n,
+        BigNumber memory _n,
         bytes memory _strings
     ) internal view returns (BigNumber memory) {
         //return uint256(keccak256(abi.encodePacked(strings))) % n;
         //return powerModN(abi.encodePacked(keccak256(_strings)), _one, n);
-        return abi.encodePacked(keccak256(_strings)).init().mod(n);
+
+        return abi.encodePacked(keccak256(_strings)).init().mod(_n);
     }
 
     function processSingleHalvingProof(
@@ -47,7 +50,7 @@ library Pietrzak_VDF {
         }
         uint256 tHalf;
         BigNumber memory y = vdfClaim.y;
-        BigNumber memory r = modHash(vdfClaim.x, bytes.concat(vdfClaim.y.val, vdfClaim.v.val));
+        BigNumber memory r = modHash(vdfClaim.x, bytes.concat(vdfClaim.y.val, vdfClaim.v.val)).mod(BigNumber(MODFORHASH, 129));
         if (vdfClaim.T & 1 == 0) {
             tHalf = vdfClaim.T / 2;
         } else {
