@@ -15,6 +15,15 @@ const MAINNET_RPC_URL = process.env.MAINNET_RPC_URL || process.env.ALCHEMY_MAINN
 const SEPOLIA_RPC_URL = process.env.SEPOLIA_RPC_URL || process.env.ALCHEMY_SEPOLIA_RPC_URL
 const POLYGON_MAINNET_RPC_URL = process.env.POLYGON_MAINNET_RPC_URL
 const PRIVATE_KEY = process.env.PRIVATE_KEY
+const optimizerSettings = {
+    optimizer: {
+      enabled: true,
+      runs: 2**32-1,
+      details: {
+        yul: false,
+      }
+    },
+  }
 
 // Your API key for Etherscan, obtain one at https://etherscan.io/
 const ETHERSCAN_API_KEY = process.env.ETHERSCAN_API_KEY || "Your etherscan API key"
@@ -133,21 +142,14 @@ const config: HardhatUserConfig = {
     solidity: {
         compilers: [
             {
-                version: "0.8.8",
-            },
-            {
-                version: "0.8.19",
+                version: "0.8.22",
+                settings: optimizerSettings ,
             },
             {
                 version:"0.8.17",
+                settings: optimizerSettings,
             }
         ],
-        settings: {
-            optimizer: {
-              enabled: true,
-              runs: 1000,
-            },
-          },
     },
     mocha: {
         timeout: 200000, // 200 seconds max for running tests

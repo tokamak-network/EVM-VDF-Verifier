@@ -14,7 +14,7 @@ import {
     VDFClaim,
     TestCase,
     BigNumber,
-    StartParams,
+    SetUpParams,
     CommitParams,
     RevealParams,
     TestCaseJson,
@@ -36,14 +36,6 @@ export const createTestCases2 = () => {
     let commitList: BigNumber[] = []
     for (let i = 0; i < (testData.setupProofs as []).length; i++) {
         setUpProofs.push({
-            n: {
-                //val: toBeHex(testcase[4][i][0]),
-                val: toBeHex(
-                    testData.setupProofs[i].n,
-                    getLength(dataLength(toBeHex(testData.setupProofs[i].n))),
-                ),
-                bitlen: getBitLenth2(testData.setupProofs[i].n),
-            },
             x: {
                 //val: toBeHex(testcase[4][i][1]),
                 val: toBeHex(
@@ -73,14 +65,6 @@ export const createTestCases2 = () => {
     }
     for (let i = 0; i < (testData.recoveryProofs as []).length; i++) {
         recoveryProofs.push({
-            n: {
-                //val: toBeHex(testcase[9][i][0]),
-                val: toBeHex(
-                    testData.recoveryProofs[i].n,
-                    getLength(dataLength(toBeHex(testData.recoveryProofs[i].n))),
-                ),
-                bitlen: getBitLenth2(testData.recoveryProofs[i].n),
-            },
             x: {
                 //val: toBeHex(testcase[9][i][1]),
                 val: toBeHex(
@@ -191,14 +175,6 @@ export const createTestCases = (testcases: any[]) => {
         let commitList: BigNumber[] = []
         for (let i = 0; i < (testcase[4] as []).length; i++) {
             setUpProofs.push({
-                n: {
-                    //val: toBeHex(testcase[4][i][0]),
-                    val: toBeHex(
-                        testcase[4][i][0],
-                        getLength(dataLength(toBeHex(testcase[4][i][0]))),
-                    ),
-                    bitlen: getBitLenth(testcase[4][i][0]),
-                },
                 x: {
                     //val: toBeHex(testcase[4][i][1]),
                     val: toBeHex(
@@ -228,14 +204,6 @@ export const createTestCases = (testcases: any[]) => {
         }
         for (let i = 0; i < (testcase[9] as []).length; i++) {
             recoveryProofs.push({
-                n: {
-                    //val: toBeHex(testcase[9][i][0]),
-                    val: toBeHex(
-                        testcase[9][i][0],
-                        getLength(dataLength(toBeHex(testcase[9][i][0]))),
-                    ),
-                    bitlen: getBitLenth(testcase[9][i][0]),
-                },
                 x: {
                     //val: toBeHex(testcase[9][i][1]),
                     val: toBeHex(
@@ -321,17 +289,17 @@ export const deployCommitRecover = async () => {
     return { commitRecoverContract, receipt }
 }
 
-export const startCommitRecoverRound = async (
+export const setUpCommitRecoverRound = async (
     commitRevealContract: Contract,
-    params: StartParams,
+    params: SetUpParams,
 ) => {
-    const startTx = await commitRevealContract.start(
+    const setUpTx = await commitRevealContract.setUp(
         params.commitDuration,
         params.commitRevealDuration,
         params.n,
         params.setupProofs,
     )
-    const receipt = await startTx.wait()
+    const receipt = await setUpTx.wait()
     return { commitRevealContract, receipt }
 }
 
@@ -361,15 +329,15 @@ export const reveal = async (
     return { commitRecoverContract, receipt }
 }
 
-export const deployAndStartCommitRevealContract = async (params: any) => {
+export const deployAndSetUpCommitRevealContract = async (params: any) => {
     let commitRecover = await ethers.deployContract("CommitRecover", [])
     commitRecover = await commitRecover.waitForDeployment()
     const tx = commitRecover.deploymentTransaction()
     let receipt = await tx?.wait()
     console.log("deploy gas used: ", receipt?.gasUsed?.toString())
-    const startTx = await commitRecover.start(...params)
-    receipt = await startTx.wait()
-    console.log("start gas used: ", receipt?.gasUsed?.toString())
+    const setUpTx = await commitRecover.setUp(...params)
+    receipt = await setUpTx.wait()
+    console.log("setUp gas used: ", receipt?.gasUsed?.toString())
     return { commitRecover, receipt }
 }
 
@@ -382,11 +350,11 @@ export const deployFirstTestCaseCommitRevealContract = async () => {
         testcases[testcaseNum].n,
         testcases[testcaseNum].setupProofs,
     ]
-    const { commitRecover, receipt } = await deployAndStartCommitRevealContract(params)
+    const { commitRecover, receipt } = await deployAndSetUpCommitRevealContract(params)
     //get states
     // const {
     //     stage,
-    //     commitStartTime,
+    //     commitSetUpTime,
     //     commitDuration,
     //     commitRevealDuration,
     //     n,
@@ -405,7 +373,7 @@ export const deployFirstTestCaseCommitRevealContract = async () => {
         testcases,
         params,
         // stage,
-        // commitStartTime,
+        // commitSetUpTime,
         // commitDuration,
         // commitRevealDuration,
         // n,
@@ -425,7 +393,7 @@ export const getStatesAfterDeployment = async (
 ) => {
     // contract states
     const stage = await commitRevealContract.stage()
-    const commitStartTime = await commitRevealContract.startTime()
+    const commitSetUpTime = await commitRevealContract.setUpTime()
     const commitDuration = await commitRevealContract.commitDuration()
     const commitRevealDuration = await commitRevealContract.commitRevealDuration()
     const round = await commitRevealContract.round()
@@ -437,7 +405,7 @@ export const getStatesAfterDeployment = async (
     const T = valuesAtRound.T
 
     // event
-    const topic = commitRevealContract.interface.getEvent("Start")
+    const topic = commitRevealContract.interface.getEvent("SetUp")
     const log = receipt.logs.find((x) => x.topics.indexOf(topic?.topicHash!) >= 0)
     const deployedEvent = commitRevealContract.interface.parseLog({
         topics: log?.topics! as string[],
@@ -451,7 +419,7 @@ export const getStatesAfterDeployment = async (
 
     return {
         stage,
-        commitStartTime,
+        commitSetUpTime,
         commitDuration,
         commitRevealDuration,
         n,
@@ -472,7 +440,7 @@ export const initializedContractCorrectly = async (
 ) => {
     const {
         stage,
-        commitStartTime,
+        commitSetUpTime,
         commitDuration,
         commitRevealDuration,
         n,
@@ -486,11 +454,11 @@ export const initializedContractCorrectly = async (
     } = await getStatesAfterDeployment(commitRevealContract, receipt)
 
     assert.equal(
-        commitStartTime,
+        commitSetUpTime,
         deployedTimestamp,
-        "commitStartTime should be equal to deployedTimestamp",
+        "commitSetUpTime should be equal to deployedTimestamp",
     )
-    assert.equal(commitStartTime, deployedEvent!.args?.startTime)
+    assert.equal(commitSetUpTime, deployedEvent!.args?.setUpTime)
     assert.equal(stage, 0, "stage should be 0")
     assert.equal(
         commitDuration,

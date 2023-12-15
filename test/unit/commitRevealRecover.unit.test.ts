@@ -4,12 +4,12 @@ import { BigNumberish, Contract, ContractTransactionReceipt, Log } from "ethers"
 import { network, deployments, ethers, getNamedAccounts } from "hardhat"
 import { developmentChains, networkConfig } from "../../helper-hardhat-config"
 import { CommitRecover, CommitRecover__factory } from "../../typechain-types"
-import { TestCase, BigNumber, StartParams, CommitParams, RevealParams } from "../shared/interfaces"
+import { TestCase, BigNumber, SetUpParams, CommitParams, RevealParams } from "../shared/interfaces"
 import { testCases } from "../shared/testcases"
 import {
     createTestCases,
     deployCommitRecover,
-    startCommitRecoverRound,
+    setUpCommitRecoverRound,
     initializedContractCorrectly,
     deployFirstTestCaseCommitRevealContract,
     commit,
@@ -46,17 +46,17 @@ import { assertTestAfterDeploy, assertTestAfterGettingOmega } from "../shared/as
                   }
               })
           })
-          describe("start", () => {
-              it("start for every testcase should pass, multiple rounds", async () => {
+          describe("setUp", () => {
+              it("setUp for every testcase should pass, multiple rounds", async () => {
                   for (let i = 0; i < testcases.length; i++) {
                       let { commitRecoverContract, receipt } = await deployCommitRecover()
-                      let params: StartParams = {
+                      let params: SetUpParams = {
                           commitDuration,
                           commitRevealDuration,
                           n: testcases[i].n,
                           setupProofs: testcases[i].setupProofs,
                       }
-                      let startReceipt = await startCommitRecoverRound(
+                      let setUpReceipt = await setUpCommitRecoverRound(
                           commitRecoverContract,
                           params,
                       )
@@ -68,13 +68,13 @@ import { assertTestAfterDeploy, assertTestAfterGettingOmega } from "../shared/as
               it("commit for every testcase should pass, multiple rounds", async () => {
                   let { commitRecoverContract, receipt } = await deployCommitRecover()
                   for (let round = 0; round < testcases.length; round++) {
-                      let params: StartParams = {
+                      let params: SetUpParams = {
                           commitDuration,
                           commitRevealDuration,
                           n: testcases[round].n,
                           setupProofs: testcases[round].setupProofs,
                       }
-                      let startReceipt = await startCommitRecoverRound(
+                      let setUpReceipt = await setUpCommitRecoverRound(
                           commitRecoverContract,
                           params,
                       )
@@ -93,13 +93,13 @@ import { assertTestAfterDeploy, assertTestAfterGettingOmega } from "../shared/as
               it("reveal for every testcase should pass, multiple rounds", async () => {
                   let { commitRecoverContract, receipt } = await deployCommitRecover()
                   for (let round = 0; round < testcases.length; round++) {
-                      let params: StartParams = {
+                      let params: SetUpParams = {
                           commitDuration,
                           commitRevealDuration,
                           n: testcases[round].n,
                           setupProofs: testcases[round].setupProofs,
                       }
-                      let startReceipt = await startCommitRecoverRound(
+                      let setUpReceipt = await setUpCommitRecoverRound(
                           commitRecoverContract,
                           params,
                       )
@@ -126,13 +126,13 @@ import { assertTestAfterDeploy, assertTestAfterGettingOmega } from "../shared/as
               it("All Revealed, Calculated Omega should be correct for every testcase, multiple rounds", async () => {
                   let { commitRecoverContract, receipt } = await deployCommitRecover()
                   for (let round = 0; round < testcases.length; round++) {
-                      let params: StartParams = {
+                      let params: SetUpParams = {
                           commitDuration,
                           commitRevealDuration,
                           n: testcases[round].n,
                           setupProofs: testcases[round].setupProofs,
                       }
-                      let startReceipt = await startCommitRecoverRound(
+                      let setUpReceipt = await setUpCommitRecoverRound(
                           commitRecoverContract,
                           params,
                       )
@@ -167,13 +167,13 @@ import { assertTestAfterDeploy, assertTestAfterGettingOmega } from "../shared/as
               it("Recovered Omega should be correct for every testcase, multiple rounds", async () => {
                   let { commitRecoverContract, receipt } = await deployCommitRecover()
                   for (let round = 0; round < testcases.length; round++) {
-                      let params: StartParams = {
+                      let params: SetUpParams = {
                           commitDuration,
                           commitRevealDuration,
                           n: testcases[round].n,
                           setupProofs: testcases[round].setupProofs,
                       }
-                      let startReceipt = await startCommitRecoverRound(
+                      let setUpReceipt = await setUpCommitRecoverRound(
                           commitRecoverContract,
                           params,
                       )

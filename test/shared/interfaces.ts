@@ -18,7 +18,6 @@ export interface BigNumber {
 }
 
 export interface VDFClaim {
-    n: BigNumber
     x: BigNumber
     y: BigNumber
     T: BigNumberish
@@ -26,7 +25,6 @@ export interface VDFClaim {
 }
 
 export interface VDFClaimJson {
-    n: BigNumberish
     x: BigNumberish
     y: BigNumberish
     T: BigNumberish
@@ -59,7 +57,7 @@ export interface TestCase {
     recoveryProofs: VDFClaim[]
 }
 
-export interface StartParams {
+export interface SetUpParams {
     commitDuration: number
     commitRevealDuration: number
     n: BigNumber
