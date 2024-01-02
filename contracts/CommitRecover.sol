@@ -101,6 +101,7 @@ contract CommitRecover {
     error NotAllRevealed();
     error OmegaAlreadyCompleted();
     error FunctionInvalidAtThisStage();
+    error TNotMatched();
     error NotVerified();
     error RecovNotMatchX();
     error StageNotFinished();
@@ -215,8 +216,8 @@ contract CommitRecover {
         ) revert NoneParticipated();
         bytes memory _bStar = valuesAtRound[_round].bStar;
         if (valuesAtRound[_round].isCompleted) revert OmegaAlreadyCompleted();
-        if (!Pietrzak_VDF.verifyRecursiveHalvingProof(proofs, _n, setUpValuesAtRound[_round].T))
-            revert NotVerified();
+        if (setUpValuesAtRound[_round].T != proofs[0].T) revert TNotMatched();
+        if (!Pietrzak_VDF.verifyRecursiveHalvingProof(proofs, _n)) revert NotVerified();
         for (uint256 i = 0; i < valuesAtRound[_round].numOfParticipants; i = unchecked_inc(i)) {
             BigNumber memory _c = commitRevealValues[_round][i].c;
             BigNumber memory temp = _c.modexp(_n.modHash(bytes.concat(_c.val, _bStar)), _n);
@@ -241,7 +242,6 @@ contract CommitRecover {
     function setUp(
         uint256 _commitDuration,
         uint256 _commitRevealDuration,
-        uint256 _T,
         BigNumber calldata _n,
         Pietrzak_VDF.VDFClaim[] calldata _proofs
     ) public returns (uint256 _round) {
@@ -249,12 +249,12 @@ contract CommitRecover {
         //if (valuesAtRound[_round].stage != Stages.Finished) revert StageNotFinished();
         if (_commitDuration >= _commitRevealDuration)
             revert CommitRevealDurationLessThanCommitDuration();
-        if (!Pietrzak_VDF.verifyRecursiveHalvingProof(_proofs, _n, _T)) revert NotVerified();
+        if (!Pietrzak_VDF.verifyRecursiveHalvingProof(_proofs, _n)) revert NotVerified();
         valuesAtRound[_round].stage = Stages.Commit;
         setUpValuesAtRound[_round].setUpTime = block.timestamp;
         setUpValuesAtRound[_round].commitDuration = _commitDuration;
         setUpValuesAtRound[_round].commitRevealDuration = _commitRevealDuration;
-        setUpValuesAtRound[_round].T = _T;
+        setUpValuesAtRound[_round].T = _proofs[0].T;
         setUpValuesAtRound[_round].g = _proofs[0].x;
         setUpValuesAtRound[_round].h = _proofs[0].y;
         setUpValuesAtRound[_round].n = _n;
@@ -268,7 +268,7 @@ contract CommitRecover {
             _n,
             _proofs[0].x,
             _proofs[0].y,
-            _T,
+            _proofs[0].T,
             _round
         );
     }

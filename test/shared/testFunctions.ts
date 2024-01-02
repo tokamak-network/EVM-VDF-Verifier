@@ -97,7 +97,7 @@ export const createTestCases2 = () => {
                 ),
                 bitlen: getBitLenth2(testData.setupProofs[i].y),
             },
-            //T: testData.setupProofs[i].T,
+            T: testData.setupProofs[i].T,
             v: {
                 //val: toBeHex(testcase[4][i][4]),
                 val: toBeHex(
@@ -126,7 +126,7 @@ export const createTestCases2 = () => {
                 ),
                 bitlen: getBitLenth2(testData.recoveryProofs[i].y),
             },
-            //T: testData.recoveryProofs[i].T,
+            T: testData.recoveryProofs[i].T,
             v: {
                 //val: toBeHex(testcase[9][i][4]),
                 val: toBeHex(
@@ -236,7 +236,7 @@ export const createTestCases = (testcases: any[]) => {
                     ),
                     bitlen: getBitLenth(testcase[4][i][2]),
                 },
-                //T: testcase[4][i][3],
+                T: testcase[4][i][3],
                 v: {
                     //val: toBeHex(testcase[4][i][4]),
                     val: toBeHex(
@@ -265,7 +265,7 @@ export const createTestCases = (testcases: any[]) => {
                     ),
                     bitlen: getBitLenth(testcase[9][i][2]),
                 },
-                //T: testcase[9][i][3],
+                T: testcase[9][i][3],
                 v: {
                     //val: toBeHex(testcase[9][i][4]),
                     val: toBeHex(
@@ -341,7 +341,6 @@ export const setUpCommitRecoverRound = async (
     const setUpTx = await commitRecoverContract.setUp(
         params.commitDuration,
         params.commitRevealDuration,
-        params.T,
         params.n,
         params.setupProofs,
     )

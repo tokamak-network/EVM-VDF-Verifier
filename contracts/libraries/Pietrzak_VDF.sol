@@ -9,6 +9,7 @@ library Pietrzak_VDF {
         hex"0000000000000000000000000000000100000000000000000000000000000000";
 
     struct VDFClaim {
+        uint256 T;
         BigNumber x;
         BigNumber y;
         BigNumber v;
@@ -33,42 +34,38 @@ library Pietrzak_VDF {
 
     function processSingleHalvingProof(
         VDFClaim calldata vdfClaim,
-        BigNumber memory _n,
-        uint256 _T
-    ) internal view returns (SingHalvProofOutput memory, uint256) {
+        BigNumber memory _n
+    ) internal view returns (SingHalvProofOutput memory) {
         BigNumber memory _zero = BigNumbers.zero();
         BigNumber memory _two = BigNumbers.two();
-        if (_T == 1) {
+        if (vdfClaim.T == 1) {
             if (vdfClaim.y.eq(vdfClaim.x.modexp(_two, _n))) {
-                return (SingHalvProofOutput(true, false, _zero, _zero), 0);
+                return SingHalvProofOutput(true, false, _zero, _zero);
             } else {
-                return (SingHalvProofOutput(false, false, _zero, _zero), 0);
+                return SingHalvProofOutput(false, false, _zero, _zero);
             }
         }
         BigNumber memory y = vdfClaim.y;
-        BigNumber memory r = modHash(vdfClaim.x, bytes.concat(y.val, vdfClaim.v.val)).mod(
+        BigNumber memory r = modHash(vdfClaim.x, bytes.concat(vdfClaim.y.val, vdfClaim.v.val)).mod(
             BigNumber(MODFORHASH, 129)
         );
-        if (_T & 1 == 0) {
-            _T = _T / 2;
-        } else {
-            _T = (_T + 1) / 2;
-            y = y.modexp(_two, _n);
-        }
-        BigNumber memory _x_prime = vdfClaim.x.modexp(r, _n).modmul(vdfClaim.v, _n);
-        BigNumber memory _y_prime = vdfClaim.v.modexp(r, _n); // to avoid stack too deep error
-        return (SingHalvProofOutput(true, true, _x_prime, _y_prime.modmul(y, _n)), _T);
+        if (vdfClaim.T & 1 == 1) y = y.modexp(_two, _n);
+        return
+            SingHalvProofOutput(
+                true,
+                true,
+                vdfClaim.x.modexp(r, _n).modmul(vdfClaim.v, _n),
+                vdfClaim.v.modexp(r, _n).modmul(y, _n)
+            );
     }
 
     function verifyRecursiveHalvingProof(
         VDFClaim[] calldata proofList,
-        BigNumber memory _n,
-        uint256 _T
+        BigNumber memory _n
     ) internal view returns (bool) {
         uint256 proofSize = proofList.length;
         for (uint256 i = 0; i < proofSize; i++) {
-            SingHalvProofOutput memory output;
-            (output, _T) = processSingleHalvingProof(proofList[i], _n, _T);
+            SingHalvProofOutput memory output = processSingleHalvingProof(proofList[i], _n);
             if (!output.verified) {
                 return false;
             } else {
