@@ -11,13 +11,25 @@ import "hardhat-contract-sizer"
 import { HardhatUserConfig } from "hardhat/config"
 /** @type import('hardhat/config').HardhatUserConfig */
 
-const MAINNET_RPC_URL = process.env.MAINNET_RPC_URL || process.env.ALCHEMY_MAINNET_RPC_URL
-const SEPOLIA_RPC_URL = process.env.SEPOLIA_RPC_URL || process.env.ALCHEMY_SEPOLIA_RPC_URL
+const optimizerSettings = {
+    optimizer: {
+        enabled: true,
+        runs: 1000000,
+        details: {
+            yul: false,
+        },
+    },
+}
+
+const MAINNET_RPC_URL = process.env.MAINNET_RPC_URL
+const SEPOLIA_RPC_URL = process.env.SEPOLIA_RPC_URL
 const POLYGON_MAINNET_RPC_URL = process.env.POLYGON_MAINNET_RPC_URL
 const PRIVATE_KEY = process.env.PRIVATE_KEY
 
 // Your API key for Etherscan, obtain one at https://etherscan.io/
 const ETHERSCAN_API_KEY = process.env.ETHERSCAN_API_KEY || "Your etherscan API key"
+const POLYGONSCAN_API_KEY = process.env.POLYGONSCAN_API_KEY || "Your polygonscan API key"
+const REPORT_GAS = process.env.REPORT_GAS || false
 
 const config: HardhatUserConfig = {
     defaultNetwork: "hardhat",
@@ -29,7 +41,6 @@ const config: HardhatUserConfig = {
             // }
             chainId: 31337,
             allowUnlimitedContractSize: true,
-            
         },
         localhost: {
             chainId: 31337,
@@ -42,6 +53,7 @@ const config: HardhatUserConfig = {
             //     mnemonic: MNEMONIC,
             //   },
             saveDeployments: true,
+            allowUnlimitedContractSize: true,
             chainId: 11155111,
         },
         mainnet: {
@@ -115,9 +127,9 @@ const config: HardhatUserConfig = {
     },
     gasReporter: {
         enabled: true,
-        currency: "USD",
-        outputFile: "gas-report.txt",
-        noColors: true,
+        currency: "ETH",
+        //outputFile: "gas-report.txt",
+        //noColors: true,
         gasPriceApi: "https://api.etherscan.io/api?module=proxy&action=eth_gasPrice",
         coinmarketcap: process.env.COINMARKETCAP_API_KEY,
     },
@@ -133,21 +145,10 @@ const config: HardhatUserConfig = {
     solidity: {
         compilers: [
             {
-                version: "0.8.8",
+                version: "0.8.22",
+                settings: optimizerSettings,
             },
-            {
-                version: "0.8.19",
-            },
-            {
-                version:"0.8.17",
-            }
         ],
-        settings: {
-            optimizer: {
-              enabled: true,
-              runs: 1000,
-            },
-          },
     },
     mocha: {
         timeout: 200000, // 200 seconds max for running tests
