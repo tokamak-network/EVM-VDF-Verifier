@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: MIT
 
 pragma solidity ^0.8.22;
-import "./libraries/Pietrzak_VDF.sol";
+
+import "./libraries/BigNumbers.sol";
 
 /**
  * @title Bicorn-RX Commit-Reveal-Recover
@@ -12,8 +13,10 @@ import "./libraries/Pietrzak_VDF.sol";
  *    3. Reveal: participants reveal their value
  */
 contract CommitRecover {
-    using BigNumbers for BigNumber;
-    using Pietrzak_VDF for *;
+    using BigNumbers for *;
+    bytes private constant MODFORHASH =
+        hex"0000000000000000000000000000000100000000000000000000000000000000";
+    uint256 private constant MODFORHASH_LEN = 129;
     /* Type declaration */
     /**
      * @notice Stages of the contract
@@ -23,6 +26,12 @@ contract CommitRecover {
         Finished,
         Commit,
         Reveal
+    }
+    struct VDFClaim {
+        uint256 T;
+        BigNumber x;
+        BigNumber y;
+        BigNumber v;
     }
     struct SetUpValueAtRound {
         uint256 setUpTime; //setUp time of the round
@@ -179,14 +188,12 @@ contract CommitRecover {
         BigNumber memory _h = setUpValuesAtRound[_round].h;
         BigNumber memory _n = setUpValuesAtRound[_round].n;
         for (uint256 i = 0; i < _numOfParticipants; i = unchecked_inc(i)) {
+            BigNumber memory _temp = modHash(
+                _n,
+                bytes.concat(commitRevealValues[_round][i].c.val, _bStar)
+            );
             _omega = _omega.modmul(
-                _h
-                    .modexp(
-                        // Pietrzak_VDF.modHash(_n, bytes.concat(commitRevealValues[_round][i].c, _bStar)),
-                        _n.modHash(bytes.concat(commitRevealValues[_round][i].c.val, _bStar)),
-                        _n
-                    )
-                    .modexp(commitRevealValues[_round][i].a, _n),
+                _h.modexp(_temp, _n).modexp(commitRevealValues[_round][i].a, _n),
                 _n
             );
         }
@@ -205,7 +212,7 @@ contract CommitRecover {
      * @notice revert if count == 0 meaning no one has committed
      * @notice calculate and finalize omega
      */
-    function recover(uint256 _round, Pietrzak_VDF.VDFClaim[] calldata proofs) public {
+    function recover(uint256 _round, VDFClaim[] calldata proofs) public {
         BigNumber memory recov = BigNumbers.one();
         BigNumber memory _n = setUpValuesAtRound[_round].n;
         checkStage(_round);
@@ -217,11 +224,10 @@ contract CommitRecover {
         bytes memory _bStar = valuesAtRound[_round].bStar;
         if (valuesAtRound[_round].isCompleted) revert OmegaAlreadyCompleted();
         if (setUpValuesAtRound[_round].T != proofs[0].T) revert TNotMatched();
-        if (!Pietrzak_VDF.verifyRecursiveHalvingProof(proofs, _n)) revert NotVerified();
+        if (!verifyRecursiveHalvingProof(proofs, _n)) revert NotVerified();
         for (uint256 i = 0; i < valuesAtRound[_round].numOfParticipants; i = unchecked_inc(i)) {
             BigNumber memory _c = commitRevealValues[_round][i].c;
-            BigNumber memory temp = _c.modexp(_n.modHash(bytes.concat(_c.val, _bStar)), _n);
-            //recov = mulmod(recov, temp, _n);
+            BigNumber memory temp = _c.modexp(modHash(_n, bytes.concat(_c.val, _bStar)), _n);
             recov = recov.modmul(temp, _n);
         }
         if (!recov.eq(proofs[0].x)) revert RecovNotMatchX();
@@ -243,13 +249,13 @@ contract CommitRecover {
         uint256 _commitDuration,
         uint256 _commitRevealDuration,
         BigNumber calldata _n,
-        Pietrzak_VDF.VDFClaim[] calldata _proofs
+        VDFClaim[] calldata _proofs
     ) public returns (uint256 _round) {
         _round = nextRound++;
         //if (valuesAtRound[_round].stage != Stages.Finished) revert StageNotFinished();
         if (_commitDuration >= _commitRevealDuration)
             revert CommitRevealDurationLessThanCommitDuration();
-        if (!Pietrzak_VDF.verifyRecursiveHalvingProof(_proofs, _n)) revert NotVerified();
+        if (!verifyRecursiveHalvingProof(_proofs, _n)) revert NotVerified();
         valuesAtRound[_round].stage = Stages.Commit;
         setUpValuesAtRound[_round].setUpTime = block.timestamp;
         setUpValuesAtRound[_round].commitDuration = _commitDuration;
@@ -290,10 +296,10 @@ contract CommitRecover {
                 valuesAtRound[_round].numOfParticipants = valuesAtRound[_round].count;
                 // uint256 _bStar = uint256(keccak256(abi.encodePacked(commitsString))) %
                 //     valuesAtRound[round].n;
-                bytes memory _bStar = setUpValuesAtRound[_round]
-                    .n
-                    .modHash(valuesAtRound[_round].commitsString)
-                    .val;
+                bytes memory _bStar = modHash(
+                    setUpValuesAtRound[_round].n,
+                    valuesAtRound[_round].commitsString
+                ).val;
                 valuesAtRound[_round].bStar = _bStar;
             } else {
                 valuesAtRound[_round].stage = Stages.Finished;
@@ -308,7 +314,7 @@ contract CommitRecover {
         }
     }
 
-    function equalStage(uint256 _round, Stages _stage) internal view {
+    function equalStage(uint256 _round, Stages _stage) private view {
         if (valuesAtRound[_round].stage != _stage) revert FunctionInvalidAtThisStage();
     }
 
@@ -317,7 +323,7 @@ contract CommitRecover {
      * @notice update stage to the next stage
      * @notice revert if the current stage is Finished
      */
-    function nextStage(uint256 _round) internal {
+    function nextStage(uint256 _round) private {
         Stages _stage = valuesAtRound[_round].stage;
         if (_stage == Stages.Finished) revert AllFinished();
         valuesAtRound[_round].stage = Stages(addmod(uint256(_stage), 1, 3));
@@ -327,5 +333,40 @@ contract CommitRecover {
         unchecked {
             return i + 1;
         }
+    }
+
+    function modHash(
+        BigNumber memory _n,
+        bytes memory _strings
+    ) private view returns (BigNumber memory) {
+        return abi.encodePacked(keccak256(_strings)).init().mod(_n);
+    }
+
+    function verifyRecursiveHalvingProof(
+        VDFClaim[] calldata proofList,
+        BigNumber memory _n
+    ) private view returns (bool) {
+        uint256 proofSize = proofList.length;
+        BigNumber memory _two = BigNumbers.two();
+        for (uint256 i = 0; i < proofSize; i++) {
+            if (proofList[i].T == 1) {
+                if (proofList[i].y.eq(proofList[i].x.modexp(_two, _n))) {
+                    return true;
+                } else {
+                    return false;
+                }
+            }
+            BigNumber memory y = proofList[i].y;
+            BigNumber memory r = modHash(
+                proofList[i].x,
+                bytes.concat(proofList[i].y.val, proofList[i].v.val)
+            ).mod(BigNumber(MODFORHASH, MODFORHASH_LEN));
+            if (proofList[i].T & 1 == 1) y = y.modexp(_two, _n);
+            BigNumber memory _xPrime = proofList[i].x.modexp(r, _n).modmul(proofList[i].v, _n);
+            if (!_xPrime.eq(proofList[i + 1].x)) return false;
+            BigNumber memory _yPrime = proofList[i].v.modexp(r, _n);
+            if (!_yPrime.modmul(y, _n).eq(proofList[i + 1].y)) return false;
+        }
+        return true;
     }
 }
