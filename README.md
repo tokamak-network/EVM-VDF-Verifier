@@ -7,7 +7,7 @@ Random number generation in Titan (Layer 2)<br>
 ```shell
 yarn
 ```
-
+ 
 ## SET .env
 ```shell
 ALCHEMY_MAINNET_RPC_URL=<GET_URL_FROM_https://dashboard.alchemy.com/>
