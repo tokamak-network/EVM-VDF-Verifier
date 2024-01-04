@@ -27,7 +27,7 @@ async function main() {
         abi,
         "0x2c46476e2B0DB71c4a6b3db460184f3B92f00b3F",
     )
-    await commitRecover.start(...params, { gasLimit: 4000000 })
+    await commitRecover.setUp(...params, { gasLimit: 4000000 })
 }
 
 main()
