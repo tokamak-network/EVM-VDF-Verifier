@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.22;
+pragma solidity ^0.8.23;
 
 // Definition here allows both the lib and inheriting contracts to use BigNumber directly.
 struct BigNumber { 
