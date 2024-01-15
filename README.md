@@ -28,30 +28,30 @@ COINMARKETCAP_API_KEY=<GET_KEY_FROM_https://pro.coinmarketcap.com/account/>
 npx hardhat node
 #Started HTTP and WebSocket JSON-RPC server at http://127.0.0.1:8545/
 
-npx hardhat deploy --network localhost --tags commitRecover --reset
-#deploying "CommitRecover" (tx: 0xec0ed0faa71c54e85ecec9347227609b69acd980e00e35a1e3839bc71409b222)...: deployed at 0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512 with 2821690 gas
+npx hardhat deploy --network localhost --tags CommitRevealRecoverRNG --reset
+#deploying "CommitRevealRecoverRNG" (tx: 0xec0ed0faa71c54e85ecec9347227609b69acd980e00e35a1e3839bc71409b222)...: deployed at 0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512 with 2821690 gas
 ```
 
 ### to target network
 ```shell
 ## CHANGE in hardhat.config.ts files at network :{} section
-npx hardhat deploy --network <WRITE_YOUR_OWN_NETWORK_NAME> --tags commitRecover --reset
+npx hardhat deploy --network <WRITE_YOUR_OWN_NETWORK_NAME> --tags CommitRevealRecoverRNG --reset
 ```
 
 ## TEST
 
 ### hardhat
 ```shell
-#It runs test/commitRecover.test.ts
-npx hardhat test test/commitRecover.test.ts --network hardhat
+#It runs test/CommitRevealRecoverRNG.test.ts
+npx hardhat test test/CommitRevealRecoverRNG.test.ts --network hardhat
 ```
 
 ### localhost
 ```shell
-#It runs test/commitRecover.test.ts
+#It runs test/CommitRevealRecoverRNG.test.ts
 npx hardhat node
 #Started HTTP and WebSocket JSON-RPC server at http://127.0.0.1:8545/
-npx hardhat test test/commitRecover.test.ts --network localhost
+npx hardhat test test/CommitRevealRecoverRNG.test.ts --network localhost
 ```
 
 ## VERIFY CODE

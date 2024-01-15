@@ -3,17 +3,17 @@ import { assert, expect } from "chai"
 import { BigNumberish, Contract, ContractTransactionReceipt, Log } from "ethers"
 import { network, deployments, ethers, getNamedAccounts } from "hardhat"
 import { developmentChains, networkConfig } from "../../helper-hardhat-config"
-import { CommitRecover, CommitRecover__factory } from "../../typechain-types"
+import { CommitRevealRecoverRNG, CommitRevealRecoverRNG__factory } from "../../typechain-types"
 import { TestCase, BigNumber, SetUpParams, CommitParams, RevealParams } from "../shared/interfaces"
 import { testCases } from "../shared/testcases"
 import {
     createTestCases,
     createTestCases2,
     getRankPointOfEachParticipants,
-    deployCommitRecover,
-    setUpCommitRecoverRound,
+    deployCommitRevealRecoverRNG,
+    setUpCommitRevealRecoverRNGRound,
     initializedContractCorrectly,
-    deployFirstTestCaseCommitRecoverContract,
+    deployFirstTestCaseCommitRevealRecoverRNGContract,
     commit,
     reveal,
     getWinnerAddress,
@@ -25,7 +25,7 @@ import { assertTestAfterDeploy, assertTestAfterGettingOmega } from "../shared/as
 
 !developmentChains.includes(network.name)
     ? describe.skip
-    : describe("CommitRecover Unit Test2", () => {
+    : describe("CommitRevealRecoverRNG Unit Test2", () => {
           const testcases: TestCase[] = createTestCases2()
           const chainId = network.config.chainId
           let deployer: SignerWithAddress
@@ -44,15 +44,17 @@ import { assertTestAfterDeploy, assertTestAfterGettingOmega } from "../shared/as
           describe("deploy contract and check", () => {
               it("try deploy several times and should pass", async () => {
                   for (let i = 0; i < testcases.length; i++) {
-                      const { commitRecoverContract, receipt } = await deployCommitRecover()
-                      await assertTestAfterDeploy(commitRecoverContract)
+                      const { CommitRevealRecoverRNGContract, receipt } =
+                          await deployCommitRevealRecoverRNG()
+                      await assertTestAfterDeploy(CommitRevealRecoverRNGContract)
                   }
               })
           })
           describe("setUp", () => {
               it("setUp for every testcase should pass, multiple rounds", async () => {
                   for (let round = 0; round < testcases.length; round++) {
-                      let { commitRecoverContract, receipt } = await deployCommitRecover()
+                      let { CommitRevealRecoverRNGContract, receipt } =
+                          await deployCommitRevealRecoverRNG()
                       let params: SetUpParams = {
                           commitDuration,
                           commitRevealDuration,
@@ -60,8 +62,8 @@ import { assertTestAfterDeploy, assertTestAfterGettingOmega } from "../shared/as
                           n: testcases[round].n,
                           setupProofs: testcases[round].setupProofs,
                       }
-                      let setUpReceipt = await setUpCommitRecoverRound(
-                          commitRecoverContract,
+                      let setUpReceipt = await setUpCommitRevealRecoverRNGRound(
+                          CommitRevealRecoverRNGContract,
                           params,
                       )
                   }
@@ -70,7 +72,8 @@ import { assertTestAfterDeploy, assertTestAfterGettingOmega } from "../shared/as
           let signers: SignerWithAddress[]
           describe("commit", () => {
               it("commit for every testcase should pass, multiple rounds", async () => {
-                  let { commitRecoverContract, receipt } = await deployCommitRecover()
+                  let { CommitRevealRecoverRNGContract, receipt } =
+                      await deployCommitRevealRecoverRNG()
                   for (let round = 0; round < testcases.length; round++) {
                       let params: SetUpParams = {
                           commitDuration,
@@ -80,8 +83,8 @@ import { assertTestAfterDeploy, assertTestAfterGettingOmega } from "../shared/as
 
                           setupProofs: testcases[round].setupProofs,
                       }
-                      let setUpReceipt = await setUpCommitRecoverRound(
-                          commitRecoverContract,
+                      let setUpReceipt = await setUpCommitRevealRecoverRNGRound(
+                          CommitRevealRecoverRNGContract,
                           params,
                       )
                       signers = await ethers.getSigners()
@@ -90,14 +93,15 @@ import { assertTestAfterDeploy, assertTestAfterGettingOmega } from "../shared/as
                               round: round,
                               commit: testcases[round].commitList[j],
                           }
-                          await commit(commitRecoverContract, signers[j], commitParams)
+                          await commit(CommitRevealRecoverRNGContract, signers[j], commitParams)
                       }
                   }
               })
           })
           describe("reveal", () => {
               it("reveal for every testcase should pass, multiple rounds", async () => {
-                  let { commitRecoverContract, receipt } = await deployCommitRecover()
+                  let { CommitRevealRecoverRNGContract, receipt } =
+                      await deployCommitRevealRecoverRNG()
                   for (let round = 0; round < testcases.length; round++) {
                       let params: SetUpParams = {
                           commitDuration,
@@ -106,8 +110,8 @@ import { assertTestAfterDeploy, assertTestAfterGettingOmega } from "../shared/as
                           n: testcases[round].n,
                           setupProofs: testcases[round].setupProofs,
                       }
-                      let setUpReceipt = await setUpCommitRecoverRound(
-                          commitRecoverContract,
+                      let setUpReceipt = await setUpCommitRevealRecoverRNGRound(
+                          CommitRevealRecoverRNGContract,
                           params,
                       )
                       signers = await ethers.getSigners()
@@ -116,7 +120,7 @@ import { assertTestAfterDeploy, assertTestAfterGettingOmega } from "../shared/as
                               round: round,
                               commit: testcases[round].commitList[j],
                           }
-                          await commit(commitRecoverContract, signers[j], commitParams)
+                          await commit(CommitRevealRecoverRNGContract, signers[j], commitParams)
                       }
                       await time.increase(commitDuration)
                       for (let j = 0; j < testcases[round].randomList.length; j++) {
@@ -124,14 +128,15 @@ import { assertTestAfterDeploy, assertTestAfterGettingOmega } from "../shared/as
                               round: round,
                               reveal: testcases[round].randomList[j],
                           }
-                          await reveal(commitRecoverContract, signers[j], revealParams)
+                          await reveal(CommitRevealRecoverRNGContract, signers[j], revealParams)
                       }
                   }
               })
           })
           describe("calculate Omega", () => {
               it("All Revealed, Calculated Omega should be correct for every testcase, multiple rounds", async () => {
-                  let { commitRecoverContract, receipt } = await deployCommitRecover()
+                  let { CommitRevealRecoverRNGContract, receipt } =
+                      await deployCommitRevealRecoverRNG()
                   for (let round = 0; round < testcases.length; round++) {
                       let params: SetUpParams = {
                           commitDuration,
@@ -140,8 +145,8 @@ import { assertTestAfterDeploy, assertTestAfterGettingOmega } from "../shared/as
                           n: testcases[round].n,
                           setupProofs: testcases[round].setupProofs,
                       }
-                      let setUpReceipt = await setUpCommitRecoverRound(
-                          commitRecoverContract,
+                      let setUpReceipt = await setUpCommitRevealRecoverRNGRound(
+                          CommitRevealRecoverRNGContract,
                           params,
                       )
                       signers = await ethers.getSigners()
@@ -150,7 +155,7 @@ import { assertTestAfterDeploy, assertTestAfterGettingOmega } from "../shared/as
                               round: round,
                               commit: testcases[round].commitList[j],
                           }
-                          await commit(commitRecoverContract, signers[j], commitParams)
+                          await commit(CommitRevealRecoverRNGContract, signers[j], commitParams)
                       }
                       await time.increase(commitDuration)
                       for (let j = 0; j < testcases[round].randomList.length; j++) {
@@ -158,11 +163,12 @@ import { assertTestAfterDeploy, assertTestAfterGettingOmega } from "../shared/as
                               round: round,
                               reveal: testcases[round].randomList[j],
                           }
-                          await reveal(commitRecoverContract, signers[j], revealParams)
+                          await reveal(CommitRevealRecoverRNGContract, signers[j], revealParams)
                       }
-                      const tx = await commitRecoverContract.calculateOmega(round)
+                      const tx = await CommitRevealRecoverRNGContract.calculateOmega(round)
                       const receipt = await tx.wait()
-                      const omega = (await commitRecoverContract.getValuesAtRound(round)).omega
+                      const omega = (await CommitRevealRecoverRNGContract.getValuesAtRound(round))
+                          .omega
                       assertTestAfterGettingOmega(
                           omega,
                           testcases[round].omega,
@@ -173,7 +179,8 @@ import { assertTestAfterDeploy, assertTestAfterGettingOmega } from "../shared/as
           })
           describe("recover", () => {
               it("Recovered Omega should be correct for every testcase, multiple rounds", async () => {
-                  let { commitRecoverContract, receipt } = await deployCommitRecover()
+                  let { CommitRevealRecoverRNGContract, receipt } =
+                      await deployCommitRevealRecoverRNG()
                   for (let round = 0; round < testcases.length; round++) {
                       let params: SetUpParams = {
                           commitDuration,
@@ -182,8 +189,8 @@ import { assertTestAfterDeploy, assertTestAfterGettingOmega } from "../shared/as
                           n: testcases[round].n,
                           setupProofs: testcases[round].setupProofs,
                       }
-                      let setUpReceipt = await setUpCommitRecoverRound(
-                          commitRecoverContract,
+                      let setUpReceipt = await setUpCommitRevealRecoverRNGRound(
+                          CommitRevealRecoverRNGContract,
                           params,
                       )
                       signers = await ethers.getSigners()
@@ -192,15 +199,16 @@ import { assertTestAfterDeploy, assertTestAfterGettingOmega } from "../shared/as
                               round: round,
                               commit: testcases[round].commitList[j],
                           }
-                          await commit(commitRecoverContract, signers[j], commitParams)
+                          await commit(CommitRevealRecoverRNGContract, signers[j], commitParams)
                       }
                       await time.increase(commitDuration)
-                      const tx = await commitRecoverContract.recover(
+                      const tx = await CommitRevealRecoverRNGContract.recover(
                           round,
                           testcases[round].recoveryProofs,
                       )
                       const receipt = await tx.wait()
-                      const omega = (await commitRecoverContract.getValuesAtRound(round)).omega
+                      const omega = (await CommitRevealRecoverRNGContract.getValuesAtRound(round))
+                          .omega
                       assertTestAfterGettingOmega(
                           omega,
                           testcases[round].omega,
@@ -211,7 +219,8 @@ import { assertTestAfterDeploy, assertTestAfterGettingOmega } from "../shared/as
           })
           describe("getRankofEachPariticipants", () => {
               it("getRankofEachPariticipants result from contract should be equal to typescript function", async () => {
-                  let { commitRecoverContract, receipt } = await deployCommitRecover()
+                  let { CommitRevealRecoverRNGContract, receipt } =
+                      await deployCommitRevealRecoverRNG()
                   for (let round = 0; round < testcases.length; round++) {
                       let params: SetUpParams = {
                           commitDuration,
@@ -220,8 +229,8 @@ import { assertTestAfterDeploy, assertTestAfterGettingOmega } from "../shared/as
                           n: testcases[round].n,
                           setupProofs: testcases[round].setupProofs,
                       }
-                      let setUpReceipt = await setUpCommitRecoverRound(
-                          commitRecoverContract,
+                      let setUpReceipt = await setUpCommitRevealRecoverRNGRound(
+                          CommitRevealRecoverRNGContract,
                           params,
                       )
                       signers = await ethers.getSigners()
@@ -230,15 +239,16 @@ import { assertTestAfterDeploy, assertTestAfterGettingOmega } from "../shared/as
                               round: round,
                               commit: testcases[round].commitList[j],
                           }
-                          await commit(commitRecoverContract, signers[j], commitParams)
+                          await commit(CommitRevealRecoverRNGContract, signers[j], commitParams)
                       }
                       await time.increase(commitDuration)
-                      const tx = await commitRecoverContract.recover(
+                      const tx = await CommitRevealRecoverRNGContract.recover(
                           round,
                           testcases[round].recoveryProofs,
                       )
                       const receipt = await tx.wait()
-                      const omega = (await commitRecoverContract.getValuesAtRound(round)).omega
+                      const omega = (await CommitRevealRecoverRNGContract.getValuesAtRound(round))
+                          .omega
                       assertTestAfterGettingOmega(
                           omega,
                           testcases[round].omega,
