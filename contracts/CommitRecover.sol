@@ -17,6 +17,8 @@ contract CommitRecover {
     bytes private constant MODFORHASH =
         hex"0000000000000000000000000000000100000000000000000000000000000000";
     uint256 private constant MODFORHASH_LEN = 129;
+    uint256 private constant ZERO = 0;
+    uint256 private constant ONE = 1;
     /* Type declaration */
     /**
      * @notice Stages of the contract
@@ -38,6 +40,7 @@ contract CommitRecover {
         uint256 commitDuration; // commit period
         uint256 commitRevealDuration; // commit + reveal period, commitRevealDuration - commitDuration => revealDuration
         uint256 T;
+        uint256 proofSize;
         BigNumber n;
         BigNumber g; // a value generated from the generator list
         BigNumber h; // a value generated from the VDF(g)
@@ -63,11 +66,12 @@ contract CommitRecover {
         bool revealed; // true if revealed
     }
     /* State variables */
-    uint256 public nextRound;
-    mapping(uint256 round => SetUpValueAtRound) public setUpValuesAtRound;
-    mapping(uint256 round => ValueAtRound) public valuesAtRound;
-    mapping(uint256 round => mapping(uint256 index => CommitRevealValue)) public commitRevealValues;
-    mapping(address owner => mapping(uint256 round => UserAtRound)) public userInfosAtRound;
+    uint256 private nextRound;
+    mapping(uint256 round => SetUpValueAtRound) private setUpValuesAtRound;
+    mapping(uint256 round => ValueAtRound) private valuesAtRound;
+    mapping(uint256 round => mapping(uint256 index => CommitRevealValue))
+        private commitRevealValues;
+    mapping(address owner => mapping(uint256 round => UserAtRound)) private userInfosAtRound;
 
     /* Events */
     event CommitC(
@@ -127,7 +131,7 @@ contract CommitRecover {
      * @notice The participant can only commit once
      * @notice check period, update stage if needed, revert if not currently at commit stage
      */
-    function commit(uint256 _round, BigNumber memory _c) public {
+    function commit(uint256 _round, BigNumber memory _c) external {
         if (_c.isZero()) revert ShouldNotBeZero();
         if (userInfosAtRound[msg.sender][_round].committed) revert AlreadyCommitted();
         checkStage(_round);
@@ -155,7 +159,7 @@ contract CommitRecover {
      * @notice if count == 0, update valuesAtRound, stage
      * @notice update userInfosAtRound
      */
-    function reveal(uint256 _round, BigNumber calldata _a) public {
+    function reveal(uint256 _round, BigNumber calldata _a) external {
         UserAtRound memory _user = userInfosAtRound[msg.sender][_round];
         if (!_user.committed) revert NotCommittedParticipant();
         if (_user.revealed) revert AlreadyRevealed();
@@ -167,9 +171,9 @@ contract CommitRecover {
         checkStage(_round);
         equalStage(_round, Stages.Reveal);
         //uint256 _count = --count;
-        uint256 _count = valuesAtRound[_round].count -= 1;
+        uint256 _count = valuesAtRound[_round].count -= ONE;
         commitRevealValues[_round][_user.index].a = _a;
-        if (_count == 0) {
+        if (_count == ZERO) {
             valuesAtRound[_round].stage = Stages.Finished;
             valuesAtRound[_round].isAllRevealed = true;
         }
@@ -177,7 +181,7 @@ contract CommitRecover {
         emit RevealA(msg.sender, _a, _count, block.timestamp);
     }
 
-    function calculateOmega(uint256 _round) public returns (BigNumber memory) {
+    function calculateOmega(uint256 _round) external returns (BigNumber memory) {
         if (!valuesAtRound[_round].isAllRevealed) revert NotAllRevealed();
         if (valuesAtRound[_round].isCompleted) return valuesAtRound[_round].omega;
         checkStage(_round);
@@ -187,10 +191,10 @@ contract CommitRecover {
         bytes memory _bStar = valuesAtRound[_round].bStar;
         BigNumber memory _h = setUpValuesAtRound[_round].h;
         BigNumber memory _n = setUpValuesAtRound[_round].n;
-        for (uint256 i = 0; i < _numOfParticipants; i = unchecked_inc(i)) {
+        for (uint256 i; i < _numOfParticipants; i = unchecked_inc(i)) {
             BigNumber memory _temp = modHash(
-                _n,
-                bytes.concat(commitRevealValues[_round][i].c.val, _bStar)
+                bytes.concat(commitRevealValues[_round][i].c.val, _bStar),
+                _n
             );
             _omega = _omega.modmul(
                 _h.modexp(_temp, _n).modexp(commitRevealValues[_round][i].a, _n),
@@ -212,29 +216,30 @@ contract CommitRecover {
      * @notice revert if count == 0 meaning no one has committed
      * @notice calculate and finalize omega
      */
-    function recover(uint256 _round, VDFClaim[] calldata proofs) public {
-        BigNumber memory recov = BigNumbers.one();
+    function recover(uint256 _round, VDFClaim[] calldata proofs) external {
         BigNumber memory _n = setUpValuesAtRound[_round].n;
+        uint256 _proofsSize = proofs.length;
         checkStage(_round);
+        uint256 _numOfParticipants = valuesAtRound[_round].numOfParticipants;
         if (valuesAtRound[_round].stage == Stages.Commit) revert FunctionInvalidAtThisStage();
-        if (
-            valuesAtRound[_round].stage == Stages.Finished &&
-            valuesAtRound[_round].numOfParticipants == 0
-        ) revert NoneParticipated();
+        if (_numOfParticipants == ZERO) revert NoneParticipated();
         bytes memory _bStar = valuesAtRound[_round].bStar;
         if (valuesAtRound[_round].isCompleted) revert OmegaAlreadyCompleted();
-        if (setUpValuesAtRound[_round].T != proofs[0].T) revert TNotMatched();
-        if (!verifyRecursiveHalvingProof(proofs, _n)) revert NotVerified();
-        for (uint256 i = 0; i < valuesAtRound[_round].numOfParticipants; i = unchecked_inc(i)) {
+        if (
+            setUpValuesAtRound[_round].T != proofs[ZERO].T ||
+            setUpValuesAtRound[_round].proofSize != _proofsSize
+        ) revert TNotMatched();
+        if (!verifyRecursiveHalvingProof(proofs, _n, _proofsSize)) revert NotVerified();
+        BigNumber memory _recov = BigNumbers.one();
+        for (uint256 i; i < _numOfParticipants; i = unchecked_inc(i)) {
             BigNumber memory _c = commitRevealValues[_round][i].c;
-            BigNumber memory temp = _c.modexp(modHash(_n, bytes.concat(_c.val, _bStar)), _n);
-            recov = recov.modmul(temp, _n);
+            _recov = _recov.modmul(_c.modexp(modHash(bytes.concat(_c.val, _bStar), _n), _n), _n);
         }
-        if (!recov.eq(proofs[0].x)) revert RecovNotMatchX();
+        if (!_recov.eq(proofs[ZERO].x)) revert RecovNotMatchX();
         valuesAtRound[_round].isCompleted = true;
-        valuesAtRound[_round].omega = proofs[0].y;
+        valuesAtRound[_round].omega = proofs[ZERO].y;
         valuesAtRound[_round].stage = Stages.Finished;
-        emit Recovered(msg.sender, recov, proofs[0].y, block.timestamp);
+        emit Recovered(msg.sender, _recov, proofs[ZERO].y, block.timestamp);
     }
 
     /**
@@ -250,21 +255,22 @@ contract CommitRecover {
         uint256 _commitRevealDuration,
         BigNumber calldata _n,
         VDFClaim[] calldata _proofs
-    ) public returns (uint256 _round) {
+    ) external returns (uint256 _round) {
         _round = nextRound++;
-        //if (valuesAtRound[_round].stage != Stages.Finished) revert StageNotFinished();
+        uint256 _proofsSize = _proofs.length;
         if (_commitDuration >= _commitRevealDuration)
             revert CommitRevealDurationLessThanCommitDuration();
-        if (!verifyRecursiveHalvingProof(_proofs, _n)) revert NotVerified();
-        valuesAtRound[_round].stage = Stages.Commit;
+        if (!verifyRecursiveHalvingProof(_proofs, _n, _proofsSize)) revert NotVerified();
         setUpValuesAtRound[_round].setUpTime = block.timestamp;
         setUpValuesAtRound[_round].commitDuration = _commitDuration;
         setUpValuesAtRound[_round].commitRevealDuration = _commitRevealDuration;
-        setUpValuesAtRound[_round].T = _proofs[0].T;
-        setUpValuesAtRound[_round].g = _proofs[0].x;
-        setUpValuesAtRound[_round].h = _proofs[0].y;
+        setUpValuesAtRound[_round].T = _proofs[ZERO].T;
+        setUpValuesAtRound[_round].g = _proofs[ZERO].x;
+        setUpValuesAtRound[_round].h = _proofs[ZERO].y;
         setUpValuesAtRound[_round].n = _n;
-        valuesAtRound[_round].count = 0;
+        setUpValuesAtRound[_round].proofSize = _proofsSize;
+        valuesAtRound[_round].stage = Stages.Commit;
+        valuesAtRound[_round].count = ZERO;
         valuesAtRound[_round].commitsString = "";
         emit SetUp(
             msg.sender,
@@ -272,11 +278,39 @@ contract CommitRecover {
             _commitDuration,
             _commitRevealDuration,
             _n,
-            _proofs[0].x,
-            _proofs[0].y,
-            _proofs[0].T,
+            _proofs[ZERO].x,
+            _proofs[ZERO].y,
+            _proofs[ZERO].T,
             _round
         );
+    }
+
+    function getNextRound() external view returns (uint256) {
+        return nextRound;
+    }
+
+    function getSetUpValuesAtRound(
+        uint256 _round
+    ) external view returns (SetUpValueAtRound memory) {
+        return setUpValuesAtRound[_round];
+    }
+
+    function getValuesAtRound(uint256 _round) external view returns (ValueAtRound memory) {
+        return valuesAtRound[_round];
+    }
+
+    function getCommitRevealValues(
+        uint256 _round,
+        uint256 _index
+    ) external view returns (CommitRevealValue memory) {
+        return commitRevealValues[_round][_index];
+    }
+
+    function getUserInfosAtRound(
+        address _owner,
+        uint256 _round
+    ) external view returns (UserAtRound memory) {
+        return userInfosAtRound[_owner][_round];
     }
 
     /**
@@ -285,32 +319,28 @@ contract CommitRecover {
      * @notice this function is used to check if the current stage is the given stage
      * @notice it will update the stage to the next stage if needed
      */
-    function checkStage(uint256 _round) public {
+    function checkStage(uint256 _round) private {
         uint256 _setUpTime = setUpValuesAtRound[_round].setUpTime;
         if (
             valuesAtRound[_round].stage == Stages.Commit &&
             block.timestamp >= _setUpTime + setUpValuesAtRound[_round].commitDuration
         ) {
-            if (valuesAtRound[_round].count != 0) {
-                nextStage(_round);
+            if (valuesAtRound[_round].count != ZERO) {
+                valuesAtRound[_round].stage = Stages.Reveal;
                 valuesAtRound[_round].numOfParticipants = valuesAtRound[_round].count;
-                // uint256 _bStar = uint256(keccak256(abi.encodePacked(commitsString))) %
-                //     valuesAtRound[round].n;
-                bytes memory _bStar = modHash(
-                    setUpValuesAtRound[_round].n,
-                    valuesAtRound[_round].commitsString
+                valuesAtRound[_round].bStar = modHash(
+                    valuesAtRound[_round].commitsString,
+                    setUpValuesAtRound[_round].n
                 ).val;
-                valuesAtRound[_round].bStar = _bStar;
             } else {
                 valuesAtRound[_round].stage = Stages.Finished;
             }
         }
         if (
             valuesAtRound[_round].stage == Stages.Reveal &&
-            (block.timestamp >= _setUpTime + setUpValuesAtRound[_round].commitRevealDuration ||
-                valuesAtRound[_round].count == 0)
+            (block.timestamp >= _setUpTime + setUpValuesAtRound[_round].commitRevealDuration)
         ) {
-            nextStage(_round);
+            valuesAtRound[_round].stage = Stages.Finished;
         }
     }
 
@@ -318,55 +348,40 @@ contract CommitRecover {
         if (valuesAtRound[_round].stage != _stage) revert FunctionInvalidAtThisStage();
     }
 
-    /**
-     * @notice NextStage function
-     * @notice update stage to the next stage
-     * @notice revert if the current stage is Finished
-     */
-    function nextStage(uint256 _round) private {
-        Stages _stage = valuesAtRound[_round].stage;
-        if (_stage == Stages.Finished) revert AllFinished();
-        valuesAtRound[_round].stage = Stages(addmod(uint256(_stage), 1, 3));
-    }
-
-    function unchecked_inc(uint256 i) private pure returns (uint) {
-        unchecked {
-            return i + 1;
-        }
-    }
-
     function modHash(
-        BigNumber memory _n,
-        bytes memory _strings
+        bytes memory _strings,
+        BigNumber memory _n
     ) private view returns (BigNumber memory) {
         return abi.encodePacked(keccak256(_strings)).init().mod(_n);
     }
 
     function verifyRecursiveHalvingProof(
-        VDFClaim[] calldata proofList,
-        BigNumber memory _n
+        VDFClaim[] calldata _proofList,
+        BigNumber memory _n,
+        uint256 _proofSize
     ) private view returns (bool) {
-        uint256 proofSize = proofList.length;
         BigNumber memory _two = BigNumbers.two();
-        for (uint256 i = 0; i < proofSize; i++) {
-            if (proofList[i].T == 1) {
-                if (proofList[i].y.eq(proofList[i].x.modexp(_two, _n))) {
-                    return true;
-                } else {
-                    return false;
-                }
+        for (uint256 i; i < _proofSize; i = unchecked_inc(i)) {
+            if (_proofList[i].T == ONE) {
+                return _proofList[i].y.eq(_proofList[i].x.modexp(_two, _n));
             }
-            BigNumber memory y = proofList[i].y;
-            BigNumber memory r = modHash(
-                proofList[i].x,
-                bytes.concat(proofList[i].y.val, proofList[i].v.val)
+            BigNumber memory _y = _proofList[i].y;
+            BigNumber memory _r = modHash(
+                bytes.concat(_proofList[i].y.val, _proofList[i].v.val),
+                _proofList[i].x
             ).mod(BigNumber(MODFORHASH, MODFORHASH_LEN));
-            if (proofList[i].T & 1 == 1) y = y.modexp(_two, _n);
-            BigNumber memory _xPrime = proofList[i].x.modexp(r, _n).modmul(proofList[i].v, _n);
-            if (!_xPrime.eq(proofList[i + 1].x)) return false;
-            BigNumber memory _yPrime = proofList[i].v.modexp(r, _n);
-            if (!_yPrime.modmul(y, _n).eq(proofList[i + 1].y)) return false;
+            if (_proofList[i].T & ONE == ONE) _y = _y.modexp(_two, _n);
+            BigNumber memory _xPrime = _proofList[i].x.modexp(_r, _n).modmul(_proofList[i].v, _n);
+            if (!_xPrime.eq(_proofList[unchecked_inc(i)].x)) return false;
+            BigNumber memory _yPrime = _proofList[i].v.modexp(_r, _n);
+            if (!_yPrime.modmul(_y, _n).eq(_proofList[unchecked_inc(i)].y)) return false;
         }
         return true;
+    }
+
+    function unchecked_inc(uint256 i) private pure returns (uint) {
+        unchecked {
+            return i + ONE;
+        }
     }
 }
