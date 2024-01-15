@@ -3,9 +3,9 @@
 pragma solidity ^0.8.23;
 
 import {BigNumbers} from "./libraries/BigNumbers.sol";
-import "./interfaces/ICommitRecover.sol";
+import "./interfaces/ICommitRevealRecoverRNG.sol";
 
-contract CommitRecover is ICommitRecover {
+contract CommitRevealRecoverRNG is ICommitRevealRecoverRNG {
     using BigNumbers for *;
     bytes private constant MODFORHASH =
         hex"0000000000000000000000000000000100000000000000000000000000000000";

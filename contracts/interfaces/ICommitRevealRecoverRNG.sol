@@ -10,7 +10,7 @@ import {BigNumber} from "../libraries/BigNumbers.sol";
  *    2. Commit: participants commit their value
  *    3. Reveal: participants reveal their value
  */
-interface ICommitRecover {
+interface ICommitRevealRecoverRNG {
     /* Type declaration */
     /**
      * @notice Stages of the contract
