@@ -162,7 +162,7 @@ import { assertTestAfterDeploy, assertTestAfterGettingOmega } from "../shared/as
                       }
                       const tx = await commitRecoverContract.calculateOmega(round)
                       const receipt = await tx.wait()
-                      const omega = (await commitRecoverContract.valuesAtRound(round)).omega
+                      const omega = (await commitRecoverContract.getValuesAtRound(round)).omega
                       assertTestAfterGettingOmega(
                           omega,
                           testcases[round].omega,
@@ -200,7 +200,7 @@ import { assertTestAfterDeploy, assertTestAfterGettingOmega } from "../shared/as
                           testcases[round].recoveryProofs,
                       )
                       const receipt = await tx.wait()
-                      const omega = (await commitRecoverContract.valuesAtRound(round)).omega
+                      const omega = (await commitRecoverContract.getValuesAtRound(round)).omega
                       assertTestAfterGettingOmega(
                           omega,
                           testcases[round].omega,
@@ -238,7 +238,7 @@ import { assertTestAfterDeploy, assertTestAfterGettingOmega } from "../shared/as
                           testcases[round].recoveryProofs,
                       )
                       const receipt = await tx.wait()
-                      const omega = (await commitRecoverContract.valuesAtRound(round)).omega
+                      const omega = (await commitRecoverContract.getValuesAtRound(round)).omega
                       assertTestAfterGettingOmega(
                           omega,
                           testcases[round].omega,

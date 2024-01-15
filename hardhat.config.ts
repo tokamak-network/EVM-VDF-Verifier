@@ -14,7 +14,7 @@ import { HardhatUserConfig } from "hardhat/config"
 const optimizerSettings = {
     optimizer: {
         enabled: true,
-        runs: 1000000,
+        runs: 10000000,
         details: {
             yul: false,
         },
