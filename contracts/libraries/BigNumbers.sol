@@ -14,13 +14,28 @@ library BigNumbers {
     error BigNumbers__ShouldNotBeZero();
     
     /// @notice the value for number 0 of a BigNumber instance.
-    bytes constant ZERO = hex"0000000000000000000000000000000000000000000000000000000000000000";
+    bytes constant private ZERO = hex"0000000000000000000000000000000000000000000000000000000000000000";
     /// @notice the value for number 1 of a BigNumber instance.
-    bytes constant  ONE = hex"0000000000000000000000000000000000000000000000000000000000000001";
+    bytes constant private  ONE = hex"0000000000000000000000000000000000000000000000000000000000000001";
     /// @notice the value for number 2 of a BigNumber instance.
-    bytes constant  TWO = hex"0000000000000000000000000000000000000000000000000000000000000002";
+    bytes constant private  TWO = hex"0000000000000000000000000000000000000000000000000000000000000002";
 
     // ***************** BEGIN EXPOSED MANAGEMENT FUNCTIONS ******************
+/** @notice BigNumber equality
+      * @dev eq: returns true if a==b. sign always considered.
+      *           
+      * @param a BigNumber
+      * @param b BigNumber
+      * @return boolean result
+      */
+    function eq(
+        BigNumber memory a, 
+        BigNumber memory b
+    ) internal pure returns(bool){
+        int256 result = cmp(a, b);
+        return (result==0) ? true : false;
+    }
+    
     /** @notice initialize a BN instance
      *  @dev wrapper function for _init. initializes from bytes value.
      *
@@ -33,97 +48,46 @@ library BigNumbers {
         return _init(val, 0);
     }
 
+        /** @notice BigNumber zero value
+        @dev zero: returns zero encoded as a BigNumber
+      * @return zero encoded as BigNumber
+      */
+    function zero(
+    ) internal pure returns(BigNumber memory) {
+        return BigNumber(ZERO, 0);
+    }
+
+    /** @notice BigNumber one value
+        @dev one: returns one encoded as a BigNumber
+      * @return one encoded as BigNumber
+      */
+    function one(
+    ) internal pure returns(BigNumber memory) {
+        return BigNumber(ONE, 1);
+    }
+
+    /** @notice BigNumber two value
+        @dev two: returns two encoded as a BigNumber
+      * @return two encoded as BigNumber
+      */
+    function two(
+    ) internal pure returns(BigNumber memory) {
+        return BigNumber(TWO, 2);
+    }
+
+    /** @notice BigNumber full zero check
+      * @dev isZero: checks if the BigNumber is in the default zero format for BNs (ie. the result from zero()).
+      *             
+      * @param a BigNumber
+      * @return boolean result.
+    */
+    function isZero(
+        BigNumber memory a
+    ) internal pure returns(bool) {
+        return isZero(a.val) && a.val.length==0x20 && a.bitlen == 0;
+    }
+
     // ***************** BEGIN EXPOSED CORE CALCULATION FUNCTIONS ******************
-    /** @notice BigNumber addition: a + b.
-      * @dev add: Initially prepare BigNumbers for addition operation; internally calls actual addition/subtraction,
-      *           depending on inputs.
-      *           In order to do correct addition or subtraction we have to handle the sign.
-      *           This function discovers the sign of the result based on the inputs, and calls the correct operation.
-      *
-      * @param a first BN
-      * @param b second BN
-      * @return r result  - addition of a and b.
-      */
-    function add(
-        BigNumber memory a, 
-        BigNumber memory b
-    ) internal pure returns(BigNumber memory r) {
-        if(a.bitlen==0 && b.bitlen==0) return zero();
-        if(a.bitlen==0) return b;
-        if(b.bitlen==0) return a;
-        bytes memory val;
-        uint256 bitlen;
-        int256 compare = cmp(a,b);
-        if(compare>=0){ // a>=b
-            (val, bitlen) = _add(a.val,b.val,a.bitlen);
-        }
-        else {
-            (val, bitlen) = _add(b.val,a.val,b.bitlen);
-        }
-        r.val = val;
-        r.bitlen = (bitlen);
-    }
-
-    /** @notice BigNumber subtraction: a - b.
-      * @dev sub: Initially prepare BigNumbers for subtraction operation; internally calls actual addition/subtraction,
-                  depending on inputs.
-      *           In order to do correct addition or subtraction we have to handle the sign.
-      *           This function discovers the sign of the result based on the inputs, and calls the correct operation.
-      *
-      * @param a first BN
-      * @param b second BN
-      * @return r result - subtraction of a and b.
-      */  
-    function sub(
-        BigNumber memory a, 
-        BigNumber memory b
-    ) internal pure returns(BigNumber memory r) {
-        if(a.bitlen==0 && b.bitlen==0) return zero();
-        bytes memory val;
-        int256 compare;
-        uint256 bitlen;
-        compare = cmp(a,b);
-
-        if(compare == 1) {
-            (val,bitlen) = _sub(a.val,b.val);
-        }
-        else if(compare == -1) { 
-            (val,bitlen) = _sub(b.val,a.val);
-            //r.neg = true;
-        }
-        else return zero(); 
-        r.val = val;
-        r.bitlen = (bitlen);
-    }
-
-    /** @notice BigNumber multiplication: a * b.
-      * @dev mul: takes two BigNumbers and multiplys them. Order is irrelevant.
-      *              multiplication achieved using modexp precompile:
-      *                 (a * b) = ((a + b)**2 - (a - b)**2) / 4
-      *
-      * @param a first BN
-      * @param b second BN
-      * @return r result - multiplication of a and b.
-      */
-    function mul(
-        BigNumber memory a, 
-        BigNumber memory b
-    ) internal view returns(BigNumber memory r){
-            
-        BigNumber memory lhs = add(a,b);
-        BigNumber memory fst = modexp(lhs, two(), _powModulus(lhs, 2)); // (a+b)^2
-        
-        // no need to do subtraction part of the equation if a == b; if so, it has no effect on final result.
-        if(!eq(a,b)) {
-            BigNumber memory rhs = sub(a,b);
-            BigNumber memory snd = modexp(rhs, two(), _powModulus(rhs, 2)); // (a-b)^2
-            r = _shr(sub(fst, snd) , 2); // (a * b) = (((a + b)**2 - (a - b)**2) / 4
-        }
-        else {
-            r = _shr(fst, 2); // a==b ? (((a + b)**2 / 4
-        }
-    }
-
     /** @notice BigNumber modulus: a % n.
       * @dev mod: takes a BigNumber and modulus BigNumber (a,n), and calculates a % n.
       * modexp precompile is used to achieve a % n; an exponent of value '1' is passed.
@@ -189,6 +153,66 @@ library BigNumbers {
 
 
     // ***************** START EXPOSED HELPER FUNCTIONS ******************
+        /** @notice BigNumber subtraction: a - b.
+      * @dev sub: Initially prepare BigNumbers for subtraction operation; internally calls actual addition/subtraction,
+                  depending on inputs.
+      *           In order to do correct addition or subtraction we have to handle the sign.
+      *           This function discovers the sign of the result based on the inputs, and calls the correct operation.
+      *
+      * @param a first BN
+      * @param b second BN
+      * @return r result - subtraction of a and b.
+      */  
+    function sub(
+        BigNumber memory a, 
+        BigNumber memory b
+    ) private pure returns(BigNumber memory r) {
+        if(a.bitlen==0 && b.bitlen==0) return zero();
+        bytes memory val;
+        int256 compare;
+        uint256 bitlen;
+        compare = cmp(a,b);
+
+        if(compare == 1) {
+            (val,bitlen) = _sub(a.val,b.val);
+        }
+        else if(compare == -1) { 
+            (val,bitlen) = _sub(b.val,a.val);
+            //r.neg = true;
+        }
+        else return zero(); 
+        r.val = val;
+        r.bitlen = (bitlen);
+    }
+
+    /** @notice BigNumber multiplication: a * b.
+      * @dev mul: takes two BigNumbers and multiplys them. Order is irrelevant.
+      *              multiplication achieved using modexp precompile:
+      *                 (a * b) = ((a + b)**2 - (a - b)**2) / 4
+      *
+      * @param a first BN
+      * @param b second BN
+      * @return r result - multiplication of a and b.
+      */
+    function mul(
+        BigNumber memory a, 
+        BigNumber memory b
+    ) private view returns(BigNumber memory r){
+            
+        BigNumber memory lhs = add(a,b);
+        BigNumber memory fst = modexp(lhs, two(), _powModulus(lhs, 2)); // (a+b)^2
+        
+        // no need to do subtraction part of the equation if a == b; if so, it has no effect on final result.
+        if(!eq(a,b)) {
+            BigNumber memory rhs = sub(a,b);
+            BigNumber memory snd = modexp(rhs, two(), _powModulus(rhs, 2)); // (a-b)^2
+            r = _shr(sub(fst, snd) , 2); // (a * b) = (((a + b)**2 - (a - b)**2) / 4
+        }
+        else {
+            r = _shr(fst, 2); // a==b ? (((a + b)**2 / 4
+        }
+    }
+    
     /** @notice BigNumber comparison
       * @dev cmp: Compares BigNumbers a and b. 'signed' parameter indiciates whether to consider the sign of the inputs.
       *           'trigger' is used to decide this - 
@@ -204,7 +228,7 @@ library BigNumbers {
     function cmp(
         BigNumber memory a, 
         BigNumber memory b
-    ) internal pure returns(int256){
+    ) private pure returns(int256){
         int256 trigger = 1;
 
         if(a.bitlen>b.bitlen) return    trigger;   // 1*trigger
@@ -235,21 +259,6 @@ library BigNumbers {
 
         return 0; //same value.
     }
-
-    /** @notice BigNumber equality
-      * @dev eq: returns true if a==b. sign always considered.
-      *           
-      * @param a BigNumber
-      * @param b BigNumber
-      * @return boolean result
-      */
-    function eq(
-        BigNumber memory a, 
-        BigNumber memory b
-    ) internal pure returns(bool){
-        int256 result = cmp(a, b);
-        return (result==0) ? true : false;
-    }
     /** @notice right shift BigNumber memory 'dividend' by 'bits' bits.
       * @dev _shr: Shifts input value in-place, ie. does not create new memory. shr function does this.
       * right shift does not necessarily have to copy into a new memory location. where the user wishes the modify
@@ -258,7 +267,7 @@ library BigNumbers {
       * @param bits amount of bits to shift by
       * @return r result
       */
-    function _shr(BigNumber memory bn, uint256 bits) internal view returns(BigNumber memory){
+    function _shr(BigNumber memory bn, uint256 bits) private view returns(BigNumber memory){
         uint256 length;
         assembly { length := mload(mload(bn)) }
 
@@ -325,16 +334,34 @@ library BigNumbers {
         return bn;
     }
 
-    /** @notice BigNumber full zero check
-      * @dev isZero: checks if the BigNumber is in the default zero format for BNs (ie. the result from zero()).
-      *             
-      * @param a BigNumber
-      * @return boolean result.
+    /** @notice BigNumber addition: a + b.
+      * @dev add: Initially prepare BigNumbers for addition operation; internally calls actual addition/subtraction,
+      *           depending on inputs.
+      *           In order to do correct addition or subtraction we have to handle the sign.
+      *           This function discovers the sign of the result based on the inputs, and calls the correct operation.
+      *
+      * @param a first BN
+      * @param b second BN
+      * @return r result  - addition of a and b.
       */
-    function isZero(
-        BigNumber memory a
-    ) internal pure returns(bool) {
-        return isZero(a.val) && a.val.length==0x20 && a.bitlen == 0;
+    function add(
+        BigNumber memory a, 
+        BigNumber memory b
+    ) private pure returns(BigNumber memory r) {
+        if(a.bitlen==0 && b.bitlen==0) return zero();
+        if(a.bitlen==0) return b;
+        if(b.bitlen==0) return a;
+        bytes memory val;
+        uint256 bitlen;
+        int256 compare = cmp(a,b);
+        if(compare>=0){ // a>=b
+            (val, bitlen) = _add(a.val,b.val,a.bitlen);
+        }
+        else {
+            (val, bitlen) = _add(b.val,a.val,b.bitlen);
+        }
+        r.val = val;
+        r.bitlen = (bitlen);
     }
 
 
@@ -346,7 +373,7 @@ library BigNumbers {
       */
     function isZero(
         bytes memory a
-    ) internal pure returns(bool) {
+    ) private pure returns(bool) {
         uint256 msword;
         uint256 msword_ptr;
         assembly {
@@ -369,7 +396,7 @@ library BigNumbers {
       */
     function bitLength(
         bytes memory a
-    ) internal pure returns(uint256 r){
+    ) private pure returns(uint256 r){
         if(isZero(a)) return 0;
         uint256 msword; 
         assembly {
@@ -389,7 +416,7 @@ library BigNumbers {
       */
     function bitLength(
         uint256 a
-    ) internal pure returns (uint256 r){
+    ) private pure returns (uint256 r){
         assembly {
             switch eq(a, 0)
             case 1 {
@@ -428,33 +455,6 @@ library BigNumbers {
                 }
             }
         }
-    }
-
-    /** @notice BigNumber zero value
-        @dev zero: returns zero encoded as a BigNumber
-      * @return zero encoded as BigNumber
-      */
-    function zero(
-    ) internal pure returns(BigNumber memory) {
-        return BigNumber(ZERO, 0);
-    }
-
-    /** @notice BigNumber one value
-        @dev one: returns one encoded as a BigNumber
-      * @return one encoded as BigNumber
-      */
-    function one(
-    ) internal pure returns(BigNumber memory) {
-        return BigNumber(ONE, 1);
-    }
-
-    /** @notice BigNumber two value
-        @dev two: returns two encoded as a BigNumber
-      * @return two encoded as BigNumber
-      */
-    function two(
-    ) internal pure returns(BigNumber memory) {
-        return BigNumber(TWO, 2);
     }
     // ***************** END EXPOSED HELPER FUNCTIONS ******************
 
@@ -629,7 +629,7 @@ library BigNumbers {
     function _sub(
         bytes memory max, 
         bytes memory min
-    ) internal pure returns (bytes memory, uint256) {
+    ) private pure returns (bytes memory, uint256) {
         bytes memory result;
         uint256 carry = 0;
         uint256 uint_max = type(uint256).max;
