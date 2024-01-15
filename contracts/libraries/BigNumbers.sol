@@ -173,7 +173,7 @@ library BigNumbers {
     function sub(
         BigNumber memory a, 
         BigNumber memory b
-    ) private pure returns(BigNumber memory r) {
+    ) internal pure returns(BigNumber memory r) {
         if(a.bitlen==UINTZERO && b.bitlen==UINTZERO) return zero();
         bytes memory val;
         int256 compare;
@@ -204,7 +204,7 @@ library BigNumbers {
     function mul(
         BigNumber memory a, 
         BigNumber memory b
-    ) private view returns(BigNumber memory r){
+    ) internal view returns(BigNumber memory r){
             
         BigNumber memory lhs = add(a,b);
         BigNumber memory fst = modexp(lhs, two(), _powModulus(lhs, UINTTWO)); // (a+b)^2
@@ -235,7 +235,7 @@ library BigNumbers {
     function cmp(
         BigNumber memory a, 
         BigNumber memory b
-    ) private pure returns(int256){
+    ) internal pure returns(int256){
         int256 trigger = INTONE;
 
         if(a.bitlen>b.bitlen) return    trigger;   // 1*trigger
@@ -266,6 +266,37 @@ library BigNumbers {
 
         return INTZERO; //same value.
     }
+
+        /** @notice BigNumber addition: a + b.
+      * @dev add: Initially prepare BigNumbers for addition operation; internally calls actual addition/subtraction,
+      *           depending on inputs.
+      *           In order to do correct addition or subtraction we have to handle the sign.
+      *           This function discovers the sign of the result based on the inputs, and calls the correct operation.
+      *
+      * @param a first BN
+      * @param b second BN
+      * @return r result  - addition of a and b.
+      */
+    function add(
+        BigNumber memory a, 
+        BigNumber memory b
+    ) internal pure returns(BigNumber memory r) {
+        if(a.bitlen==UINTZERO && b.bitlen==UINTZERO) return zero();
+        if(a.bitlen==UINTZERO) return b;
+        if(b.bitlen==UINTZERO) return a;
+        bytes memory val;
+        uint256 bitlen;
+        int256 compare = cmp(a,b);
+        if(compare>=INTZERO){ // a>=b
+            (val, bitlen) = _add(a.val,b.val,a.bitlen);
+        }
+        else {
+            (val, bitlen) = _add(b.val,a.val,b.bitlen);
+        }
+        r.val = val;
+        r.bitlen = (bitlen);
+    }
+
     /** @notice right shift BigNumber memory 'dividend' by 'bits' bits.
       * @dev _shr: Shifts input value in-place, ie. does not create new memory. shr function does this.
       * right shift does not necessarily have to copy into a new memory location. where the user wishes the modify
@@ -339,36 +370,6 @@ library BigNumbers {
     
 
         return bn;
-    }
-
-    /** @notice BigNumber addition: a + b.
-      * @dev add: Initially prepare BigNumbers for addition operation; internally calls actual addition/subtraction,
-      *           depending on inputs.
-      *           In order to do correct addition or subtraction we have to handle the sign.
-      *           This function discovers the sign of the result based on the inputs, and calls the correct operation.
-      *
-      * @param a first BN
-      * @param b second BN
-      * @return r result  - addition of a and b.
-      */
-    function add(
-        BigNumber memory a, 
-        BigNumber memory b
-    ) private pure returns(BigNumber memory r) {
-        if(a.bitlen==UINTZERO && b.bitlen==UINTZERO) return zero();
-        if(a.bitlen==UINTZERO) return b;
-        if(b.bitlen==UINTZERO) return a;
-        bytes memory val;
-        uint256 bitlen;
-        int256 compare = cmp(a,b);
-        if(compare>=INTZERO){ // a>=b
-            (val, bitlen) = _add(a.val,b.val,a.bitlen);
-        }
-        else {
-            (val, bitlen) = _add(b.val,a.val,b.bitlen);
-        }
-        r.val = val;
-        r.bitlen = (bitlen);
     }
 
 
