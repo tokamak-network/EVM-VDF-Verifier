@@ -27,10 +27,12 @@ contract CommitRevealRecoverRNG is ICommitRevealRecoverRNG {
         uint256 _proofSize
     ) external {
         BigNumber memory _two = BigNumbers.two();
-        for (uint256 i; i < _proofSize; i = unchecked_inc(i)) {
+        uint256 i;
+        for (; i < _proofSize; i = unchecked_inc(i)) {
             if (_proofList[i].T == ONE) {
                 if (!_proofList[i].y.eq(_proofList[i].x.modexp(_two, _n)))
                     revert NotVerifiedAtTOne();
+                if (i + ONE != _proofSize) revert TOneNotAtLast();
                 return;
             }
             BigNumber memory _y = _proofList[i].y;
@@ -45,6 +47,7 @@ contract CommitRevealRecoverRNG is ICommitRevealRecoverRNG {
             if (!_yPrime.modmul(_y, _n).eq(_proofList[unchecked_inc(i)].y))
                 revert YPrimeNotEqualAtIndex(i);
         }
+        if (i != _proofSize) revert iNotMatchProofSize();
     }
 
     function commit(uint256 _round, BigNumber memory _c) external override {
