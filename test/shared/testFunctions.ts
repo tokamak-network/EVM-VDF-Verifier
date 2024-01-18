@@ -19,7 +19,6 @@ import {
     RevealParams,
     TestCaseJson,
 } from "./interfaces"
-import { testCases } from "./testcases"
 import { developmentChains, networkConfig } from "../../helper-hardhat-config"
 import fs from "fs"
 
@@ -390,53 +389,6 @@ export const deployAndSetUpCommitRevealRecoverRNGContract = async (params: any) 
     receipt = await setUpTx.wait()
     console.log("setUp gas used: ", receipt?.gasUsed?.toString())
     return { CommitRevealRecoverRNG, receipt }
-}
-
-export const deployFirstTestCaseCommitRevealRecoverRNGContract = async () => {
-    const testcases = createTestCases(testCases)
-    const testcaseNum = 0
-    let params = [
-        networkConfig[network.config.chainId!].commitDuration,
-        networkConfig[network.config.chainId!].commitRevealDuration,
-        testcases[testcaseNum].n,
-        testcases[testcaseNum].setupProofs,
-    ]
-    const { CommitRevealRecoverRNG, receipt } =
-        await deployAndSetUpCommitRevealRecoverRNGContract(params)
-    //get states
-    // const {
-    //     stage,
-    //     commitSetUpTime,
-    //     commitDuration,
-    //     commitRevealDuration,
-    //     n,
-    //     g,
-    //     h,
-    //     T,
-    //     round,
-    //     deployedEvent,
-    //     deployedBlockNum,
-    //     deployedTimestamp,
-    // } = await getStatesAfterDeployment(CommitRevealRecoverRNG, receipt as ContractTransactionReceipt)
-    //return states
-    return {
-        CommitRevealRecoverRNG,
-        receipt,
-        testcases,
-        params,
-        // stage,
-        // commitSetUpTime,
-        // commitDuration,
-        // commitRevealDuration,
-        // n,
-        // g,
-        // h,
-        // T,
-        // round,
-        // deployedEvent,
-        // deployedBlockNum,
-        // deployedTimestamp,
-    }
 }
 
 export const getStatesAfterDeployment = async (
