@@ -100,13 +100,17 @@ interface ICommitRevealRecoverRNG {
     error OmegaAlreadyCompleted();
     error FunctionInvalidAtThisStage();
     error TNotMatched();
-    error NotVerified();
+    error NotVerifiedAtTOne();
     error RecovNotMatchX();
     error StageNotFinished();
     error CommitRevealDurationLessThanCommitDuration();
     error AllFinished();
     error NoneParticipated();
     error ShouldNotBeZero();
+    error TOneNotAtLast();
+    error iNotMatchProofSize();
+    error XPrimeNotEqualAtIndex(uint256 index);
+    error YPrimeNotEqualAtIndex(uint256 index);
 
     /* Functions */
     /**
