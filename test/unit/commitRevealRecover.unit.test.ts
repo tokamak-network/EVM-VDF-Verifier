@@ -1,11 +1,9 @@
 import { SignerWithAddress } from "@nomicfoundation/hardhat-ethers/signers"
-import { assert, expect } from "chai"
 import { BigNumberish, Contract, ContractTransactionReceipt, Log } from "ethers"
 import { network, deployments, ethers, getNamedAccounts } from "hardhat"
 import { developmentChains, networkConfig } from "../../helper-hardhat-config"
 import { CommitRevealRecoverRNG, CommitRevealRecoverRNG__factory } from "../../typechain-types"
 import { TestCase, BigNumber, SetUpParams, CommitParams, RevealParams } from "../shared/interfaces"
-import { testCases } from "../shared/testcases"
 import {
     createTestCases,
     createTestCases2,
@@ -13,7 +11,6 @@ import {
     deployCommitRevealRecoverRNG,
     setUpCommitRevealRecoverRNGRound,
     initializedContractCorrectly,
-    deployFirstTestCaseCommitRevealRecoverRNGContract,
     commit,
     reveal,
     getWinnerAddress,
