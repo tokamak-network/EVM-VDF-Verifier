@@ -18,7 +18,7 @@ import { LAMDAs, Ts, JsonNames } from "./interfacesV2"
 import { SignerWithAddress } from "@nomicfoundation/hardhat-ethers/signers"
 import { ethers } from "hardhat"
 import { ContractFactory } from "ethers"
-import { CommitRevealRecoverRNG } from "../../typechain-types"
+import { CommitRevealRecoverRNGTest } from "../../typechain-types"
 
 export const createTestCase = (): TestCase[][][] => {
     const result: TestCase[][][] = []
@@ -47,10 +47,11 @@ export const createTestCase = (): TestCase[][][] => {
 }
 
 export const deployCommitRevealRecoverRNGFixture = async () => {
-    const CommitRevealRecoverRNG: ContractFactory =
-        await ethers.getContractFactory("CommitRevealRecoverRNG")
-    let commitRevealRecoverRNG: CommitRevealRecoverRNG =
-        (await CommitRevealRecoverRNG.deploy()) as CommitRevealRecoverRNG
+    const CommitRevealRecoverRNG: ContractFactory = await ethers.getContractFactory(
+        "CommitRevealRecoverRNGTest",
+    )
+    let commitRevealRecoverRNG: CommitRevealRecoverRNGTest =
+        (await CommitRevealRecoverRNG.deploy()) as CommitRevealRecoverRNGTest
     commitRevealRecoverRNG = await commitRevealRecoverRNG.waitForDeployment()
     let tx = commitRevealRecoverRNG.deploymentTransaction()
     let receipt = await tx?.wait()
