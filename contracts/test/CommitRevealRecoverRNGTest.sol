@@ -22,6 +22,8 @@ contract CommitRevealRecoverRNGTest is ICommitRevealRecoverRNG {
         private commitRevealValues;
     mapping(address owner => mapping(uint256 round => UserAtRound)) private userInfosAtRound;
 
+    event VerifyRecursiveHalvingProofGasUsed(uint256 gasUsed);
+
     function verifyRecursiveHalvingProofExternalForTest(
         VDFClaim[] calldata _proofList,
         BigNumber memory _n,
@@ -33,6 +35,37 @@ contract CommitRevealRecoverRNGTest is ICommitRevealRecoverRNG {
             if (_proofList[i].T == ONE) {
                 if (!_proofList[i].y.eq(_proofList[i].x.modexp(_two, _n)))
                     revert NotVerifiedAtTOne();
+                if (i + ONE != _proofSize) revert TOneNotAtLast();
+                return;
+            }
+            BigNumber memory _y = _proofList[i].y;
+            BigNumber memory _r = modHash(
+                bytes.concat(_proofList[i].y.val, _proofList[i].v.val),
+                _proofList[i].x
+            ).mod(BigNumber(MODFORHASH, MODFORHASH_LEN));
+            if (_proofList[i].T & ONE == ONE) _y = _y.modexp(_two, _n);
+            BigNumber memory _xPrime = _proofList[i].x.modexp(_r, _n).modmul(_proofList[i].v, _n);
+            if (!_xPrime.eq(_proofList[unchecked_inc(i)].x)) revert XPrimeNotEqualAtIndex(i);
+            BigNumber memory _yPrime = _proofList[i].v.modexp(_r, _n);
+            if (!_yPrime.modmul(_y, _n).eq(_proofList[unchecked_inc(i)].y))
+                revert YPrimeNotEqualAtIndex(i);
+        }
+        if (i != _proofSize) revert iNotMatchProofSize();
+    }
+
+    function verifyRecursiveHalvingProofExternalForTestInternalGas(
+        VDFClaim[] calldata _proofList,
+        BigNumber memory _n,
+        uint256 _proofSize
+    ) external {
+        uint256 start = gasleft();
+        BigNumber memory _two = BigNumbers.two();
+        uint256 i;
+        for (; i < _proofSize; i = unchecked_inc(i)) {
+            if (_proofList[i].T == ONE) {
+                if (!_proofList[i].y.eq(_proofList[i].x.modexp(_two, _n)))
+                    revert NotVerifiedAtTOne();
+                emit VerifyRecursiveHalvingProofGasUsed(start - gasleft());
                 if (i + ONE != _proofSize) revert TOneNotAtLast();
                 return;
             }
