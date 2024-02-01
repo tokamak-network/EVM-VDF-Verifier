@@ -46,7 +46,33 @@ export const createTestCase = (): TestCase[][][] => {
     return result
 }
 
-export const deployCommitRevealRecoverRNGFixture = async () => {
+export const createSimpleTestCase = (): TestCase[][][] => {
+    const result: TestCase[][][] = []
+    for (let i: number = 0; i < LAMDAs.length; i++) {
+        result.push([])
+        for (let j: number = 0; j < Ts.length; j++) {
+            result[i].push([])
+            for (let k: number = 0; k < 1; k++) {
+                const testCaseJson = JSON.parse(
+                    fs.readFileSync(
+                        __dirname + `/testCases/${LAMDAs[i]}/${Ts[j]}/${JsonNames[k]}.json`,
+                        "utf8",
+                    ),
+                )
+                for (let l: number = 0; l < testCaseJson.setupProofs.length; l++) {
+                    delete testCaseJson.setupProofs[l].n
+                }
+                for (let l: number = 0; l < testCaseJson.recoveryProofs.length; l++) {
+                    delete testCaseJson.recoveryProofs[l].n
+                }
+                result[i][j].push(testCaseJson as TestCase)
+            }
+        }
+    }
+    return result
+}
+
+export const deployCommitRevealRecoverRNGTestFixture = async () => {
     const CommitRevealRecoverRNG: ContractFactory = await ethers.getContractFactory(
         "CommitRevealRecoverRNGTest",
     )

@@ -36,6 +36,22 @@ export interface GasReports {
     verifyRecursiveHalvingProofForRecovery: BigNumberish
 }
 
+export interface GasReportsObjectV2 {
+    [key: string]: GasReportsV2[]
+}
+
+export interface GasReportsV2 {
+    setUpGas: BigNumberish
+    recoverGas: BigNumberish
+    commitGas: BigNumberish[]
+    revealGas: BigNumberish[]
+    calculateOmegaGas: BigNumberish
+    verifyRecursiveHalvingProofForSetup: BigNumberish
+    verifyRecursiveHalvingProofForSetupInternalGasUsed: BigNumberish
+    verifyRecursiveHalvingProofForRecovery: BigNumberish
+    verifyRecursiveHalvingProofForRecoveryInternalGasUsed: BigNumberish
+}
+
 export interface TestCase {
     n: BigNumberStruct
     g: BigNumberStruct
