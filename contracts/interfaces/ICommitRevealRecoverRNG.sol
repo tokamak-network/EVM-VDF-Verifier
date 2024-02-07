@@ -22,7 +22,6 @@ interface ICommitRevealRecoverRNG {
         Reveal
     }
     struct VDFClaim {
-        uint256 T;
         BigNumber x;
         BigNumber y;
         BigNumber v;
@@ -32,7 +31,7 @@ interface ICommitRevealRecoverRNG {
         uint256 commitDuration; // commit period
         uint256 commitRevealDuration; // commit + reveal period, commitRevealDuration - commitDuration => revealDuration
         uint256 T;
-        uint256 proofSize;
+        uint256 proofsLastIndex;
         BigNumber n;
         BigNumber g; // a value generated from the generator list
         BigNumber h; // a value generated from the VDF(g)
@@ -160,6 +159,7 @@ interface ICommitRevealRecoverRNG {
     function setUp(
         uint256 _commitDuration,
         uint256 _commitRevealDuration,
+        uint256 _T,
         BigNumber calldata _n,
         VDFClaim[] calldata _proofs
     ) external returns (uint256 _round);
