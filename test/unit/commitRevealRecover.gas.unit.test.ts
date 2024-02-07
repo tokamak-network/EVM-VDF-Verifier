@@ -61,6 +61,7 @@ import { createTestCase, deployCommitRevealRecoverRNGTestFixture } from "../shar
                           let tx: ContractTransactionResponse = await commitRevealRecoverRNG.setUp(
                               commitDuration,
                               commitRevealDuration,
+                              testcases[i][j][round].T,
                               testcases[i][j][round].n,
                               testcases[i][j][round].setupProofs,
                           )
@@ -72,7 +73,8 @@ import { createTestCase, deployCommitRevealRecoverRNGTestFixture } from "../shar
                               await commitRevealRecoverRNG.verifyRecursiveHalvingProofExternalForTest(
                                   testcases[i][j][round].setupProofs,
                                   testcases[i][j][round].n,
-                                  testcases[i][j][round].setupProofs.length,
+                                  testcases[i][j][round].setupProofs.length - 1,
+                                  testcases[i][j][round].T,
                               )
                           receipt = await tx.wait()
                           gasCostsPerFunction.verifyRecursiveHalvingProofForSetup = receipt
@@ -83,7 +85,8 @@ import { createTestCase, deployCommitRevealRecoverRNGTestFixture } from "../shar
                               await commitRevealRecoverRNG.verifyRecursiveHalvingProofExternalForTestInternalGas(
                                   testcases[i][j][round].setupProofs,
                                   testcases[i][j][round].n,
-                                  testcases[i][j][round].setupProofs.length,
+                                  testcases[i][j][round].setupProofs.length - 1,
+                                  testcases[i][j][round].T,
                               )
                           receipt = await tx.wait()
                           // get VerifyRecursiveHalvingProofGasUsed event
@@ -180,6 +183,7 @@ import { createTestCase, deployCommitRevealRecoverRNGTestFixture } from "../shar
                           let tx: ContractTransactionResponse = await commitRevealRecoverRNG.setUp(
                               commitDuration,
                               commitRevealDuration,
+                              testcases[i][j][round].T,
                               testcases[i][j][round].n,
                               testcases[i][j][round].setupProofs,
                           )
@@ -191,7 +195,8 @@ import { createTestCase, deployCommitRevealRecoverRNGTestFixture } from "../shar
                               await commitRevealRecoverRNG.verifyRecursiveHalvingProofExternalForTest(
                                   testcases[i][j][round].setupProofs,
                                   testcases[i][j][round].n,
-                                  testcases[i][j][round].setupProofs.length,
+                                  testcases[i][j][round].setupProofs.length - 1,
+                                  testcases[i][j][round].T,
                               )
                           receipt = await tx.wait()
                           gasCostsPerFunction.verifyRecursiveHalvingProofForSetup = receipt
@@ -202,7 +207,8 @@ import { createTestCase, deployCommitRevealRecoverRNGTestFixture } from "../shar
                               await commitRevealRecoverRNG.verifyRecursiveHalvingProofExternalForTestInternalGas(
                                   testcases[i][j][round].setupProofs,
                                   testcases[i][j][round].n,
-                                  testcases[i][j][round].setupProofs.length,
+                                  testcases[i][j][round].setupProofs.length - 1,
+                                  testcases[i][j][round].T,
                               )
                           receipt = await tx.wait()
                           // get VerifyRecursiveHalvingProofGasUsed event
@@ -242,7 +248,8 @@ import { createTestCase, deployCommitRevealRecoverRNGTestFixture } from "../shar
                               await commitRevealRecoverRNG.verifyRecursiveHalvingProofExternalForTest(
                                   testcases[i][j][round].recoveryProofs,
                                   testcases[i][j][round].n,
-                                  testcases[i][j][round].recoveryProofs.length,
+                                  testcases[i][j][round].recoveryProofs.length - 1,
+                                  testcases[i][j][round].T,
                               )
                           receipt = await tx.wait()
                           gasCostsPerFunction.verifyRecursiveHalvingProofForRecovery = receipt
@@ -253,7 +260,8 @@ import { createTestCase, deployCommitRevealRecoverRNGTestFixture } from "../shar
                               await commitRevealRecoverRNG.verifyRecursiveHalvingProofExternalForTestInternalGas(
                                   testcases[i][j][round].recoveryProofs,
                                   testcases[i][j][round].n,
-                                  testcases[i][j][round].recoveryProofs.length,
+                                  testcases[i][j][round].recoveryProofs.length - 1,
+                                  testcases[i][j][round].T,
                               )
                           receipt = await tx.wait()
                           // get VerifyRecursiveHalvingProofGasUsed event

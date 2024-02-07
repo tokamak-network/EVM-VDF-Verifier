@@ -50,7 +50,7 @@ import { assertTestAfterDeploy, assertTestAfterGettingOmega } from "../shared/as
                       let params: SetUpParams = {
                           commitDuration,
                           commitRevealDuration,
-                          //T: testcases[round].T,
+                          T: testcases[round].T,
                           n: testcases[round].n,
                           setupProofs: testcases[round].setupProofs,
                       }
@@ -70,7 +70,7 @@ import { assertTestAfterDeploy, assertTestAfterGettingOmega } from "../shared/as
                       let params: SetUpParams = {
                           commitDuration,
                           commitRevealDuration,
-                          //T: testcases[round].T,
+                          T: testcases[round].T,
                           n: testcases[round].n,
 
                           setupProofs: testcases[round].setupProofs,
@@ -98,7 +98,7 @@ import { assertTestAfterDeploy, assertTestAfterGettingOmega } from "../shared/as
                       let params: SetUpParams = {
                           commitDuration,
                           commitRevealDuration,
-                          //T: testcases[round].T,
+                          T: testcases[round].T,
                           n: testcases[round].n,
                           setupProofs: testcases[round].setupProofs,
                       }
@@ -133,7 +133,7 @@ import { assertTestAfterDeploy, assertTestAfterGettingOmega } from "../shared/as
                       let params: SetUpParams = {
                           commitDuration,
                           commitRevealDuration,
-                          //T: testcases[round].T,
+                          T: testcases[round].T,
                           n: testcases[round].n,
                           setupProofs: testcases[round].setupProofs,
                       }
@@ -177,7 +177,7 @@ import { assertTestAfterDeploy, assertTestAfterGettingOmega } from "../shared/as
                       let params: SetUpParams = {
                           commitDuration,
                           commitRevealDuration,
-                          //T: testcases[round].T,
+                          T: testcases[round].T,
                           n: testcases[round].n,
                           setupProofs: testcases[round].setupProofs,
                       }
@@ -217,7 +217,7 @@ import { assertTestAfterDeploy, assertTestAfterGettingOmega } from "../shared/as
                       let params: SetUpParams = {
                           commitDuration,
                           commitRevealDuration,
-                          //T: testcases[round].T,
+                          T: testcases[round].T,
                           n: testcases[round].n,
                           setupProofs: testcases[round].setupProofs,
                       }
