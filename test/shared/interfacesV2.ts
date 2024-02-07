@@ -16,6 +16,7 @@ import {
     BigNumberStruct,
     CommitRevealRecoverRNG,
 } from "../../typechain-types/CommitRevealRecoverRNG"
+import { ICRRWithTInProof, ICRRWithNTInProof } from "../../typechain-types"
 import { BigNumberish } from "ethers"
 
 export const LAMDAs: string[] = ["λ1024", "λ2048", "λ3072"]
@@ -63,4 +64,30 @@ export interface TestCase {
     omega: BigNumberStruct
     recoveredOmega: BigNumberStruct
     recoveryProofs: ICommitRevealRecoverRNG.VDFClaimStruct[]
+}
+
+export interface TestCaseWithTInProof {
+    n: BigNumberStruct
+    g: BigNumberStruct
+    h: BigNumberStruct
+    T: BigNumberish
+    setupProofs: ICRRWithTInProof.VDFClaimStruct[]
+    randomList: BigNumberStruct[]
+    commitList: BigNumberStruct[]
+    omega: BigNumberStruct
+    recoveredOmega: BigNumberStruct
+    recoveryProofs: ICRRWithTInProof.VDFClaimStruct[]
+}
+
+export interface TestCaseWithNTInProof {
+    n: BigNumberStruct
+    g: BigNumberStruct
+    h: BigNumberStruct
+    T: BigNumberish
+    setupProofs: ICRRWithNTInProof.VDFClaimStruct[]
+    randomList: BigNumberStruct[]
+    commitList: BigNumberStruct[]
+    omega: BigNumberStruct
+    recoveredOmega: BigNumberStruct
+    recoveryProofs: ICRRWithNTInProof.VDFClaimStruct[]
 }

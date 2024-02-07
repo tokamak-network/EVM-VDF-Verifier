@@ -21,7 +21,6 @@ export interface VDFClaim {
     x: BigNumber
     y: BigNumber
     v: BigNumber
-    T: BigNumberish
 }
 
 export interface VDFClaimJson {
@@ -61,6 +60,7 @@ export interface SetUpParams {
     commitDuration: number
     commitRevealDuration: number
     n: BigNumber
+    T: BigNumberish
     setupProofs: VDFClaim[]
 }
 
