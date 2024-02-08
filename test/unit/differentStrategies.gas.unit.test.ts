@@ -36,6 +36,7 @@ import {
     deployCRRWithNTInProofVerifyAndProcessSeparateFixture,
     deployCommitRevealRecoverRNGTestFixture,
     deployCRRWithNTInProofVerifyAndProcessSeparateFileSeparateFixture,
+    deployCRRWithNTInProofVerifyAndProcessSeparateFileSeparateWithoutOptimizerFixture,
 } from "../shared/testFunctionsV2"
 
 !developmentChains.includes(network.name)
@@ -50,7 +51,7 @@ import {
               __dirname +
               `/gasDifferentStrategiesReports/${new Date().toISOString().slice(0, 19)}` +
               ".json"
-          it("Commit Recover", async () => {
+          it("Commit Recover Most Optimized", async () => {
               const testcases: TestCase[][][] = createSimpleTestCase()
               const gasCostsCommitRecover: GasReportsObjectV2[][] = []
               signers = await ethers.getSigners()
@@ -644,6 +645,79 @@ import {
               const jsonObject = JSON.parse(fs.readFileSync(FILE_DIR_NAME, "utf-8"))
               jsonObject["commitRecoverWithNTInProofVerifyAndProcessSeparateFileSeparate"] =
                   gasCostsCommitRecover
+              fs.writeFileSync(FILE_DIR_NAME, JSON.stringify(jsonObject))
+          })
+          it("Commit Recover With NT in Proof Verify And Process Separate File Separate Without Optimizer", async () => {
+              const testcases: TestCaseWithNTInProof[][][] = createSimpleTestCaseWithNT()
+              const gasCostsCommitRecover: GasReportsObjectV2[][] = []
+              signers = await ethers.getSigners()
+              for (let i = 0; i < testcases.length; i++) {
+                  gasCostsCommitRecover.push([])
+                  for (let j = 0; j < testcases[i].length; j++) {
+                      const { commitRevealRecoverRNG, receipt } = await loadFixture(
+                          deployCRRWithNTInProofVerifyAndProcessSeparateFileSeparateWithoutOptimizerFixture,
+                      )
+                      const key = `${LAMDAs[i]}${Ts[j]}`
+                      gasCostsCommitRecover[i].push({
+                          [key]: [],
+                      })
+                      for (let round: number = 0; round < testcases[i][j].length; round++) {
+                          //   console.log("------------------")
+                          //   console.log(`Lambda: ${LAMDAs[i]}`, ` T: ${Ts[j]}`)
+                          const gasCostsPerFunction: GasReportsV2 = {
+                              setUpGas: 0,
+                              recoverGas: 0,
+                              commitGas: [],
+                              revealGas: [],
+                              calculateOmegaGas: 0,
+                              verifyRecursiveHalvingProofForSetup: 0,
+                              verifyRecursiveHalvingProofForSetupInternalGasUsed: 0,
+                              verifyRecursiveHalvingProofForRecovery: 0,
+                              verifyRecursiveHalvingProofForRecoveryInternalGasUsed: 0,
+                          }
+                          //SetUp
+                          let tx: ContractTransactionResponse = await commitRevealRecoverRNG.setUp(
+                              commitDuration,
+                              commitRevealDuration,
+                              testcases[i][j][round].setupProofs,
+                          )
+                          let receipt: ContractTransactionReceipt | null = await tx.wait()
+                          gasCostsPerFunction.setUpGas = receipt ? receipt.gasUsed.toString() : 0
+
+                          //Commit
+                          for (
+                              let l: number = 0;
+                              l < testcases[i][j][round].commitList.length;
+                              l++
+                          ) {
+                              const tx = await commitRevealRecoverRNG
+                                  .connect(signers[l])
+                                  .commit(round, testcases[i][j][round].commitList[l])
+                              const receipt = await tx.wait()
+                              gasCostsPerFunction.commitGas.push(
+                                  receipt ? receipt.gasUsed.toString() : 0,
+                              )
+                          }
+                          await time.increase(commitDuration)
+
+                          //Recover
+                          tx = await commitRevealRecoverRNG.recover(
+                              round,
+                              testcases[i][j][round].recoveryProofs,
+                          )
+                          receipt = await tx.wait()
+                          gasCostsPerFunction.recoverGas = receipt ? receipt.gasUsed.toString() : 0
+
+                          // push gasCostsPerFunction
+                          gasCostsCommitRecover[i][j][key].push(gasCostsPerFunction)
+                      }
+                  }
+              }
+              if (!fs.existsSync(FILE_DIR_NAME)) fs.writeFileSync(FILE_DIR_NAME, JSON.stringify({}))
+              const jsonObject = JSON.parse(fs.readFileSync(FILE_DIR_NAME, "utf-8"))
+              jsonObject[
+                  "commitRecoverWithNTInProofVerifyAndProcessSeparateFileSeparateWithoutOptimizer"
+              ] = gasCostsCommitRecover
               fs.writeFileSync(FILE_DIR_NAME, JSON.stringify(jsonObject))
           })
       })

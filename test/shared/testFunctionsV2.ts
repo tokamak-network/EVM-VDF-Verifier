@@ -25,6 +25,7 @@ import {
     CRRWithNTInProof,
     CRRWithNTInProofVerifyAndProcessSeparate,
     CRRWithNTInProofVerifyAndProcessSeparateFileSeparate,
+    CRRWithNTInProofVerifyAndProcessSeparateFileSeparateWithoutOptimizer,
 } from "../../typechain-types"
 
 export const createTestCase = (): TestCase[][][] => {
@@ -180,6 +181,19 @@ export const deployCRRWithNTInProofVerifyAndProcessSeparateFileSeparateFixture =
     let receipt = await tx?.wait()
     return { commitRevealRecoverRNG, receipt }
 }
+export const deployCRRWithNTInProofVerifyAndProcessSeparateFileSeparateWithoutOptimizerFixture =
+    async () => {
+        const CRRWithNTInProofVerifyAndProcessSeparateFileSeparateWithoutOptimizer: ContractFactory =
+            await ethers.getContractFactory(
+                "CRRWithNTInProofVerifyAndProcessSeparateFileSeparateWithoutOptimizer",
+            )
+        let commitRevealRecoverRNG: CRRWithNTInProofVerifyAndProcessSeparateFileSeparateWithoutOptimizer =
+            (await CRRWithNTInProofVerifyAndProcessSeparateFileSeparateWithoutOptimizer.deploy()) as CRRWithNTInProofVerifyAndProcessSeparateFileSeparateWithoutOptimizer
+        commitRevealRecoverRNG = await commitRevealRecoverRNG.waitForDeployment()
+        let tx = commitRevealRecoverRNG.deploymentTransaction()
+        let receipt = await tx?.wait()
+        return { commitRevealRecoverRNG, receipt }
+    }
 
 export const deployCommitRevealRecoverRNGFixture = async () => {
     const CommitRevealRecoverRNG: ContractFactory =
