@@ -20,7 +20,19 @@ const optimizerSettings = {
         },
     },
 }
-
+const optimizerEnabledFalse = {
+    optimizer: {
+        enabled: false,
+    },
+}
+const DEFAULT_COMPILER_SETTINGS = {
+    version: "0.8.23",
+    settings: optimizerSettings,
+}
+const LOW_OPTIMIZER_COMPILER_SETTINGS = {
+    version: "0.8.23",
+    settings: optimizerEnabledFalse,
+}
 const MAINNET_RPC_URL = process.env.MAINNET_RPC_URL
 const SEPOLIA_RPC_URL = process.env.SEPOLIA_RPC_URL
 const POLYGON_MAINNET_RPC_URL = process.env.POLYGON_MAINNET_RPC_URL
@@ -143,12 +155,17 @@ const config: HardhatUserConfig = {
         },
     },
     solidity: {
-        compilers: [
-            {
-                version: "0.8.23",
-                settings: optimizerSettings,
-            },
-        ],
+        compilers: [DEFAULT_COMPILER_SETTINGS],
+        overrides: {
+            "contracts/strategies/CRRWithNTInProofVerifyAndProcessSeparateFileSeparateWithoutOptimizer.sol":
+                LOW_OPTIMIZER_COMPILER_SETTINGS,
+            "contracts/strategies/interfaces/ICRRWithNTInProofVerifyAndProcessSeparateFileSeparateWithoutOptimizer.sol":
+                LOW_OPTIMIZER_COMPILER_SETTINGS,
+            "contracts/strategies/libraries/Pietrzak_VDFWithoutOptimizer.sol":
+                LOW_OPTIMIZER_COMPILER_SETTINGS,
+            "contracts/strategies/libraries/BigNumbersWithoutOptimizer.sol":
+                LOW_OPTIMIZER_COMPILER_SETTINGS,
+        },
     },
     mocha: {
         timeout: 2000000, // 2000 seconds max for running tests
