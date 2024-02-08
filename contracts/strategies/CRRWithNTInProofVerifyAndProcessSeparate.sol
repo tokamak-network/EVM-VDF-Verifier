@@ -254,7 +254,8 @@ contract CRRWithNTInProofVerifyAndProcessSeparate is ICRRWithNTInProofVerifyAndP
         BigNumber memory _n,
         uint256 _proofsSize
     ) private view {
-        for (uint256 i = 0; i < _proofsSize; i++) {
+        uint256 i;
+        for (; i < _proofsSize; i++) {
             SingHalvProofOutput memory output = processSingleHalvingProof(_proofList[i], _n);
             if (!output.verified) {
                 revert NotVerified();
@@ -268,6 +269,7 @@ contract CRRWithNTInProofVerifyAndProcessSeparate is ICRRWithNTInProofVerifyAndP
                 }
             }
         }
+        if (i != _proofsSize || _proofList[i - 1].T != 1) revert NotVerifiedAtTOne();
     }
 
     function verifyRecursiveHalvingProofExternalForTest(
@@ -275,7 +277,8 @@ contract CRRWithNTInProofVerifyAndProcessSeparate is ICRRWithNTInProofVerifyAndP
         BigNumber memory _n,
         uint256 _proofsSize
     ) external {
-        for (uint256 i = 0; i < _proofsSize; i++) {
+        uint256 i;
+        for (; i < _proofsSize; i++) {
             SingHalvProofOutput memory output = processSingleHalvingProof(_proofList[i], _n);
             if (!output.verified) {
                 revert NotVerified();
@@ -289,6 +292,7 @@ contract CRRWithNTInProofVerifyAndProcessSeparate is ICRRWithNTInProofVerifyAndP
                 }
             }
         }
+        if (i != _proofsSize || _proofList[i - 1].T != 1) revert NotVerifiedAtTOne();
     }
 
     event VerifyRecursiveHalvingProofGasUsed(uint256 gasUsed);
@@ -299,7 +303,8 @@ contract CRRWithNTInProofVerifyAndProcessSeparate is ICRRWithNTInProofVerifyAndP
         uint256 _proofsSize
     ) external {
         uint256 start = gasleft();
-        for (uint256 i = 0; i < _proofsSize; i++) {
+        uint256 i;
+        for (; i < _proofsSize; i++) {
             SingHalvProofOutput memory output = processSingleHalvingProof(_proofList[i], _n);
             if (!output.verified) {
                 revert NotVerified();
@@ -314,6 +319,7 @@ contract CRRWithNTInProofVerifyAndProcessSeparate is ICRRWithNTInProofVerifyAndP
                 }
             }
         }
+        if (i != _proofsSize || _proofList[i - 1].T != 1) revert NotVerifiedAtTOne();
     }
 
     // function verifyRecursiveHalvingProof(

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.22;
+pragma solidity ^0.8.23;
 import "../../libraries/BigNumbers.sol";
 import "../interfaces/ICRRWithNTInProofVerifyAndProcessSeparateFileSeparate.sol";
 
@@ -60,7 +60,8 @@ library Pietrzak_VDF {
         BigNumber memory _n,
         uint256 _proofsSize
     ) internal view {
-        for (uint256 i = 0; i < _proofsSize; i++) {
+        uint256 i;
+        for (; i < _proofsSize; i++) {
             SingHalvProofOutput memory output = processSingleHalvingProof(_proofList[i], _n);
             if (!output.verified) {
                 revert NotVerified();
@@ -74,5 +75,6 @@ library Pietrzak_VDF {
                 }
             }
         }
+        if (i != _proofsSize || _proofList[i - 1].T != 1) revert YPrimeNotEqualAtIndex(i);
     }
 }
