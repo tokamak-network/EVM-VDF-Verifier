@@ -116,7 +116,7 @@ contract CommitRevealRecoverRNG is ICommitRevealRecoverRNG {
         VDFClaim[] calldata _proofs
     ) external override returns (uint256 _round) {
         _round = nextRound++;
-        uint256 _proofsLastIndex = _proofs.length;
+        uint256 _proofsLastIndex = _proofs.length - ONE;
         if (_commitDuration >= _commitRevealDuration)
             revert CommitRevealDurationLessThanCommitDuration();
         verifyRecursiveHalvingProof(_proofs, _n, _proofsLastIndex - ONE, _T);
