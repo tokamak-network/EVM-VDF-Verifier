@@ -12,21 +12,44 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { TestCase, TestCaseWithTInProof, TestCaseWithNTInProof } from "./interfacesV2"
-import fs from "fs"
-import { LAMDAs, Ts, JsonNames } from "./interfacesV2"
-import { SignerWithAddress } from "@nomicfoundation/hardhat-ethers/signers"
-import { ethers } from "hardhat"
 import { ContractFactory } from "ethers"
+import fs from "fs"
+import { ethers } from "hardhat"
 import {
-    CommitRevealRecoverRNGTest,
-    CommitRevealRecoverRNG,
-    CRRWithTInProof,
+    CRRRNGCoordinator,
+    CRRRNGServiceInitialize,
     CRRWithNTInProof,
     CRRWithNTInProofVerifyAndProcessSeparate,
     CRRWithNTInProofVerifyAndProcessSeparateFileSeparate,
     CRRWithNTInProofVerifyAndProcessSeparateFileSeparateWithoutOptimizer,
+    CRRWithTInProof,
+    CommitRevealRecoverRNG,
+    CommitRevealRecoverRNGTest,
 } from "../../typechain-types"
+import {
+    JsonNames,
+    LAMDAs,
+    TestCase,
+    TestCaseWithNTInProof,
+    TestCaseWithTInProof,
+    Ts,
+} from "./interfacesV2"
+
+export const createTestCases2MinuteLength = (): TestCase[] => {
+    const result: TestCase[] = []
+    const testCaseJson = JSON.parse(
+        fs.readFileSync(__dirname + `/testCases/twoMinutesLengthData.json`, "utf8"),
+    )
+    for (let l: number = 0; l < testCaseJson.setupProofs.length; l++) {
+        delete testCaseJson.setupProofs[l].n
+    }
+    for (let l: number = 0; l < testCaseJson.recoveryProofs.length; l++) {
+        delete testCaseJson.recoveryProofs[l].n
+    }
+    result.push(testCaseJson as TestCase)
+
+    return result
+}
 
 export const createTestCase = (): TestCase[][][] => {
     const result: TestCase[][][] = []
@@ -52,6 +75,21 @@ export const createTestCase = (): TestCase[][][] => {
         }
     }
     return result
+}
+
+export const createTestCaseV2 = (): TestCase => {
+    const testCaseJson = JSON.parse(
+        fs.readFileSync(__dirname + `/testCases/twoMinutesLengthData.json`, "utf-8"),
+    )
+    for (let i: number = 0; i < testCaseJson.setupProofs.length; i++) {
+        delete testCaseJson.setupProofs[i].n
+        delete testCaseJson.setupProofs[i].T
+    }
+    for (let i: number = 0; i < testCaseJson.recoveryProofs.length; i++) {
+        delete testCaseJson.recoveryProofs[i].n
+        delete testCaseJson.recoveryProofs[i].T
+    }
+    return testCaseJson
 }
 
 export const createSimpleTestCase = (): TestCase[][][] => {
@@ -134,6 +172,30 @@ export const deployCommitRevealRecoverRNGTestFixture = async () => {
     )
     let commitRevealRecoverRNG: CommitRevealRecoverRNGTest =
         (await CommitRevealRecoverRNG.deploy()) as CommitRevealRecoverRNGTest
+    commitRevealRecoverRNG = await commitRevealRecoverRNG.waitForDeployment()
+    let tx = commitRevealRecoverRNG.deploymentTransaction()
+    let receipt = await tx?.wait()
+    return { commitRevealRecoverRNG, receipt }
+}
+
+export const deployCommitRevealRecoverRNGSetUpImmutableFixture = async () => {
+    const testcase: TestCase = createTestCaseV2()
+    const CommitRevealRecoverRNG: ContractFactory =
+        await ethers.getContractFactory("CRRRNGCoordinator")
+    let commitRevealRecoverRNG: CRRRNGCoordinator = (await CommitRevealRecoverRNG.deploy(
+        testcase.setupProofs,
+    )) as CRRRNGCoordinator
+    commitRevealRecoverRNG = await commitRevealRecoverRNG.waitForDeployment()
+    let tx = commitRevealRecoverRNG.deploymentTransaction()
+    let receipt = await tx?.wait()
+    return { commitRevealRecoverRNG, receipt }
+}
+export const deployCommitRevealRecoverRNGSetUpImmutableInitializeFuncFixture = async () => {
+    const testcase: TestCase = createTestCaseV2()
+    const CommitRevealRecoverRNG: ContractFactory =
+        await ethers.getContractFactory("CRRRNGServiceInitialize")
+    let commitRevealRecoverRNG: CRRRNGServiceInitialize =
+        (await CommitRevealRecoverRNG.deploy()) as CRRRNGServiceInitialize
     commitRevealRecoverRNG = await commitRevealRecoverRNG.waitForDeployment()
     let tx = commitRevealRecoverRNG.deploymentTransaction()
     let receipt = await tx?.wait()

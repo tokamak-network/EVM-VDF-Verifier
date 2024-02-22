@@ -1,26 +1,18 @@
-import { assert, expect } from "chai"
 import { SignerWithAddress } from "@nomicfoundation/hardhat-ethers/signers"
+import { assert } from "chai"
+import { BigNumberish, Contract, ContractTransactionReceipt, dataLength, toBeHex } from "ethers"
+import fs from "fs"
+import { ethers, network } from "hardhat"
+import { networkConfig } from "../../helper-hardhat-config"
 import {
-    BigNumberish,
-    Contract,
-    ContractTransactionReceipt,
-    Log,
-    BytesLike,
-    toBeHex,
-    dataLength,
-} from "ethers"
-import { network, ethers } from "hardhat"
-import {
-    VDFClaim,
-    TestCase,
     BigNumber,
-    SetUpParams,
     CommitParams,
     RevealParams,
+    SetUpParams,
+    TestCase,
     TestCaseJson,
+    VDFClaim,
 } from "./interfaces"
-import { developmentChains, networkConfig } from "../../helper-hardhat-config"
-import fs from "fs"
 
 export const getRankPointOfEachParticipants = async (
     CommitRevealRecoverRNGContract: Contract,
@@ -333,6 +325,14 @@ export const createTestCases = (testcases: any[]) => {
 }
 export const deployCommitRevealRecoverRNG = async () => {
     let CommitRevealRecoverRNGContract = await ethers.deployContract("CommitRevealRecoverRNG")
+    CommitRevealRecoverRNGContract = await CommitRevealRecoverRNGContract.waitForDeployment()
+    let tx = CommitRevealRecoverRNGContract.deploymentTransaction()
+    let receipt = await tx?.wait()
+    return { CommitRevealRecoverRNGContract, receipt }
+}
+
+export const deployCImmutableStateCompare = async () => {
+    let CommitRevealRecoverRNGContract = await ethers.deployContract("ImmutableStateCompareTest")
     CommitRevealRecoverRNGContract = await CommitRevealRecoverRNGContract.waitForDeployment()
     let tx = CommitRevealRecoverRNGContract.deploymentTransaction()
     let receipt = await tx?.wait()

@@ -69,6 +69,8 @@ import {
                               testcases[i][j][round].n,
                               testcases[i][j][round].setupProofs,
                           )
+                          console.log(tx.data)
+                          console.log(testcases[i][j][round].n)
                           let receipt: ContractTransactionReceipt | null = await tx.wait()
                           gasCostsPerFunction.setUpGas = receipt ? receipt.gasUsed.toString() : 0
 
