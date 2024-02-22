@@ -1,4 +1,21 @@
 {
+  "name": "@tokamak-network/crrrngcontracts",
+  "version": "0.0.1",
+  "description": "CommitRevealRecover Random Number Generator Contracts",
+  "author": "Justin(EuiSin) Gee",
+  "license": "MIT",
+  "private": false,
+  "files": [
+    "artifacts/build-info",
+    "artifacts/contracts/CRRRNGCoordinator.sol",
+    "artifacts/contracts/RNGConsumerBase.sol",
+    "artifacts/contracts/interfaces",
+    "artifacts/contracts/libraries",
+    "contracts/interfaces",
+    "contracts/CRRRNGCoordinator.sol",
+    "contracts/RNGConsumerBase.sol",
+    "contracts/libraries/BigNumbers.sol"
+  ],
   "devDependencies": {
     "@nomicfoundation/hardhat-chai-matchers": "^2.0.3",
     "@nomicfoundation/hardhat-ethers": "^3.0.5",
