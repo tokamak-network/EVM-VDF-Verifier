@@ -59,7 +59,7 @@ contract OnlyForTest {
         BigNumber memory _n,
         uint256 _proofsLastIndex
     ) public {
-        BigNumber memory _two = BigNumbers.two();
+        BigNumber memory _two = BigNumber(BigNumbers.BYTESTWO, BigNumbers.UINTTWO);
         uint256 i;
         for (; i < _proofsLastIndex; i = unchecked_inc(i)) {
             if (_proofList[i].T == ONE) {
@@ -96,7 +96,7 @@ contract OnlyForTest {
         uint256 _T
     ) public {
         _proofsLastIndex -= 1;
-        BigNumber memory _two = BigNumbers.two();
+        BigNumber memory _two = BigNumber(BigNumbers.BYTESTWO, BigNumbers.UINTTWO);
         uint256 i;
         for (; i < _proofsLastIndex; i = unchecked_inc(i)) {
             BigNumber memory _y = _proofList[i].y;
@@ -161,8 +161,8 @@ contract OnlyForTest {
         BigNumber memory _y,
         BigNumber memory _n
     ) external returns (BigNumber memory) {
-        BigNumber memory _z = BigNumbers.one();
-        BigNumber memory _b = BigNumbers.two();
+        BigNumber memory _z = BigNumber(BigNumbers.BYTESONE, BigNumbers.UINTONE);
+        BigNumber memory _b = BigNumber(BigNumbers.BYTESTWO, BigNumbers.UINTTWO);
         BigNumber memory _q = _x.modmul(_y, _n);
 
         uint256 _pad = (_a.bitlen / 8) % 32;
@@ -211,8 +211,8 @@ contract OnlyForTest {
         BigNumber memory _y,
         BigNumber memory _n
     ) external view returns (BigNumber memory) {
-        BigNumber memory _z = BigNumbers.one();
-        BigNumber memory _b = BigNumbers.two();
+        BigNumber memory _z = BigNumber(BigNumbers.BYTESONE, BigNumbers.UINTONE);
+        BigNumber memory _b = BigNumber(BigNumbers.BYTESTWO, BigNumbers.UINTTWO);
         BigNumber memory _q = _x.modmul(_y, _n);
 
         uint256 _pad = (_a.bitlen / 8) % 32;
@@ -261,7 +261,7 @@ contract OnlyForTest {
         BigNumber memory _y,
         BigNumber memory _n
     ) external view returns (BigNumber memory) {
-        BigNumber memory _z = BigNumbers.one();
+        BigNumber memory _z = BigNumber(BigNumbers.BYTESONE, BigNumbers.UINTONE);
         uint256 _pad = (_a.bitlen / 8) % 32;
         _pad = _pad % 2 == 0 ? _pad : _pad + 1;
         uint256 count;

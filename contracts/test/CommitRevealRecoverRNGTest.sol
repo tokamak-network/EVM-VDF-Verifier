@@ -29,7 +29,7 @@
 //         BigNumber memory _n,
 //         uint256 _proofSize
 //     ) external {
-//         BigNumber memory _two = BigNumbers.two();
+//         BigNumber memory _two = BigNumber(BigNumbers.BYTESTWO, BigNumbers.UINTTWO);
 //         uint256 i;
 //         for (; i < _proofSize; i = unchecked_inc(i)) {
 //             if (_proofList[i].T == ONE) {
@@ -59,7 +59,7 @@
 //         uint256 _proofSize
 //     ) external {
 //         uint256 start = gasleft();
-//         BigNumber memory _two = BigNumbers.two();
+//         BigNumber memory _two = BigNumber(BigNumbers.BYTESTWO, BigNumbers.UINTTWO);
 //         uint256 i;
 //         for (; i < _proofSize; i = unchecked_inc(i)) {
 //             if (_proofList[i].T == ONE) {
@@ -93,7 +93,7 @@
 //         bytes memory _commitsString = valuesAtRound[_round].commitsString;
 //         _commitsString = bytes.concat(_commitsString, _c.val);
 //         userInfosAtRound[msg.sender][_round] = UserAtRound(_count, true, false);
-//         commitRevealValues[_round][_count] = CommitRevealValue(_c, BigNumbers.zero(), msg.sender); //index setUps from 0, so _count -1
+//         commitRevealValues[_round][_count] = CommitRevealValue(_c, BigNumber(BigNumbers.BYTESZERO, BigNumbers.UINTZERO), msg.sender); //index setUps from 0, so _count -1
 //         valuesAtRound[_round].commitsString = _commitsString;
 //         valuesAtRound[_round].count = ++_count;
 //         emit CommitC(msg.sender, _c, _commitsString, _count, block.timestamp);
@@ -127,7 +127,7 @@
 //         checkStage(_round);
 //         equalStage(_round, Stages.Finished);
 //         uint256 _numOfParticipants = valuesAtRound[_round].numOfParticipants;
-//         BigNumber memory _omega = BigNumbers.one();
+//         BigNumber memory _omega = BigNumber(BigNumbers.BYTESONE, BigNumbers.UINTONE);
 //         bytes memory _bStar = valuesAtRound[_round].bStar;
 //         BigNumber memory _h = setUpValuesAtRound[_round].h;
 //         BigNumber memory _n = setUpValuesAtRound[_round].n;
@@ -162,7 +162,7 @@
 //             setUpValuesAtRound[_round].proofSize != _proofsLastIndex
 //         ) revert TNotMatched();
 //         verifyRecursiveHalvingProof(proofs, _n, _proofsLastIndex);
-//         BigNumber memory _recov = BigNumbers.one();
+//         BigNumber memory _recov = BigNumber(BigNumbers.BYTESONE, BigNumbers.UINTONE);
 //         for (uint256 i; i < _numOfParticipants; i = unchecked_inc(i)) {
 //             BigNumber memory _c = commitRevealValues[_round][i].c;
 //             _recov = _recov.modmul(_c.modexp(modHash(bytes.concat(_c.val, _bStar), _n), _n), _n);
@@ -284,7 +284,7 @@
 //         BigNumber memory _n,
 //         uint256 _proofSize
 //     ) private view {
-//         BigNumber memory _two = BigNumbers.two();
+//         BigNumber memory _two = BigNumber(BigNumbers.BYTESTWO, BigNumbers.UINTTWO);
 //         uint256 i;
 //         for (; i < _proofSize; i = unchecked_inc(i)) {
 //             if (_proofList[i].T == ONE) {
@@ -392,7 +392,7 @@
 //         BigNumber memory _n
 //     ) external returns (BigNumber memory) {
 //         uint256 _h = _a.bitlen;
-//         BigNumber memory _z = BigNumbers.one();
+//         BigNumber memory _z = BigNumber(BigNumbers.BYTESONE, BigNumbers.UINTONE);
 //         BigNumber memory _q = _x.modmul(_y, _n);
 //         uint256 _pad = (_h / 8) % 32;
 //         _pad = _pad % 2 == 0 ? _pad : _pad + 1;
@@ -441,7 +441,7 @@
 //         BigNumber memory _n
 //     ) external view returns (BigNumber memory) {
 //         uint256 _h = _a.bitlen > _b.bitlen ? _a.bitlen : _b.bitlen;
-//         BigNumber memory _z = BigNumbers.one();
+//         BigNumber memory _z = BigNumber(BigNumbers.BYTESONE, BigNumbers.UINTONE);
 //         BigNumber memory _q = _x.modmul(_y, _n);
 
 //         bytes1 tempA = _a.val[0];
@@ -483,7 +483,7 @@
 //         BigNumber memory _y,
 //         BigNumber memory _n
 //     ) external view returns (BigNumber memory) {
-//         BigNumber memory _z = BigNumbers.one();
+//         BigNumber memory _z = BigNumber(BigNumbers.BYTESONE, BigNumbers.UINTONE);
 //         uint256 _pad = (_a.bitlen / 8) % 32;
 //         _pad = _pad % 2 == 0 ? _pad : _pad + 1;
 //         uint256 count;
@@ -508,8 +508,8 @@
 //         BigNumber memory _y,
 //         BigNumber memory _n
 //     ) external view returns (BigNumber memory) {
-//         BigNumber memory _z = BigNumbers.one();
-//         BigNumber memory _b = BigNumbers.two();
+//         BigNumber memory _z = BigNumber(BigNumbers.BYTESONE, BigNumbers.UINTONE);
+//         BigNumber memory _b = BigNumber(BigNumbers.BYTESTWO, BigNumbers.UINTTWO);
 //         BigNumber memory _q = _x.modmul(_y, _n);
 //         uint256 _pad = (_a.bitlen / 8) % 32;
 //         _pad = _pad % 2 == 0 ? _pad : _pad + 1;
@@ -556,8 +556,8 @@
 //         BigNumber memory _y,
 //         BigNumber memory _n
 //     ) external returns (BigNumber memory) {
-//         BigNumber memory _z = BigNumbers.one();
-//         BigNumber memory _b = BigNumbers.two();
+//         BigNumber memory _z = BigNumber(BigNumbers.BYTESONE, BigNumbers.UINTONE);
+//         BigNumber memory _b = BigNumber(BigNumbers.BYTESTWO, BigNumbers.UINTTWO);
 //         BigNumber memory _q = _x.modmul(_y, _n);
 //         uint256 _pad = (_a.bitlen / 8) % 32;
 //         _pad = _pad % 2 == 0 ? _pad : _pad + 1;

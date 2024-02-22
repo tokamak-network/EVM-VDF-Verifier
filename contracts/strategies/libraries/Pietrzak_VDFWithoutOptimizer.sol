@@ -33,8 +33,14 @@ library Pietrzak_VDF {
             calldata vdfClaim,
         BigNumber memory _n
     ) internal view returns (SingHalvProofOutput memory) {
-        BigNumber memory _zero = BigNumbersWithoutOptimizer.zero();
-        BigNumber memory _two = BigNumbersWithoutOptimizer.two();
+        BigNumber memory _zero = BigNumber(
+            BigNumbersWithoutOptimizer.BYTESZERO,
+            BigNumbersWithoutOptimizer.UINTZERO
+        );
+        BigNumber memory _two = BigNumber(
+            BigNumbersWithoutOptimizer.BYTESTWO,
+            BigNumbersWithoutOptimizer.UINTTWO
+        );
         if (vdfClaim.T == 1) {
             if (vdfClaim.y.eq(vdfClaim.x.modexp(_two, _n))) {
                 return SingHalvProofOutput(true, false, _zero, _zero);

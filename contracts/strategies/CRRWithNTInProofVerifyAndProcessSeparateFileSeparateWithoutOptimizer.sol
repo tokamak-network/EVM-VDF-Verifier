@@ -36,7 +36,7 @@ contract CRRWithNTInProofVerifyAndProcessSeparateFileSeparateWithoutOptimizer is
         userInfosAtRound[msg.sender][_round] = UserAtRound(_count, true, false);
         commitRevealValues[_round][_count] = CommitRevealValue(
             _c,
-            BigNumbersWithoutOptimizer.zero(),
+            BigNumber(BigNumbersWithoutOptimizer.BYTESZERO, BigNumbersWithoutOptimizer.UINTZERO), //BigNumbersWithoutOptimizer.zero(),
             msg.sender
         ); //index setUps from 0, so _count -1
         valuesAtRound[_round].commitsString = _commitsString;
@@ -72,7 +72,10 @@ contract CRRWithNTInProofVerifyAndProcessSeparateFileSeparateWithoutOptimizer is
         checkStage(_round);
         equalStage(_round, Stages.Finished);
         uint256 _numOfParticipants = valuesAtRound[_round].numOfParticipants;
-        BigNumber memory _omega = BigNumbersWithoutOptimizer.one();
+        BigNumber memory _omega = BigNumber(
+            BigNumbersWithoutOptimizer.BYTESONE,
+            BigNumbersWithoutOptimizer.UINTONE
+        ); //BigNumbersWithoutOptimizer.one();
         bytes memory _bStar = valuesAtRound[_round].bStar;
         BigNumber memory _h = setUpValuesAtRound[_round].h;
         BigNumber memory _n = setUpValuesAtRound[_round].n;
@@ -103,7 +106,10 @@ contract CRRWithNTInProofVerifyAndProcessSeparateFileSeparateWithoutOptimizer is
         if (valuesAtRound[_round].isCompleted) revert OmegaAlreadyCompleted();
         if (setUpValuesAtRound[_round].proofsSize != _proofsSize) revert TNotMatched();
         proofs.verifyRecursiveHalvingProof(_n, _proofsSize);
-        BigNumber memory _recov = BigNumbersWithoutOptimizer.one();
+        BigNumber memory _recov = BigNumber(
+            BigNumbersWithoutOptimizer.BYTESONE,
+            BigNumbersWithoutOptimizer.UINTONE
+        ); //BigNumbersWithoutOptimizer.one();
         for (uint256 i; i < _numOfParticipants; i = unchecked_inc(i)) {
             BigNumber memory _c = commitRevealValues[_round][i].c;
             _recov = _recov.modmul(_c.modexp(bytes.concat(_c.val, _bStar).modHash(_n), _n), _n);

@@ -32,8 +32,8 @@ library Pietrzak_VDF {
         ICRRWithNTInProofVerifyAndProcessSeparateFileSeparate.VDFClaim calldata vdfClaim,
         BigNumber memory _n
     ) internal view returns (SingHalvProofOutput memory) {
-        BigNumber memory _zero = BigNumbers.zero();
-        BigNumber memory _two = BigNumbers.two();
+        BigNumber memory _zero = BigNumber(BigNumbers.BYTESZERO, BigNumbers.UINTZERO);
+        BigNumber memory _two = BigNumber(BigNumbers.BYTESTWO, BigNumbers.UINTTWO);
         if (vdfClaim.T == 1) {
             if (vdfClaim.y.eq(vdfClaim.x.modexp(_two, _n))) {
                 return SingHalvProofOutput(true, false, _zero, _zero);

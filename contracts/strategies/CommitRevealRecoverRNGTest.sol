@@ -30,7 +30,11 @@ contract CommitRevealRecoverRNGTest is ICommitRevealRecoverRNG {
         bytes memory _commitsString = valuesAtRound[_round].commitsString;
         _commitsString = bytes.concat(_commitsString, _c.val);
         userInfosAtRound[msg.sender][_round] = UserAtRound(_count, true, false);
-        commitRevealValues[_round][_count] = CommitRevealValue(_c, BigNumbers.zero(), msg.sender); //index setUps from 0, so _count -1
+        commitRevealValues[_round][_count] = CommitRevealValue(
+            _c,
+            BigNumber(BigNumbers.BYTESZERO, BigNumbers.UINTZERO),
+            msg.sender
+        ); //index setUps from 0, so _count -1
         valuesAtRound[_round].commitsString = _commitsString;
         valuesAtRound[_round].count = ++_count;
         emit CommitC(msg.sender, _c, _commitsString, _count, block.timestamp);
@@ -64,7 +68,7 @@ contract CommitRevealRecoverRNGTest is ICommitRevealRecoverRNG {
         checkStage(_round);
         equalStage(_round, Stages.Finished);
         uint256 _numOfParticipants = valuesAtRound[_round].numOfParticipants;
-        BigNumber memory _omega = BigNumbers.one();
+        BigNumber memory _omega = BigNumber(BigNumbers.BYTESONE, BigNumbers.UINTONE);
         bytes memory _bStar = valuesAtRound[_round].bStar;
         BigNumber memory _h = setUpValuesAtRound[_round].h;
         BigNumber memory _n = setUpValuesAtRound[_round].n;
@@ -96,7 +100,7 @@ contract CommitRevealRecoverRNGTest is ICommitRevealRecoverRNG {
         if (valuesAtRound[_round].isCompleted) revert OmegaAlreadyCompleted();
         if (setUpValuesAtRound[_round].proofsLastIndex != _proofsLastIndex) revert TNotMatched();
         verifyRecursiveHalvingProof(proofs, _n, _proofsLastIndex, setUpValuesAtRound[_round].T);
-        BigNumber memory _recov = BigNumbers.one();
+        BigNumber memory _recov = BigNumber(BigNumbers.BYTESONE, BigNumbers.UINTONE);
         for (uint256 i; i < _numOfParticipants; i = unchecked_inc(i)) {
             BigNumber memory _c = commitRevealValues[_round][i].c;
             _recov = _recov.modmul(_c.modexp(modHash(bytes.concat(_c.val, _bStar), _n), _n), _n);
@@ -220,7 +224,7 @@ contract CommitRevealRecoverRNGTest is ICommitRevealRecoverRNG {
         uint256 _proofsLastIndex,
         uint256 _T
     ) private view {
-        BigNumber memory _two = BigNumbers.two();
+        BigNumber memory _two = BigNumber(BigNumbers.BYTESTWO, BigNumbers.UINTTWO);
         uint256 i;
         for (; i < _proofsLastIndex; i = unchecked_inc(i)) {
             BigNumber memory _y = _proofList[i].y;
@@ -249,7 +253,7 @@ contract CommitRevealRecoverRNGTest is ICommitRevealRecoverRNG {
         uint256 _proofsLastIndex,
         uint256 _T
     ) external {
-        BigNumber memory _two = BigNumbers.two();
+        BigNumber memory _two = BigNumber(BigNumbers.BYTESTWO, BigNumbers.UINTTWO);
         uint256 i;
         for (; i < _proofsLastIndex; i = unchecked_inc(i)) {
             BigNumber memory _y = _proofList[i].y;
@@ -281,7 +285,7 @@ contract CommitRevealRecoverRNGTest is ICommitRevealRecoverRNG {
         uint256 _T
     ) external {
         uint256 start = gasleft();
-        BigNumber memory _two = BigNumbers.two();
+        BigNumber memory _two = BigNumber(BigNumbers.BYTESTWO, BigNumbers.UINTTWO);
         uint256 i;
         for (; i < _proofsLastIndex; i = unchecked_inc(i)) {
             BigNumber memory _y = _proofList[i].y;

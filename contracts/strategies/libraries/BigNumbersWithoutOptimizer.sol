@@ -14,18 +14,18 @@ library BigNumbersWithoutOptimizer {
     error BigNumbers__ShouldNotBeZero();
     
     /// @notice the value for number 0 of a BigNumber instance.
-    bytes constant private BYTESZERO = hex"0000000000000000000000000000000000000000000000000000000000000000";
+    bytes constant internal BYTESZERO = hex"0000000000000000000000000000000000000000000000000000000000000000";
     /// @notice the value for number 1 of a BigNumber instance.
-    bytes constant private  BYTESONE = hex"0000000000000000000000000000000000000000000000000000000000000001";
+    bytes constant internal  BYTESONE = hex"0000000000000000000000000000000000000000000000000000000000000001";
     /// @notice the value for number 2 of a BigNumber instance.
-    bytes constant private  BYTESTWO = hex"0000000000000000000000000000000000000000000000000000000000000002";
-    uint256 constant private UINTZERO = 0;
-    uint256 constant private UINTONE = 1;
-    uint256 constant private UINTTWO = 2;
-    uint256 constant private UINT32 = 32;
-    int256 constant private INTZERO = 0;
-    int256 constant private INTONE = 1;
-    int256 constant private INTMINUSONE = -1;
+    bytes constant internal  BYTESTWO = hex"0000000000000000000000000000000000000000000000000000000000000002";
+    uint256 constant internal UINTZERO = 0;
+    uint256 constant internal UINTONE = 1;
+    uint256 constant internal UINTTWO = 2;
+    uint256 constant internal UINT32 = 32;
+    int256 constant internal INTZERO = 0;
+    int256 constant internal INTONE = 1;
+    int256 constant internal INTMINUSONE = -1;
 
     // ***************** BEGIN EXPOSED MANAGEMENT FUNCTIONS ******************
 /** @notice BigNumber equality
@@ -55,33 +55,6 @@ library BigNumbersWithoutOptimizer {
         return _init(val, UINTZERO);
     }
 
-        /** @notice BigNumber zero value
-        @dev zero: returns zero encoded as a BigNumber
-      * @return zero encoded as BigNumber
-      */
-    function zero(
-    ) internal pure returns(BigNumber memory) {
-        return BigNumber(BYTESZERO, UINTZERO);
-    }
-
-    /** @notice BigNumber one value
-        @dev one: returns one encoded as a BigNumber
-      * @return one encoded as BigNumber
-      */
-    function one(
-    ) internal pure returns(BigNumber memory) {
-        return BigNumber(BYTESONE, UINTONE);
-    }
-
-    /** @notice BigNumber two value
-        @dev two: returns two encoded as a BigNumber
-      * @return two encoded as BigNumber
-      */
-    function two(
-    ) internal pure returns(BigNumber memory) {
-        return BigNumber(BYTESTWO, UINTTWO);
-    }
-
     /** @notice BigNumber full zero check
       * @dev isZero: checks if the BigNumber is in the default zero format for BNs (ie. the result from zero()).
       *             
@@ -106,7 +79,7 @@ library BigNumbersWithoutOptimizer {
         BigNumber memory a, 
         BigNumber memory n
     ) internal view returns(BigNumber memory){
-      return modexp(a,one(),n);
+      return modexp(a,BigNumber(BYTESONE, UINTONE),n);
     }
 
     /** @notice BigNumber modular exponentiation: a^e mod n.
@@ -132,7 +105,7 @@ library BigNumbersWithoutOptimizer {
         uint256 bitlen = bitLength(_result);
         
         // if result is 0, immediately return.
-        if(bitlen == UINTZERO) return zero();
+        if(bitlen == UINTZERO) return BigNumber(BYTESZERO, UINTZERO);
         // in any other case we return the positive result.
         return BigNumber(_result, bitlen);
     }
@@ -174,7 +147,7 @@ library BigNumbersWithoutOptimizer {
         BigNumber memory a, 
         BigNumber memory b
     ) internal pure returns(BigNumber memory r) {
-        if(a.bitlen==UINTZERO && b.bitlen==UINTZERO) return zero();
+        if(a.bitlen==UINTZERO && b.bitlen==UINTZERO) return BigNumber(BYTESZERO, UINTZERO);
         bytes memory val;
         int256 compare;
         uint256 bitlen;
@@ -187,7 +160,7 @@ library BigNumbersWithoutOptimizer {
             (val,bitlen) = _sub(b.val,a.val);
             //r.neg = true;
         }
-        else return zero(); 
+        else return BigNumber(BYTESZERO, UINTZERO); 
         r.val = val;
         r.bitlen = (bitlen);
     }
@@ -207,12 +180,12 @@ library BigNumbersWithoutOptimizer {
     ) internal view returns(BigNumber memory r){
             
         BigNumber memory lhs = add(a,b);
-        BigNumber memory fst = modexp(lhs, two(), _powModulus(lhs, UINTTWO)); // (a+b)^2
+        BigNumber memory fst = modexp(lhs, BigNumber(BYTESTWO, UINTTWO), _powModulus(lhs, UINTTWO)); // (a+b)^2
         
         // no need to do subtraction part of the equation if a == b; if so, it has no effect on final result.
         if(!eq(a,b)) {
             BigNumber memory rhs = sub(a,b);
-            BigNumber memory snd = modexp(rhs, two(), _powModulus(rhs, UINTTWO)); // (a-b)^2
+            BigNumber memory snd = modexp(rhs, BigNumber(BYTESTWO, UINTTWO), _powModulus(rhs, UINTTWO)); // (a-b)^2
             r = _shr(sub(fst, snd) , UINTTWO); // (a * b) = (((a + b)**2 - (a - b)**2) / 4
         }
         else {
@@ -281,7 +254,7 @@ library BigNumbersWithoutOptimizer {
         BigNumber memory a, 
         BigNumber memory b
     ) internal pure returns(BigNumber memory r) {
-        if(a.bitlen==UINTZERO && b.bitlen==UINTZERO) return zero();
+        if(a.bitlen==UINTZERO && b.bitlen==UINTZERO) return BigNumber(BYTESZERO, UINTZERO);
         if(a.bitlen==UINTZERO) return b;
         if(b.bitlen==UINTZERO) return a;
         bytes memory val;
