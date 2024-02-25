@@ -78,6 +78,7 @@ interface ICRRRNGCoordinator {
     error InvalidProofsLength();
     error TwoOrMoreCommittedPleaseRecover();
     error NotStartedRound();
+    error StillInCommitStage();
     error XPrimeNotEqualAtIndex(uint256 index);
     error YPrimeNotEqualAtIndex(uint256 index);
 
