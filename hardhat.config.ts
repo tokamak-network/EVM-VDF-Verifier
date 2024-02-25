@@ -53,6 +53,9 @@ const config: HardhatUserConfig = {
             // }
             chainId: 31337,
             allowUnlimitedContractSize: true,
+            accounts: {
+                count: 500,
+            },
         },
         localhost: {
             chainId: 31337,
