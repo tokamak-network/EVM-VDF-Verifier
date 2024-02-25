@@ -184,6 +184,9 @@ contract CRRRNGCoordinator is ICRRRNGCoordinator {
     }
 
     function reRequestRandomWordAtRound(uint256 round) external checkStage(round, Stages.Finished) {
+        // check
+        if (block.timestamp < s_valuesAtRound[round].startTime + COMMITDURATION)
+            revert StillInCommitStage();
         if (s_valuesAtRound[round].isCompleted) revert OmegaAlreadyCompleted();
         if (s_valuesAtRound[round].numOfPariticipants > BigNumbers.UINTONE)
             revert TwoOrMoreCommittedPleaseRecover();
