@@ -26,7 +26,6 @@ const FRONT_END_ABI_FILE_CONSUMER =
     __dirname + "/../../demo-front/constants/airdropConsumerAbi.json"
 const FRONT_END_ABI_FILE_COORDINATOR = __dirname + "/../../demo-front/constants/crrngAbi.json"
 const updateFrontEnd: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
-    const { network } = hre
     if (process.env.UPDATE_ABI_ADDRESS_FRONTEND_VDFPROVER) {
         console.log("Updating frontend with VDFProver contract address and ABI...")
         await updateContractAddress()
@@ -86,4 +85,5 @@ async function updateContractAddress() {
         fs.writeFileSync(FRONT_END_ADDRESS_FILE_TESTERC20, JSON.stringify(currentAddressTonToken))
     }
 }
+export default updateFrontEnd
 updateFrontEnd.tags = ["all", "frontend"]
