@@ -98,7 +98,7 @@ const config: HardhatUserConfig = {
             accounts: [`${process.env.PRIVATE_KEY}`],
             chainId: 55004,
             //gasPrice: 250000,
-            deploy: ["deploy_titan"],
+            //deploy: ["deploy_titan"],
         },
     },
     deterministicDeployment: (network: string) => {
