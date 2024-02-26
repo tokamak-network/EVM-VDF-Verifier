@@ -110,21 +110,24 @@ contract AirdropConsumer is RNGConsumerBase, Ownable {
 
     function requestRandomWord(uint256 round) external onlyOwner {
         //check
+        uint256 _participantsLength = s_participantsAtRound[round].length;
         if (i_airdropToken.balanceOf(address(this)) < s_roundStatus[round].totalPrizeAmount)
             revert InsufficientBalance();
         if (!s_roundStatus[round].registrationStarted) revert RegisterNotStarted();
         if (block.timestamp <= s_startRegistrationTime + s_registrationDuration)
             revert RegistrationInProgress();
-        if (s_participantsAtRound[round].length == 0) revert NoneParticipated();
+        if (_participantsLength == 0) revert NoneParticipated();
         if (s_roundStatus[round].randNumRequested) revert AlreadyRequested(round);
         // effect
         s_roundStatus[round].randNumRequested = true;
-        s_roundStatus[round].prizeAmountStartingAtFifthPlace =
-            (s_roundStatus[round].totalPrizeAmount -
-                i_firstPlacePrizeAmount -
-                3 *
-                i_secondtoFourthPlacePrizeAmount) /
-            (s_participantsAtRound[round].length - 4);
+        if (_participantsLength > 4) {
+            s_roundStatus[round].prizeAmountStartingAtFifthPlace =
+                (s_roundStatus[round].totalPrizeAmount -
+                    i_firstPlacePrizeAmount -
+                    3 *
+                    i_secondtoFourthPlacePrizeAmount) /
+                (_participantsLength - 4);
+        }
         // interaction
         uint256 _requestId = ICRRRNGCoordinator(i_rngCoordinator).requestRandomWord();
         s_roundStatus[round].requestId = _requestId;
