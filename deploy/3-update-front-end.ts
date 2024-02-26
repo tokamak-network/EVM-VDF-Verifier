@@ -13,14 +13,20 @@
 // limitations under the License.
 import fs from "fs"
 import { ethers, network } from "hardhat"
+import { DeployFunction } from "hardhat-deploy/types"
+import { HardhatRuntimeEnvironment } from "hardhat/types"
 const FRONT_END_ADDRESS_FILE_CONSUMER =
     __dirname + "/../../demo-front/constants/consumerContractAddress.json"
 const FRONT_END_ADDRESS_FILE_COORDINATOR =
     __dirname + "/../../demo-front/constants/coordinatorContractAddress.json"
+const FRONT_END_ADDRESS_FILE_TESTERC20 =
+    __dirname + "/../../demo-front/constants/testErc20Address.json"
+const FRONT_END_ABI_FILE_TESTERC20 = __dirname + "/../../demo-front/constants/testErc20Abi.json"
 const FRONT_END_ABI_FILE_CONSUMER =
     __dirname + "/../../demo-front/constants/airdropConsumerAbi.json"
 const FRONT_END_ABI_FILE_COORDINATOR = __dirname + "/../../demo-front/constants/crrngAbi.json"
-export default async function updateFrontEnd() {
+const updateFrontEnd: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
+    const { network } = hre
     if (process.env.UPDATE_ABI_ADDRESS_FRONTEND_VDFPROVER) {
         console.log("Updating frontend with VDFProver contract address and ABI...")
         await updateContractAddress()
@@ -28,10 +34,15 @@ export default async function updateFrontEnd() {
     }
 }
 async function updateAbi() {
+    const chainId = network.config.chainId?.toString()
     const airdropConsumer = await ethers.getContract("AirdropConsumer")
     fs.writeFileSync(FRONT_END_ABI_FILE_CONSUMER, airdropConsumer.interface.formatJson())
     const crrngCoordinator = await ethers.getContract("CRRRNGCoordinator")
     fs.writeFileSync(FRONT_END_ABI_FILE_COORDINATOR, crrngCoordinator.interface.formatJson())
+    if (chainId == "31337") {
+        const tonToken = await ethers.getContract("TonToken")
+        fs.writeFileSync(FRONT_END_ABI_FILE_TESTERC20, tonToken.interface.formatJson())
+    }
 }
 async function updateContractAddress() {
     // airdropConsumer
@@ -59,5 +70,20 @@ async function updateContractAddress() {
         currentAddressCoordinator[chainId!] = [await crrngCoordinator.getAddress()]
     }
     fs.writeFileSync(FRONT_END_ADDRESS_FILE_COORDINATOR, JSON.stringify(currentAddressCoordinator))
+    // tonToken
+    if (chainId == "31337") {
+        const tonToken = await ethers.getContract("TonToken")
+        const currentAddressTonToken = JSON.parse(
+            fs.readFileSync(FRONT_END_ADDRESS_FILE_TESTERC20, "utf8"),
+        )
+        if (chainId! in currentAddressTonToken) {
+            if (!currentAddressTonToken[chainId!].includes(await tonToken.getAddress())) {
+                currentAddressTonToken[chainId!].push(await tonToken.getAddress())
+            }
+        } else {
+            currentAddressTonToken[chainId!] = [await tonToken.getAddress()]
+        }
+        fs.writeFileSync(FRONT_END_ADDRESS_FILE_TESTERC20, JSON.stringify(currentAddressTonToken))
+    }
 }
 updateFrontEnd.tags = ["all", "frontend"]
