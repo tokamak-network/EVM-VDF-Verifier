@@ -17,9 +17,8 @@ import { HardhatRuntimeEnvironment } from "hardhat/types"
 import { VERIFICATION_BLOCK_CONFIRMATIONS } from "../helper-hardhat-config"
 import { TestCase } from "../test/shared/interfacesV2"
 import { createTestCaseV2 } from "../test/shared/testFunctionsV2"
-import verify from "../utils/verify"
 const deployCRRRNGCoordinator: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
-    const { deployments, getNamedAccounts, network } = hre
+    const { deployments, getNamedAccounts, network, ethers } = hre
     const { deploy, log } = deployments
     const { deployer } = await getNamedAccounts()
     const chainId = network.config.chainId
@@ -29,19 +28,16 @@ const deployCRRRNGCoordinator: DeployFunction = async (hre: HardhatRuntimeEnviro
             ? 1
             : VERIFICATION_BLOCK_CONFIRMATIONS
     log("----------------------------------------------------")
+    log("initialize Coordinator contract...")
     const testcases: TestCase = createTestCaseV2()
-    const crrRngCoordinator = await deploy("CRRRNGCoordinator", {
-        from: deployer,
-        log: true,
-        args: [],
-        waitConfirmations: waitBlockConfirmations,
-    })
-    // deploy result
-    log("CRRRNGCoordinator deployed at:", crrRngCoordinator.address)
-    if (chainId !== 31337 && process.env.ETHERSCAN_API_KEY) {
-        log("Verifying...")
-        await verify(crrRngCoordinator.address, [])
-    }
+    const crrrngCoordinatorAddress = (await deployments.get("CRRRNGCoordinator")).address
+    const crrngCoordinatorContract = await ethers.getContractAt(
+        "CRRRNGCoordinator",
+        crrrngCoordinatorAddress,
+    )
+    const tx = await crrngCoordinatorContract.initialize(testcases.setupProofs)
+    await tx.wait()
+    log("initialized!")
     log("----------------------------------------------------")
 }
 export default deployCRRRNGCoordinator

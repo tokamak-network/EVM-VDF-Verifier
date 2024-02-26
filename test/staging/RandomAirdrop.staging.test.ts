@@ -43,10 +43,12 @@ import { createTestCaseV2 } from "../shared/testFunctionsV2"
           })
           it("deploy CRRRNGCoordinator Contract", async () => {
               const CRRRNGCoordinator = await ethers.getContractFactory("CRRRNGCoordinator")
-              crrrngCoordinator = await CRRRNGCoordinator.deploy(testcases.setupProofs)
+              crrrngCoordinator = await CRRRNGCoordinator.deploy()
               await crrrngCoordinator.waitForDeployment()
               assert.isNotNull(await crrrngCoordinator.getAddress())
               crrrngCoordinatorAddress = await crrrngCoordinator.getAddress()
+              const tx = await crrrngCoordinator.initialize(testcases.setupProofs)
+              const receipt = tx.wait()
           })
           it("deploy Ton Token Contract", async () => {
               const TonToken = await ethers.getContractFactory("TonToken")

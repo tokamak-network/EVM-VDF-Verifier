@@ -52,7 +52,7 @@ const config: HardhatUserConfig = {
             //   url: MAINNET_RPC_URL
             // }
             chainId: 31337,
-            allowUnlimitedContractSize: true,
+            allowUnlimitedContractSize: false,
             accounts: {
                 count: 500,
             },
