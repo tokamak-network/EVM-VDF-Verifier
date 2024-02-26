@@ -28,6 +28,7 @@ contract AirdropConsumer is RNGConsumerBase, Ownable {
     /* State Variables */
     mapping(address participantAddress => uint256[] randomAirdropRounds)
         private s_participatedRounds;
+    mapping(address participantAddress => uint256[] withdrawedRounds) private s_withdrawedRounds;
     mapping(address participantAddress => mapping(uint256 randomAirdropRound => uint256 registerIndex))
         private s_registerIndexPlusOneAtRound;
     mapping(address participantAddress => mapping(uint256 randomAirdropRound => bool isWithdrawn))
@@ -154,8 +155,13 @@ contract AirdropConsumer is RNGConsumerBase, Ownable {
         if (_prizeAmount == 0) _prizeAmount = s_roundStatus[round].prizeAmountStartingAtFifthPlace;
         //effect
         s_withdrawn[msg.sender][round] = true;
+        s_withdrawedRounds[msg.sender].push(round);
         //interaction
         i_airdropToken.safeTransfer(msg.sender, _prizeAmount);
+    }
+
+    function getWithdrawedRounds(address participant) external view returns (uint256[] memory) {
+        return s_withdrawedRounds[participant];
     }
 
     function getIsWithdrawn(uint256 round, address participant) external view returns (bool) {
