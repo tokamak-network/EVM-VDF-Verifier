@@ -38,41 +38,7 @@ contract CRRRNGCoordinator is ICRRRNGCoordinator {
         private s_commitRevealValues;
     mapping(uint256 round => mapping(address owner => UserAtRound)) private s_userInfosAtRound;
     bool private s_reentrancyLock;
-
-    constructor(VDFClaim[] memory proofList) {
-        BigNumber memory n = BigNumber(NVAL, NBITLEN);
-        BigNumber memory _two = BigNumber(BigNumbers.BYTESTWO, BigNumbers.UINTTWO); //BigNumber(BigNumbers.BYTESTWO, BigNumbers.UINTTWO);
-        uint256 _T = T;
-        uint i;
-        uint256 _proofsLastIndex = proofList.length - BigNumbers.UINTONE;
-        require(_proofsLastIndex == PROOFLASTINDEX);
-        require(BigNumber(GVAL, GBITLEN).eq(proofList[BigNumbers.UINTZERO].x));
-        require(BigNumber(HVAL, HBITLEN).eq(proofList[BigNumbers.UINTZERO].y));
-        do {
-            BigNumber memory _y = proofList[i].y;
-            BigNumber memory _r = _modHash(
-                bytes.concat(proofList[i].y.val, proofList[i].v.val),
-                proofList[i].x
-            ).mod(BigNumber(MODFORHASH, MODFORHASH_LEN));
-            if (_T & BigNumbers.UINTONE == BigNumbers.UINTONE) {
-                unchecked {
-                    ++_T;
-                }
-                _y = _y.modexp(_two, n);
-            }
-            if (
-                !proofList[i].x.modexp(_r, n).modmul(proofList[i].v, n).eq(
-                    proofList[_unchecked_inc(i)].x
-                )
-            ) revert XPrimeNotEqualAtIndex(i);
-            if (!proofList[i].v.modexp(_r, n).modmul(_y, n).eq(proofList[_unchecked_inc(i)].y))
-                revert YPrimeNotEqualAtIndex(i);
-            _T = _T >> 1;
-            i = _unchecked_inc(i);
-        } while (i < PROOFLASTINDEX);
-        if (!proofList[i].y.eq(proofList[i].x.modexp(_two, n))) revert NotVerifiedAtTOne();
-        if (i != PROOFLASTINDEX || _T != BigNumbers.UINTONE) revert TOneNotAtLast();
-    }
+    bool private s_verified;
 
     /* Modifiers */
     modifier nonReentrant() {
@@ -130,6 +96,15 @@ contract CRRRNGCoordinator is ICRRRNGCoordinator {
         _;
     }
 
+    function initialize(VDFClaim[] calldata proofList) external {
+        if (s_verified) revert AlreadyVerified();
+        require(proofList.length - BigNumbers.UINTONE == PROOFLASTINDEX);
+        require(BigNumber(GVAL, GBITLEN).eq(proofList[BigNumbers.UINTZERO].x));
+        require(BigNumber(HVAL, HBITLEN).eq(proofList[BigNumbers.UINTZERO].y));
+        _verifyRecursiveHalvingProof(proofList, BigNumber(NVAL, NBITLEN));
+        s_verified = true;
+    }
+
     /* External Functions */
     function commit(uint256 round, BigNumber calldata c) external checkStage(round, Stages.Commit) {
         //check
@@ -175,6 +150,7 @@ contract CRRRNGCoordinator is ICRRRNGCoordinator {
     }
 
     function requestRandomWord() external returns (uint256) {
+        require(s_verified);
         uint256 _round = s_nextRound++;
         s_valuesAtRound[_round].startTime = block.timestamp;
         s_valuesAtRound[_round].stage = Stages.Commit;
@@ -317,12 +293,12 @@ contract CRRRNGCoordinator is ICRRRNGCoordinator {
                 bytes.concat(proofList[i].y.val, proofList[i].v.val),
                 proofList[i].x
             ).mod(BigNumber(MODFORHASH, MODFORHASH_LEN));
-            if (_T & BigNumbers.UINTONE == BigNumbers.UINTONE) {
-                unchecked {
-                    ++_T;
-                }
-                _y = _y.modexp(_two, n);
-            }
+            // if (_T & BigNumbers.UINTONE == BigNumbers.UINTONE) {
+            //     unchecked {
+            //         ++_T;
+            //     }
+            //     _y = _y.modexp(_two, n);
+            // }
             if (
                 !proofList[i].x.modexp(_r, n).modmul(proofList[i].v, n).eq(
                     proofList[_unchecked_inc(i)].x

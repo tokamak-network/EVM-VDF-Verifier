@@ -58,6 +58,7 @@ interface ICRRRNGCoordinator {
 
     /* Errors */
     error ReentrancyGuard();
+    error AlreadyVerified();
     error AlreadyCommitted();
     error NotCommittedParticipant();
     error AlreadyRevealed();
@@ -65,16 +66,11 @@ interface ICRRRNGCoordinator {
     error NotAllRevealed();
     error OmegaAlreadyCompleted();
     error FunctionInvalidAtThisStage();
-    error TNotMatched();
     error NotVerifiedAtTOne();
     error RecovNotMatchX();
-    error StageNotFinished();
-    error CommitRevealDurationLessThanCommitDuration();
-    error AllFinished();
     error NoneParticipated();
     error ShouldNotBeZero();
     error TOneNotAtLast();
-    error iNotMatchProofSize();
     error InvalidProofsLength();
     error TwoOrMoreCommittedPleaseRecover();
     error NotStartedRound();
