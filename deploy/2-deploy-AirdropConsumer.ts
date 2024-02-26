@@ -28,8 +28,8 @@ const deployAirdropConsumer: DeployFunction = async (hre: HardhatRuntimeEnvironm
     log("----------------------------------------------------")
     // get crrRngCoordinatorAddress
     const crrRngCoordinatorAddress = (await deployments.get("CRRRNGCoordinator")).address
-    const firstPlacePrizeAmount = 500
-    const secondPlacePrizeAmount = 77
+    const firstPlacePrizeAmount = 500n * 10n ** 18n
+    const secondPlacePrizeAmount = 77n * 10n ** 18n
     let tonTokenAddress: string
     if (chainId == 31337) {
         tonTokenAddress = (await deployments.get("TonToken")).address

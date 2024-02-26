@@ -36,7 +36,12 @@ async function requestRandomWord() {
         const requestIdAtRound = await airdropConsumerContract.getRequestIdAtRound(round)
         console.log("Round:", round.toString())
         console.log("Requesting random word...")
-        const tx = await crrngCoordinatorContract.reRequestRandomWordAtRound(round)
+        let tx
+        if (chainId == 5050 || 55004)
+            tx = await crrngCoordinatorContract.reRequestRandomWordAtRound(round, {
+                gasLimit: 810000,
+            })
+        else tx = await crrngCoordinatorContract.reRequestRandomWordAtRound(round)
         const receipt = await tx.wait()
         console.log("Transaction receipt", receipt)
         console.log("Random word reRequested")
