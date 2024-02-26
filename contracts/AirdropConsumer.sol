@@ -122,10 +122,12 @@ contract AirdropConsumer is RNGConsumerBase, Ownable {
         s_roundStatus[round].randNumRequested = true;
         if (_participantsLength > 4) {
             s_roundStatus[round].prizeAmountStartingAtFifthPlace =
-                (s_roundStatus[round].totalPrizeAmount -
-                    i_firstPlacePrizeAmount -
-                    3 *
-                    i_secondtoFourthPlacePrizeAmount) /
+                (
+                    (s_roundStatus[round].totalPrizeAmount -
+                        i_firstPlacePrizeAmount -
+                        3 *
+                        i_secondtoFourthPlacePrizeAmount)
+                ) /
                 (_participantsLength - 4);
         }
         // interaction
