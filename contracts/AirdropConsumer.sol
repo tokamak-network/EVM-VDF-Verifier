@@ -54,9 +54,11 @@ contract AirdropConsumer is RNGConsumerBase, Ownable {
     error NoneParticipated();
     error AlreadyWithdrawn();
     error InsufficientBalance();
+    error ZeroLength();
     error AlreadyRequested(uint256 round);
     error AlreadyFulfilled(uint256 round);
     error RandNumNotFulfilled(uint256 round);
+    error NotRegisteredAddress(address participantAddress);
 
     event StartRegistration(uint256 randomAirdropRound);
     event Registered(address participantAddress, uint256 timestamp);
@@ -107,6 +109,35 @@ contract AirdropConsumer is RNGConsumerBase, Ownable {
         s_registerIndexPlusOneAtRound[msg.sender][_round] = s_participantsAtRound[_round].length;
         s_participatedRounds[msg.sender].push(_round);
         emit Registered(msg.sender, block.timestamp);
+    }
+
+    function blackList(uint256 round, address[] calldata addresses) external onlyOwner {
+        uint256 _participantsLength = s_participantsAtRound[round].length;
+        uint256 _blackListingLength = addresses.length;
+        //check
+        if (_blackListingLength == 0) revert ZeroLength();
+        if (!s_roundStatus[round].registrationStarted) revert RegisterNotStarted();
+        if (block.timestamp <= s_startRegistrationTime + s_registrationDuration)
+            revert RegistrationInProgress();
+        if (_participantsLength == 0) revert NoneParticipated();
+        if (s_roundStatus[round].randNumRequested) revert AlreadyRequested(round);
+        //effect
+        uint256 i;
+        do {
+            uint256 _index = s_registerIndexPlusOneAtRound[addresses[i]][round];
+            if (_index == 0) revert NotRegisteredAddress(addresses[i]);
+            s_participantsAtRound[round][_index - 1] = s_participantsAtRound[round][
+                _participantsLength - 1
+            ];
+            s_registerIndexPlusOneAtRound[s_participantsAtRound[round][--_participantsLength]][
+                round
+            ] = _index;
+            s_participantsAtRound[round].pop();
+            s_registerIndexPlusOneAtRound[addresses[i]][round] = 0;
+            unchecked {
+                ++i;
+            }
+        } while (i < _blackListingLength);
     }
 
     function requestRandomWord(uint256 round) external onlyOwner {
@@ -233,7 +264,9 @@ contract AirdropConsumer is RNGConsumerBase, Ownable {
         address participantAddress,
         uint256 round
     ) external view returns (uint256) {
-        return s_registerIndexPlusOneAtRound[participantAddress][round] - 1;
+        uint256 _index = s_registerIndexPlusOneAtRound[participantAddress][round];
+        if (_index == 0) revert NotRegisteredAddress(participantAddress);
+        return _index - 1;
     }
 
     function getParticipatedRounds(
@@ -287,7 +320,8 @@ contract AirdropConsumer is RNGConsumerBase, Ownable {
         uint256 _firstPlaceIndex = uint256(
             bytes32(_omega.mod(abi.encodePacked(_participantLength).init()).val)
         );
-        uint256 _gap = _participantLength / 4;
+        uint256 _gap = _participantLength / 4; // we assume pariticipants length is greater than 4
+        if (_gap == 0) _gap = 1;
         uint256 _secondPlaceIndex = addmod(_firstPlaceIndex, _gap, _participantLength);
         uint256 _thirdPlaceIndex = addmod(_secondPlaceIndex, _gap, _participantLength);
         uint256 _fourthPlaceIndex = addmod(_thirdPlaceIndex, _gap, _participantLength);
@@ -297,9 +331,9 @@ contract AirdropConsumer is RNGConsumerBase, Ownable {
             _thirdPlaceIndex,
             _fourthPlaceIndex
         ];
-        s_winnersPrizeAmount[_round][_firstPlaceIndex] = i_firstPlacePrizeAmount;
-        s_winnersPrizeAmount[_round][_secondPlaceIndex] = i_secondtoFourthPlacePrizeAmount;
-        s_winnersPrizeAmount[_round][_thirdPlaceIndex] = i_secondtoFourthPlacePrizeAmount;
         s_winnersPrizeAmount[_round][_fourthPlaceIndex] = i_secondtoFourthPlacePrizeAmount;
+        s_winnersPrizeAmount[_round][_thirdPlaceIndex] = i_secondtoFourthPlacePrizeAmount;
+        s_winnersPrizeAmount[_round][_secondPlaceIndex] = i_secondtoFourthPlacePrizeAmount;
+        s_winnersPrizeAmount[_round][_firstPlaceIndex] = i_firstPlacePrizeAmount;
     }
 }

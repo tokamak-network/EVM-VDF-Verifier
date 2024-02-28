@@ -13,7 +13,7 @@
 // limitations under the License.
 import { SignerWithAddress } from "@nomicfoundation/hardhat-ethers/signers"
 import { time } from "@nomicfoundation/hardhat-network-helpers"
-import { assert } from "chai"
+import { assert, expect } from "chai"
 import { ethers, network } from "hardhat"
 import { developmentChains } from "../../helper-hardhat-config"
 import { AirdropConsumer, CRRRNGCoordinator, TonToken } from "../../typechain-types"
@@ -29,6 +29,7 @@ import { createTestCaseV2 } from "../shared/testFunctionsV2"
           const secondPlacePrizeAmount = 77n * 10n ** 18n
           const registrationDuration = 86400n
           const totalPrizeAmount = 1000n * 10n ** 18n
+          const blackListedIndexs = [3, 53, 103, 153, 203, 253, 303, 353, 403, 453]
           // let
           let signers: SignerWithAddress[]
           let crrrngCoordinator: CRRRNGCoordinator
@@ -184,6 +185,26 @@ import { createTestCaseV2 } from "../shared/testFunctionsV2"
                   assert.equal(participatedRounds[0], 0n)
               }
           })
+          it("blackList a few participants on AirdropConsumer Contract", async () => {
+              // act
+              const round = (await airdropConsumer.getNextRandomAirdropRound()) - 1n
+              let blackListAddresses: string[] = []
+              let blackListCount: number = 0
+              await time.increase(86400)
+              for (let i = 3; i < 500; i += 50) {
+                  blackListAddresses.push(signers[i].address)
+                  blackListCount++
+              }
+              await airdropConsumer.blackList(round, blackListAddresses)
+              const participatedNum = await airdropConsumer.getNumOfParticipants(round)
+              // assert
+              for (let i = 3; i < 500; i += 50) {
+                  // expect to revert getRegisterIndexAtRound
+                  await expect(airdropConsumer.getRegisterIndexAtRound(signers[i].address, round))
+                      .to.be.reverted
+              }
+              assert.equal(participatedNum, 500n - BigInt(blackListCount))
+          })
           it("transfer ton token to airdropConsumer and requestRandomWord on airdropConsumer Contract", async () => {
               //act
               // transfer ton to airdropConsumer
@@ -193,7 +214,6 @@ import { createTestCaseV2 } from "../shared/testFunctionsV2"
               const airdropConsumerBalanceAfter = await tonToken.balanceOf(airdropConsumerAddress)
               const signer0BalanceAfter = await tonToken.balanceOf(signers[0].address)
               const round = (await airdropConsumer.getNextRandomAirdropRound()) - 1n
-              await time.increase(86400)
               const tx = await airdropConsumer.requestRandomWord(round)
               const receipt = await tx.wait()
               // get (airdropConsumer)
@@ -408,6 +428,9 @@ import { createTestCaseV2 } from "../shared/testFunctionsV2"
               const prizeAmountStartingAtFifthPlace =
                   await airdropConsumer.getPrizeAmountStartingAtFifthPlace(round)
               for (let i = 0; i < 500; i++) {
+                  if (blackListedIndexs.includes(i)) {
+                      continue
+                  }
                   const signerBalance = await tonToken.balanceOf(signers[i].address)
                   const airdropConsumerBalance = await tonToken.balanceOf(airdropConsumerAddress)
                   await airdropConsumer.connect(signers[i]).withdrawAirdropToken(round)
