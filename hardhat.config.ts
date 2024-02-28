@@ -120,6 +120,7 @@ const config: HardhatUserConfig = {
             sepolia: ETHERSCAN_API_KEY,
             goerli: ETHERSCAN_API_KEY,
             titangoerli: ETHERSCAN_API_KEY,
+            titan: ETHERSCAN_API_KEY,
         },
         customChains: [
             {
