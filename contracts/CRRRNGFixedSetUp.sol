@@ -2,9 +2,9 @@
 pragma solidity ^0.8.23;
 
 import "./libraries/BigNumbers.sol";
-import {ICRRRNGCoordinator} from "./interfaces/ICRRRNGCoordinator.sol";
+import {ICRRRNGCoordinatorDeprecated} from "./interfaces/ICRRRNGCoordinatorDeprecated.sol";
 
-contract CRRRNGServiceFixedSetUp is ICRRRNGCoordinator {
+contract CRRRNGServiceFixedSetUp is ICRRRNGCoordinatorDeprecated {
     /* Type declaration */
     using BigNumbers for *;
 
@@ -227,9 +227,9 @@ contract CRRRNGServiceFixedSetUp is ICRRRNGCoordinator {
     function getSetUpValues()
         external
         pure
-        returns (uint256, uint256, uint256, bytes memory, bytes memory, bytes memory)
+        returns (uint256, uint256, uint256, uint256, bytes memory, bytes memory, bytes memory)
     {
-        return (NBITLEN, GBITLEN, HBITLEN, NVAL, GVAL, HVAL);
+        return (T, NBITLEN, GBITLEN, HBITLEN, NVAL, GVAL, HVAL);
     }
 
     function getValuesAtRound(uint256 _round) external view returns (ValueAtRound memory) {

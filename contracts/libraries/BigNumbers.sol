@@ -706,7 +706,7 @@ library BigNumbers {
     function _powModulus(
         BigNumber memory a, 
         uint256 e
-    ) private pure returns(BigNumber memory){
+    ) internal pure returns(BigNumber memory){
         bytes memory _modulus = BYTESZERO;
         uint256 mod_index;
         assembly {
@@ -735,7 +735,7 @@ library BigNumbers {
         bytes memory _b, 
         bytes memory _e, 
         bytes memory _m
-    ) private view returns(bytes memory r) {
+    ) internal view returns(bytes memory r) {
         assembly {
             
             let bl := mload(_b)

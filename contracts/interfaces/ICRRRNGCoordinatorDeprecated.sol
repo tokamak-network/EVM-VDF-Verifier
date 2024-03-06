@@ -10,7 +10,7 @@ import {BigNumber} from "../libraries/BigNumbers.sol";
  *    2. Commit: participants commit their value
  *    3. Reveal: participants reveal their value
  */
-interface ICRRRNGCoordinator {
+interface ICRRRNGCoordinatorDeprecated {
     /* Type declaration */
     /**
      * @notice Stages of the contract
@@ -114,12 +114,7 @@ interface ICRRRNGCoordinator {
      * @notice revert if count == 0 meaning no one has committed
      * @notice calculate and finalize omega
      */
-    function recover(
-        uint256 round,
-        VDFClaim[] calldata proofs,
-        bytes memory bigNumTwoPowerOfDelta,
-        uint256 delta
-    ) external;
+    function recover(uint256 round, VDFClaim[] calldata proofs) external;
 
     /**
      * @notice SetUp function
