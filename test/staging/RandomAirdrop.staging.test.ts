@@ -19,7 +19,7 @@ import { ethers, network } from "hardhat"
 import { developmentChains } from "../../helper-hardhat-config"
 import { AirdropConsumer, CRRRNGCoordinator, TonToken } from "../../typechain-types"
 import { TestCase } from "../shared/interfacesV2"
-import { createTestCaseV2 } from "../shared/testFunctionsV2"
+import { createTestCaseDeltaApplied } from "../shared/testFunctionsV2"
 function getLength(value: number): number {
     let length: number = 32
     while (length < value) length += 32
@@ -29,17 +29,17 @@ function getLength(value: number): number {
     ? describe.skip
     : describe("RandomAirdrop Staging Test", () => {
           //const
-          const testcases: TestCase = createTestCaseV2()
           const firstPlacePrizeAmount = 500n * 10n ** 18n
           const secondPlacePrizeAmount = 77n * 10n ** 18n
           const registrationDuration = 86400n
           const totalPrizeAmount = 1000n * 10n ** 18n
           const blackListedIndexs = [3, 53, 103, 153, 203, 253, 303, 353, 403, 453]
-          const delta: bigint = 9n
+          const delta: bigint = 10n
           const twoPowerOfDeltaBytes: BytesLike = toBeHex(
               2n ** delta,
               getLength(dataLength(toBeHex(2n ** delta))),
           )
+          const testcases: TestCase = createTestCaseDeltaApplied(Number(delta))
           // let
           let signers: SignerWithAddress[]
           let crrrngCoordinator: CRRRNGCoordinator

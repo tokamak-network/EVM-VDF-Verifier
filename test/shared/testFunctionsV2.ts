@@ -92,6 +92,23 @@ export const createTestCaseV2 = (): TestCase => {
     return testCaseJson
 }
 
+export const createTestCaseDeltaApplied = (delta: number): TestCase => {
+    const testCaseJson = JSON.parse(
+        fs.readFileSync(__dirname + `/testCases/twoMinutesLengthData.json`, "utf-8"),
+    )
+    for (let i: number = 0; i < testCaseJson.setupProofs.length; i++) {
+        delete testCaseJson.setupProofs[i].n
+        delete testCaseJson.setupProofs[i].T
+    }
+    if (delta > 0) testCaseJson.setupProofs = testCaseJson.setupProofs.slice(0, -delta)
+    for (let i: number = 0; i < testCaseJson.recoveryProofs.length; i++) {
+        delete testCaseJson.recoveryProofs[i].n
+        delete testCaseJson.recoveryProofs[i].T
+    }
+    if (delta > 0) testCaseJson.recoveryProofs = testCaseJson.recoveryProofs.slice(0, -delta)
+    return testCaseJson
+}
+
 export const createTestCase30Seconds1 = (): TestCase => {
     const testCaseJson = JSON.parse(
         fs.readFileSync(__dirname + `/testCases/thirtySeconds1.json`, "utf-8"),
