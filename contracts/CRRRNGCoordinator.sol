@@ -7,29 +7,25 @@ import {RNGConsumerBase} from "./RNGConsumerBase.sol";
 
 contract CRRRNGCoordinator is ICRRRNGCoordinator {
     /* Type declaration */
-    using BigNumbers for *;
 
     /* Constant variables */
     // uint256
-    uint256 private constant MODFORHASH_LEN = 129;
     uint256 private constant T = 4194304; // 2^22
     uint256 private constant COMMITDURATION = 120;
     uint256 private constant COMMITREVEALDURATION = 240;
     uint256 private constant PROOFLASTINDEX = 22;
-    uint256 private constant NBITLEN = 2047;
-    uint256 private constant GBITLEN = 2046;
-    uint256 private constant HBITLEN = 2043;
+    uint256 private constant NBITLEN = 2048;
+    uint256 private constant GBITLEN = 2047;
+    uint256 private constant HBITLEN = 2047;
     // 5k is plenty for an EXTCODESIZE call (2600) + warm CALL (100) and some arithmetic operations
     uint256 private constant GAS_FOR_CALL_EXACT_CHECK = 5_000;
     // bytes
-    bytes private constant MODFORHASH =
-        hex"0000000000000000000000000000000100000000000000000000000000000000";
     bytes private constant NVAL =
-        hex"45d416e8be4f61d58a3390edb1949059f4f3f728a9d300a405123226fec1861139b1f5bc4d0f24ba1f115217cf41c4a28f1c0c7d0291f29f89b63f0f87a84668cef76b56f969c23494439f07e0895ee44257b6123341cf27bcfc085434225ea08b06cdb8d67ad2cc7d80fb8f96cd18b248e62f241892a0696233006e4d467fac5d5128b58b20b72ff17956c6f86cbd00bb7847218a9ec2b333ac20e33a0d1a4959feb3a151b26898b4123e5e05b682b9a18f230133f28703c954177498bc6c6203a3ca1467cb4eb7caf79c644ab898ef751ba4663a06f4a67c7ccfff781eff04b1713ca98ddedf1347e893c7eb4ef90e2a67d659ad74c546714b9e78e0bc0281";
+        hex"84fc05d1050f4a0a93e13f6f8cadaebded77ca89d3d29ad57aef6af6055f76e6b7e806205195a4b717058f865ce0c7c7e5f733c2f4d8270238cf127f0532f2260854b8d688b97f5dd0d435302c1d90c9fe6645c22e6b61802b95fb64565877abd821ae0e162377197a6d4cf7a9639f6b0cdd03f07df49a1269a4b48d163b58323f8a0b61a68cdf006cd1274b13a328e02a0bcb3a86968636e3211468993dabced34a68e907648d5996478ec07831282d9b11a6c1be26eddc6be0c2bebc89655955de18789c192f8b630e729510cfc7edd9d22a13a2a1f2b8be4839a207cce02ae59faf6b20fda5cc8572c9b6f048ce8811288068d787cbd1682d2ba8fd0546b5";
     bytes private constant GVAL =
-        hex"3237a29cc9a41fbbb03e6c326d001516c5c8eca55584981b3005141d277f6ece1859841a5029e02319cd860167e52fbe61d66a1e09d8c858b14dadaf3a8f270cfbe2625398ad141d7f34cfde7c8ab4788a938dc6a641af81afa402debb20ac7b5c3d655ee3db11f535d3f75de5fcd93c293e304592439239704c4890807210aa64b422dd162c43cb6f89b71236a4e44caeee475925fab5fee8a82e3515441d43dcfa276db2263ae761024dee07c113cac079f4d709390ada0e0c7919c6f06b30ce3ba7a17d7d61ed979571d82bff342c72938c20d8d555b00c2efe40ee5d8306dc8ed6ed49421259266612b9adf9e37902914acae00b973552231f8715f188a0";
+        hex"635dfea702e324f9c6deddb44625cdcb782680120a2756ec78c39b59540a6a5cd81d774011e877f54413565b4491f2b30dede36dc6bccfb71bacb5d4deeefe743a1097d5106bf2f195ca83e6760ddfa8993659a1d912da3f2c4cb4b055e0c21b9b54cb4f7b45f02cc8ce8ec9b5b2b700a4b719620c254bf71355e58f5874860dfa0e988f066f8c98e0a261b0de924bdabb53c5029631f2b78cb6d7e7e9e18ef419dffb09f25042cb31d751d45842bf52d81630811a950e1ff9a103f3071b22863606fbb3ae11a3e8a08e7f5911c395c6bfeb8d391b871a5d2e372de52d7781615c610f8d44e86d355d2cc8fa1ed95990476e4ed41ff2910ffa7961b4d2895345";
     bytes private constant HVAL =
-        hex"040fe0b9b8cd0bdd26fb05a5e45126265e34aefea81e7a8b6f6862d6f64ddcbe9f1bd821657dc4227cd0121e36d391669787aedbc969b6487d22690d91347b6473735439c34d640baccc145bc8d935415417f2e098493f6a8d6f869243722d0b9baebc399244dec31fc8935785832fb41d6fae424a2a2b6b8594ff47eed03b7430195a53046eabfb11ed0784ab91b0e8c1277ec4f12d6d940980fc6075b6f96679c691d525a65eba59a81c42ebe6b28b9beb66ccd9792771c483d11ceee27fc00bb8bf391c397af80371fcc31765ef95fef9bbc0fd1ad0fcd1e29bbf684390d0491762d0992d2e0bccd829af2ba9810b1b5edc3ff4e1075db8d81b5590d0b124";
+        hex"48250b8eea437c276608d6921f2fa8e3d9504bf0a006830704ec45121475ef9ca020391797ef2949982a354d8ac8ef3edc244566855b0d0d5cd425b7b4cc944d8e0a6d16077e84a3d2fe1bcff494b0937d95e73da5711a72becc31db1baf38abc1c970862797b2fe03e10e35eac2d627912fa5f4bea912da8f7fb1d409eb0201fbf53a1cf1b036d601a9896853b50f2b03ce14b8ba5a0273259fe2ab79fe95efd955ced4f736307427f9b21a81c30fdff6c24239b51f08ceb89c69e8545e97797cee195e40211bb1e72d8c1d9c75e2d3b33b5a9d61a35a66058d25a2f597b44657616a4d02532000aa1721d9ceda2765d2d40c4f84b79cf58f0fc8fba5eea479";
 
     /* State variables */
     uint256 private s_nextRound;
@@ -56,10 +52,7 @@ contract CRRRNGCoordinator is ICRRRNGCoordinator {
             if (_count > BigNumbers.UINTONE) {
                 _stage = Stages.Reveal;
                 s_valuesAtRound[round].numOfPariticipants = _count;
-                s_valuesAtRound[round].bStar = _modHash(
-                    s_valuesAtRound[round].commitsString,
-                    BigNumber(NVAL, NBITLEN)
-                ).val;
+                s_valuesAtRound[round].bStar = _hash(s_valuesAtRound[round].commitsString).val;
             } else {
                 _stage = Stages.Finished;
             }
@@ -80,10 +73,7 @@ contract CRRRNGCoordinator is ICRRRNGCoordinator {
             if (_count > BigNumbers.UINTONE) {
                 _stage = Stages.Reveal;
                 s_valuesAtRound[round].numOfPariticipants = _count;
-                s_valuesAtRound[round].bStar = _modHash(
-                    s_valuesAtRound[round].commitsString,
-                    BigNumber(NVAL, NBITLEN)
-                ).val;
+                s_valuesAtRound[round].bStar = _hash(s_valuesAtRound[round].commitsString).val;
             } else {
                 _stage = Stages.Finished;
             }
@@ -96,19 +86,28 @@ contract CRRRNGCoordinator is ICRRRNGCoordinator {
         _;
     }
 
-    function initialize(VDFClaim[] calldata proofList) external {
+    function initialize(
+        VDFClaim[] memory proofList,
+        bytes memory bigNumTwoPowerOfDelta,
+        uint256 delta
+    ) external {
         if (s_verified) revert AlreadyVerified();
-        require(proofList.length - BigNumbers.UINTONE == PROOFLASTINDEX);
-        require(BigNumber(GVAL, GBITLEN).eq(proofList[BigNumbers.UINTZERO].x));
-        require(BigNumber(HVAL, HBITLEN).eq(proofList[BigNumbers.UINTZERO].y));
-        _verifyRecursiveHalvingProof(proofList, BigNumber(NVAL, NBITLEN));
+        require(BigNumbers.eq(BigNumber(GVAL, GBITLEN), proofList[BigNumbers.UINTZERO].x));
+        require(BigNumbers.eq(BigNumber(HVAL, HBITLEN), proofList[BigNumbers.UINTZERO].y));
+        _verifyRecursiveHalvingProof(
+            proofList,
+            BigNumber(NVAL, NBITLEN),
+            bigNumTwoPowerOfDelta,
+            2 ** delta,
+            delta
+        );
         s_verified = true;
     }
 
     /* External Functions */
-    function commit(uint256 round, BigNumber calldata c) external checkStage(round, Stages.Commit) {
+    function commit(uint256 round, BigNumber memory c) external checkStage(round, Stages.Commit) {
         //check
-        if (c.isZero()) revert ShouldNotBeZero();
+        if (BigNumbers.isZero(c)) revert ShouldNotBeZero();
         if (s_userInfosAtRound[round][msg.sender].committed) revert AlreadyCommitted();
         //effect
         uint256 _count = s_valuesAtRound[round].count;
@@ -125,13 +124,14 @@ contract CRRRNGCoordinator is ICRRRNGCoordinator {
         emit CommitC(_commitsString, _count, c.val);
     }
 
-    function reveal(uint256 round, BigNumber calldata a) external checkStage(round, Stages.Reveal) {
+    function reveal(uint256 round, BigNumber memory a) external checkStage(round, Stages.Reveal) {
         // check
         uint256 _userIndex = s_userInfosAtRound[round][msg.sender].index;
         if (!s_userInfosAtRound[round][msg.sender].committed) revert NotCommittedParticipant();
         if (s_userInfosAtRound[round][msg.sender].revealed) revert AlreadyRevealed();
         if (
-            !BigNumber(GVAL, GBITLEN).modexp(a, BigNumber(NVAL, NBITLEN)).eq(
+            !BigNumbers.eq(
+                BigNumbers.modexp(BigNumber(GVAL, GBITLEN), a, BigNumber(NVAL, NBITLEN)),
                 s_commitRevealValues[round][_userIndex].c
             )
         ) revert ModExpRevealNotMatchCommit();
@@ -182,18 +182,16 @@ contract CRRRNGCoordinator is ICRRRNGCoordinator {
         bytes memory _bStar = s_valuesAtRound[round].bStar;
         BigNumber memory _h = BigNumber(HVAL, HBITLEN);
         BigNumber memory _n = BigNumber(NVAL, NBITLEN);
-        uint256 i;
-        do {
-            BigNumber memory _temp = _modHash(
-                bytes.concat(s_commitRevealValues[round][i].c.val, _bStar),
+        BigNumber memory _temp;
+        for (uint256 i; i < _numOfPariticipants; i = _unchecked_inc(i)) {
+            _temp = _hash(bytes.concat(s_commitRevealValues[round][i].c.val, _bStar));
+            _temp = BigNumbers.modexp(
+                BigNumbers.modexp(_h, _temp, _n),
+                s_commitRevealValues[round][i].a,
                 _n
             );
-            _omega = _omega.modmul(
-                _h.modexp(_temp, _n).modexp(s_commitRevealValues[round][i].a, _n),
-                _n
-            );
-            i = _unchecked_inc(i);
-        } while (i < _numOfPariticipants);
+            _omega = BigNumbers.modmul(_omega, _temp, _n);
+        }
         s_valuesAtRound[round].omega = _omega;
         s_valuesAtRound[round].isCompleted = true;
         emit CalculateOmega(round, _omega.val);
@@ -201,38 +199,43 @@ contract CRRRNGCoordinator is ICRRRNGCoordinator {
 
     function recover(
         uint256 round,
-        VDFClaim[] calldata proofs
+        VDFClaim[] memory proofs,
+        bytes memory bigNumTwoPowerOfDelta,
+        uint256 delta
     ) external checkRecoverStage(round) nonReentrant {
         // check
         uint256 _numOfPariticipants = s_valuesAtRound[round].numOfPariticipants;
         if (_numOfPariticipants == BigNumbers.UINTZERO) revert NoneParticipated();
-        if (proofs.length - BigNumbers.UINTONE != PROOFLASTINDEX) revert InvalidProofsLength();
         if (s_valuesAtRound[round].isCompleted) revert OmegaAlreadyCompleted();
         BigNumber memory _n = BigNumber(NVAL, NBITLEN);
         bytes memory _bStar = s_valuesAtRound[round].bStar;
-        _verifyRecursiveHalvingProof(proofs, _n);
+        _verifyRecursiveHalvingProof(proofs, _n, bigNumTwoPowerOfDelta, 2 ** delta, delta);
         BigNumber memory _recov = BigNumber(BigNumbers.BYTESONE, BigNumbers.UINTONE);
-        uint256 i;
-        do {
+        for (uint256 i; i < _numOfPariticipants; i = _unchecked_inc(i)) {
             BigNumber memory _c = s_commitRevealValues[round][i].c;
-            _recov = _recov.modmul(_c.modexp(_modHash(bytes.concat(_c.val, _bStar), _n), _n), _n);
-            i = _unchecked_inc(i);
-        } while (i < _numOfPariticipants);
-        if (!_recov.eq(proofs[BigNumbers.UINTZERO].x)) revert RecovNotMatchX();
+            _recov = BigNumbers.modmul(
+                _recov,
+                BigNumbers.modexp(_c, _hash(bytes.concat(_c.val, _bStar)), _n),
+                _n
+            );
+        }
+        if (!BigNumbers.eq(_recov, proofs[BigNumbers.UINTZERO].x)) revert RecovNotMatchX();
         // effect
         s_valuesAtRound[round].isCompleted = true;
         s_valuesAtRound[round].omega = proofs[BigNumbers.UINTZERO].y;
         s_valuesAtRound[round].stage = Stages.Finished;
         // interaction
-        bytes memory callData = abi.encodeWithSelector(
-            RNGConsumerBase.rawFulfillRandomWords.selector,
-            round,
-            proofs[BigNumbers.UINTZERO].y.val,
-            proofs[BigNumbers.UINTZERO].y.bitlen
-        );
         // Do not allow any non-view/non-pure coordinator functions to be called during the consumers callback code via reentrancyLock.
         s_reentrancyLock = true;
-        bool success = _call(s_valuesAtRound[round].consumer, callData);
+        bool success = _call(
+            s_valuesAtRound[round].consumer,
+            abi.encodeWithSelector(
+                RNGConsumerBase.rawFulfillRandomWords.selector,
+                round,
+                proofs[BigNumbers.UINTZERO].y.val,
+                proofs[BigNumbers.UINTZERO].y.bitlen
+            )
+        );
         s_reentrancyLock = false;
         emit Recovered(round, _recov.val, proofs[BigNumbers.UINTZERO].y.val, success);
     }
@@ -244,9 +247,9 @@ contract CRRRNGCoordinator is ICRRRNGCoordinator {
     function getSetUpValues()
         external
         pure
-        returns (uint256, uint256, uint256, bytes memory, bytes memory, bytes memory)
+        returns (uint256, uint256, uint256, uint256, bytes memory, bytes memory, bytes memory)
     {
-        return (NBITLEN, GBITLEN, HBITLEN, NVAL, GVAL, HVAL);
+        return (T, NBITLEN, GBITLEN, HBITLEN, NVAL, GVAL, HVAL);
     }
 
     function getValuesAtRound(uint256 _round) external view returns (ValueAtRound memory) {
@@ -267,11 +270,22 @@ contract CRRRNGCoordinator is ICRRRNGCoordinator {
         return s_userInfosAtRound[_round][_owner];
     }
 
-    function _modHash(
+    function _modHashMod128(
         bytes memory strings,
         BigNumber memory n
     ) private view returns (BigNumber memory) {
-        return abi.encodePacked(keccak256(strings)).init().mod(n);
+        return
+            BigNumbers.init(
+                abi.encodePacked(
+                    (bytes32(
+                        BigNumbers.mod(BigNumbers.init(abi.encodePacked(keccak256(strings))), n).val
+                    ) >> 128)
+                )
+            );
+    }
+
+    function _hash(bytes memory strings) private view returns (BigNumber memory) {
+        return BigNumbers.init(abi.encodePacked(keccak256(strings)));
     }
 
     function _unchecked_inc(uint256 i) private pure returns (uint256) {
@@ -281,36 +295,50 @@ contract CRRRNGCoordinator is ICRRRNGCoordinator {
     }
 
     function _verifyRecursiveHalvingProof(
-        VDFClaim[] calldata proofList,
-        BigNumber memory n
+        VDFClaim[] memory proofList,
+        BigNumber memory n,
+        bytes memory bigNumTwoPowerOfDelta,
+        uint256 twoPowerOfDelta,
+        uint256 delta
     ) private view {
-        BigNumber memory _two = BigNumber(BigNumbers.BYTESTWO, BigNumbers.UINTTWO);
-        uint256 _T = T;
         uint i;
+        uint256 iMax = PROOFLASTINDEX - delta;
         do {
-            BigNumber memory _y = proofList[i].y;
-            BigNumber memory _r = _modHash(
+            BigNumber memory _r = _modHashMod128(
                 bytes.concat(proofList[i].y.val, proofList[i].v.val),
                 proofList[i].x
-            ).mod(BigNumber(MODFORHASH, MODFORHASH_LEN));
-            // if (_T & BigNumbers.UINTONE == BigNumbers.UINTONE) {
-            //     unchecked {
-            //         ++_T;
-            //     }
-            //     _y = _y.modexp(_two, n);
-            // }
+            );
             if (
-                !proofList[i].x.modexp(_r, n).modmul(proofList[i].v, n).eq(
+                !BigNumbers.eq(
+                    BigNumbers.modmul(BigNumbers.modexp(proofList[i].x, _r, n), proofList[i].v, n),
                     proofList[_unchecked_inc(i)].x
                 )
             ) revert XPrimeNotEqualAtIndex(i);
-            if (!proofList[i].v.modexp(_r, n).modmul(_y, n).eq(proofList[_unchecked_inc(i)].y))
-                revert YPrimeNotEqualAtIndex(i);
-            _T = _T >> 1;
+            if (
+                !BigNumbers.eq(
+                    BigNumbers.modmul(BigNumbers.modexp(proofList[i].v, _r, n), proofList[i].y, n),
+                    proofList[_unchecked_inc(i)].y
+                )
+            ) revert YPrimeNotEqualAtIndex(i);
             i = _unchecked_inc(i);
-        } while (i < PROOFLASTINDEX);
-        if (!proofList[i].y.eq(proofList[i].x.modexp(_two, n))) revert NotVerifiedAtTOne();
-        if (i != PROOFLASTINDEX || _T != BigNumbers.UINTONE) revert TOneNotAtLast();
+        } while (i < iMax);
+        BigNumber memory _two = BigNumber(BigNumbers.BYTESTWO, BigNumbers.UINTTWO);
+        if (
+            !BigNumbers.eq(
+                proofList[i].y,
+                BigNumbers.init(
+                    BigNumbers._modexp(
+                        proofList[i].x.val,
+                        BigNumbers._modexp(
+                            _two.val,
+                            bigNumTwoPowerOfDelta,
+                            BigNumbers._powModulus(_two, twoPowerOfDelta).val
+                        ),
+                        n.val
+                    )
+                )
+            )
+        ) revert NotVerifiedAtTOne();
     }
 
     function _call(address target, bytes memory data) private returns (bool success) {
