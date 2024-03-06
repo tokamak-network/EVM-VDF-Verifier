@@ -11,13 +11,12 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-import {
-    ICommitRevealRecoverRNG,
-    BigNumberStruct,
-    CommitRevealRecoverRNG,
-} from "../../typechain-types/CommitRevealRecoverRNG"
-import { ICRRWithTInProof, ICRRWithNTInProof } from "../../typechain-types"
 import { BigNumberish } from "ethers"
+import { ICRRWithNTInProof, ICRRWithTInProof, ICommitRevealRecoverRNG } from "../../typechain-types"
+interface BigNumberStruct {
+    val: string
+    bitlen: BigNumberish
+}
 
 export const LAMDAs: string[] = ["λ1024", "λ2048", "λ3072"]
 export const Ts: string[] = ["T2^20", "T2^21", "T2^22", "T2^23", "T2^24", "T2^25"]
