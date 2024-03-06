@@ -14,12 +14,17 @@
 import { SignerWithAddress } from "@nomicfoundation/hardhat-ethers/signers"
 import { time } from "@nomicfoundation/hardhat-network-helpers"
 import { assert, expect } from "chai"
+import { BytesLike, dataLength, toBeHex } from "ethers"
 import { ethers, network } from "hardhat"
 import { developmentChains } from "../../helper-hardhat-config"
 import { AirdropConsumer, CRRRNGCoordinator, TonToken } from "../../typechain-types"
 import { TestCase } from "../shared/interfacesV2"
 import { createTestCaseV2 } from "../shared/testFunctionsV2"
-
+function getLength(value: number): number {
+    let length: number = 32
+    while (length < value) length += 32
+    return length
+}
 !developmentChains.includes(network.name)
     ? describe.skip
     : describe("RandomAirdrop Staging Test", () => {
@@ -30,6 +35,11 @@ import { createTestCaseV2 } from "../shared/testFunctionsV2"
           const registrationDuration = 86400n
           const totalPrizeAmount = 1000n * 10n ** 18n
           const blackListedIndexs = [3, 53, 103, 153, 203, 253, 303, 353, 403, 453]
+          const delta: bigint = 9n
+          const twoPowerOfDeltaBytes: BytesLike = toBeHex(
+              2n ** delta,
+              getLength(dataLength(toBeHex(2n ** delta))),
+          )
           // let
           let signers: SignerWithAddress[]
           let crrrngCoordinator: CRRRNGCoordinator
@@ -48,7 +58,11 @@ import { createTestCaseV2 } from "../shared/testFunctionsV2"
               await crrrngCoordinator.waitForDeployment()
               assert.isNotNull(await crrrngCoordinator.getAddress())
               crrrngCoordinatorAddress = await crrrngCoordinator.getAddress()
-              const tx = await crrrngCoordinator.initialize(testcases.setupProofs)
+              const tx = await crrrngCoordinator.initialize(
+                  testcases.setupProofs,
+                  twoPowerOfDeltaBytes,
+                  delta,
+              )
               const receipt = tx.wait()
           })
           it("deploy Ton Token Contract", async () => {
@@ -369,15 +383,21 @@ import { createTestCaseV2 } from "../shared/testFunctionsV2"
               await time.increase(120)
               const round = (await airdropConsumer.getNextRandomAirdropRound()) - 1n
               let receipt
+              let blockNum
               try {
-                  const tx = await crrrngCoordinator.recover(round, testcases.recoveryProofs)
+                  const tx = await crrrngCoordinator.recover(
+                      round,
+                      testcases.recoveryProofs,
+                      twoPowerOfDeltaBytes,
+                      delta,
+                  )
                   receipt = await tx.wait()
+                  blockNum = BigInt(receipt?.blockNumber.toString()!)
               } catch (error) {
                   console.log(error)
               }
               // get (crrrngCoordinator)
-              const blockNum = BigInt(receipt?.blockNumber.toString()!)
-              const block = await ethers.provider.getBlock(blockNum)
+              const block = await ethers.provider.getBlock(blockNum!)
               const timestamp = block?.timestamp!
               const valuesAtRound = await crrrngCoordinator.getValuesAtRound(round)
               // assert crrrngCoordinator contract
@@ -478,7 +498,12 @@ import { createTestCaseV2 } from "../shared/testFunctionsV2"
                           .commit(round, testcases.commitList[j])
                   }
                   await time.increase(120)
-                  await crrrngCoordinator.recover(round, testcases.recoveryProofs)
+                  await crrrngCoordinator.recover(
+                      round,
+                      testcases.recoveryProofs,
+                      twoPowerOfDeltaBytes,
+                      delta,
+                  )
                   for (let j = 0; j < 500; j++) {
                       await airdropConsumer.connect(signers[j]).withdrawAirdropToken(round)
                   }
