@@ -136,7 +136,7 @@ library BigNumbers {
         /** @notice BigNumber subtraction: a - b.
       * @dev sub: Initially prepare BigNumbers for subtraction operation; internally calls actual addition/subtraction,
                   depending on inputs.
-      *           In order to do correct addition or subtraction we have to handle the sign.
+      *           
       *           This function discovers the sign of the result based on the inputs, and calls the correct operation.
       *
       * @param a first BN

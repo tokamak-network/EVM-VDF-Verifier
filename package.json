@@ -1,6 +1,6 @@
 {
   "name": "@tokamak-network/crrrngcontracts",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "CommitRevealRecover Random Number Generator Contracts",
   "author": "Justin(EuiSin) Gee",
   "license": "MIT",
