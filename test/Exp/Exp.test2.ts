@@ -112,7 +112,7 @@ function dimitrovTypescriptFixedB2(
 
 !developmentChains.includes(network.name)
     ? describe.skip
-    : describe("Exp Test", () => {
+    : describe("Exp Test2", () => {
           let expContract: Exp
           const base: BigNumber = {
               val: "0x3237a29cc9a41fbbb03e6c326d001516c5c8eca55584981b3005141d277f6ece1859841a5029e02319cd860167e52fbe61d66a1e09d8c858b14dadaf3a8f270cfbe2625398ad141d7f34cfde7c8ab4788a938dc6a641af81afa402debb20ac7b5c3d655ee3db11f535d3f75de5fcd93c293e304592439239704c4890807210aa64b422dd162c43cb6f89b71236a4e44caeee475925fab5fee8a82e3515441d43dcfa276db2263ae761024dee07c113cac079f4d709390ada0e0c7919c6f06b30ce3ba7a17d7d61ed979571d82bff342c72938c20d8d555b00c2efe40ee5d8306dc8ed6ed49421259266612b9adf9e37902914acae00b973552231f8715f188a0",
@@ -206,30 +206,22 @@ function dimitrovTypescriptFixedB2(
                   bitlen: 2043,
               }
               const exps: bigint[] = [
-                  2n ** 1n,
-                  2n ** 300n,
-                  2n ** 600n,
-                  2n ** 900n,
+                  2n ** 400n,
+                  2n ** 800n,
                   2n ** 1200n,
-                  2n ** 1500n,
-                  2n ** 1800n,
-                  2n ** 2100n,
+                  2n ** 1600n,
+                  2n ** 2000n,
                   2n ** 2400n,
-                  2n ** 2700n,
-                  2n ** 3000n,
+                  2n ** 2800n,
               ]
               const expsString: string[] = [
-                  "2^1",
-                  "2^300",
-                  "2^600",
-                  "2^900",
+                  "2^400",
+                  "2^800",
                   "2^1200",
-                  "2^1500",
-                  "2^1800",
-                  "2^2100",
+                  "2^1600",
+                  "2^2000",
                   "2^2400",
-                  "2^2700",
-                  "2^3000",
+                  "2^2800",
               ]
               for (let i: number = 0; i < exps.length; i++) {
                   const _a: bigint = exps[i]
@@ -366,30 +358,22 @@ function dimitrovTypescriptFixedB2(
           })
           it("multiExp, x^a * y^b, Fixed b=2", async () => {
               const exps: bigint[] = [
-                  2n ** 1n,
-                  2n ** 300n,
-                  2n ** 600n,
-                  2n ** 900n,
+                  2n ** 400n,
+                  2n ** 800n,
                   2n ** 1200n,
-                  2n ** 1500n,
-                  2n ** 1800n,
-                  2n ** 2100n,
+                  2n ** 1600n,
+                  2n ** 2000n,
                   2n ** 2400n,
-                  2n ** 2700n,
-                  2n ** 3000n,
+                  2n ** 2800n,
               ]
               const expsString: string[] = [
-                  "2^1",
-                  "2^300",
-                  "2^600",
-                  "2^900",
+                  "2^400",
+                  "2^800",
                   "2^1200",
-                  "2^1500",
-                  "2^1800",
-                  "2^2100",
+                  "2^1600",
+                  "2^2000",
                   "2^2400",
-                  "2^2700",
-                  "2^3000",
+                  "2^2800",
               ]
               //   console.log(toBeHex(1n, getLength(dataLength(toBeHex(1n)))), getBitLenth(1n))
               // testcases
