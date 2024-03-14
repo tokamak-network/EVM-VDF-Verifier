@@ -267,7 +267,7 @@ contract Exp {
         do {
             if (isOdd(n)) {
                 y = mul(x, y);
-                n = sub(n, one);
+                //n = sub(n, one);
             }
             x = mul(x, x);
             n = _shr(n, 1);
@@ -318,13 +318,14 @@ contract Exp {
         do {
             if (isOdd(t)) {
                 y = modmul(x, y, n);
-                t = sub(t, one);
+                //t = sub(t, one);
             }
             x = modexp(x, BigNumber(BYTESTWO, UINTTWO), n);
             t = _shr(t, 1);
         } while (gt(t, one));
         return modmul(x, y, n);
     }
+
 
     /** @notice BigNumber odd number check
      * @dev isOdd: returns 1 if BigNumber value is an odd number and 0 otherwise.
