@@ -50,7 +50,7 @@ interface ICRRRNGCoordinator {
     }
 
     /* Events */
-    event CommitC(bytes commitsString, uint256 commitCount, bytes commitVal);
+    event CommitC(uint256 commitCount, bytes commitVal);
     event RevealA(uint256 revealLeftCount, bytes aVal);
     event Recovered(uint256 round, bytes recov, bytes omega, bool success);
     event RandomWordsRequested(uint256 round, address sender);

@@ -111,17 +111,16 @@ contract CRRRNGCoordinator is ICRRRNGCoordinator {
         if (s_userInfosAtRound[round][msg.sender].committed) revert AlreadyCommitted();
         //effect
         uint256 _count = s_valuesAtRound[round].count;
-        bytes memory _commitsString = s_valuesAtRound[round].commitsString;
-        _commitsString = bytes.concat(_commitsString, c.val);
-        s_userInfosAtRound[round][msg.sender] = UserAtRound(_count, true, false);
-        s_commitRevealValues[round][_count] = CommitRevealValue(
-            c,
-            BigNumber(BigNumbers.BYTESZERO, BigNumbers.UINTZERO),
-            msg.sender
+        s_userInfosAtRound[round][msg.sender].index = _count;
+        s_userInfosAtRound[round][msg.sender].committed = true;
+        s_commitRevealValues[round][_count].c = c;
+        s_commitRevealValues[round][_count].participantAddress = msg.sender;
+        s_valuesAtRound[round].commitsString = bytes.concat(
+            s_valuesAtRound[round].commitsString,
+            c.val
         );
-        s_valuesAtRound[round].commitsString = _commitsString;
         s_valuesAtRound[round].count = _count = _unchecked_inc(_count);
-        emit CommitC(_commitsString, _count, c.val);
+        emit CommitC(_count, c.val);
     }
 
     function reveal(uint256 round, BigNumber memory a) external checkStage(round, Stages.Reveal) {
@@ -140,11 +139,11 @@ contract CRRRNGCoordinator is ICRRRNGCoordinator {
         unchecked {
             _count = --s_valuesAtRound[round].count;
         }
-        s_commitRevealValues[round][_userIndex].a = a;
         if (_count == BigNumbers.UINTZERO) {
             s_valuesAtRound[round].stage = Stages.Finished;
             s_valuesAtRound[round].isAllRevealed = true;
         }
+        s_commitRevealValues[round][_userIndex].a = a;
         s_userInfosAtRound[round][msg.sender].revealed = true;
         emit RevealA(_count, a.val);
     }
