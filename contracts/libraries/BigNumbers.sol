@@ -221,13 +221,13 @@ library BigNumbers {
 
         uint256 len = a.val.length; //bitlen is same so no need to check length.
 
-        assembly{
+        assembly ("memory-safe") {
             a_ptr := add(mload(a),0x20) 
             b_ptr := add(mload(b),0x20)
         }
 
         for(uint256 i; i<len;i+=UINT32){
-            assembly{
+            assembly ("memory-safe") {
                 a_word := mload(add(a_ptr,i))
                 b_word := mload(add(b_ptr,i))
             }
@@ -280,7 +280,7 @@ library BigNumbers {
       */
     function _shr(BigNumber memory bn, uint256 bits) private view returns(BigNumber memory){
         uint256 length;
-        assembly { length := mload(mload(bn)) }
+        assembly ("memory-safe") { length := mload(mload(bn)) }
 
         // if bits is >= the bitlength of the value the result is always 0
         if(bits >= bn.bitlen) return BigNumber(BYTESZERO,UINTZERO); 
@@ -291,7 +291,7 @@ library BigNumbers {
         // handle shifts greater than 256:
         // if bits is greater than 256 we can simply remove any trailing words, by altering the BN length. 
         // we also update 'bits' so that it is now in the range 0..256.
-        assembly {
+        assembly ("memory-safe") {
             if or(gt(bits, 0x100), eq(bits, 0x100)) {
                 length := sub(length, mul(div(bits, 0x100), 0x20))
                 mstore(mload(bn), length)
@@ -357,13 +357,13 @@ library BigNumbers {
     ) private pure returns(bool) {
         uint256 msword;
         uint256 msword_ptr;
-        assembly {
+        assembly ("memory-safe") {
             msword_ptr := add(a,0x20)
         }
         for(uint256 i; i<a.length; i+=UINT32) {
-            assembly { msword := mload(msword_ptr) } // get msword of input
+            assembly ("memory-safe") { msword := mload(msword_ptr) } // get msword of input
             if(msword > 0) return false;
-            assembly { msword_ptr := add(msword_ptr, 0x20) }
+            assembly ("memory-safe") { msword_ptr := add(msword_ptr, 0x20) }
         }
         return true;
 
@@ -380,11 +380,11 @@ library BigNumbers {
     ) private pure returns(uint256 r){
         if(isZero(a)) return UINTZERO;
         uint256 msword; 
-        assembly {
+        assembly ("memory-safe") {
             msword := mload(add(a,0x20))               // get msword of input
         }
         r = bitLength(msword);                         // get bitlen of msword, add to size of remaining words.
-        assembly {                                           
+        assembly ("memory-safe") {                                           
             r := add(r, mul(sub(mload(a), 0x20) , 8))  // res += (val.length-32)*8;  
         }
     }
@@ -398,7 +398,7 @@ library BigNumbers {
     function bitLength(
         uint256 a
     ) private pure returns (uint256 r){
-        assembly {
+        assembly ("memory-safe") {
             switch eq(a, 0)
             case 1 {
                 r := 0
@@ -459,11 +459,12 @@ library BigNumbers {
     ) private view returns(BigNumber memory r){ 
         // use identity at location 0x4 for cheap memcpy.
         // grab contents of val, load starting from memory end, update memory end pointer.
-        assembly {
+        assembly ("memory-safe") {
             let data := add(val, 0x20)
             let length := mload(val)
             let out
-            let freemem := msize()
+            //let freemem := msize()
+            let freemem := mload(0x40)
             switch eq(mod(length, 0x20), 0)                       // if(val.length % 32 == 0)
                 case 1 {
                     out     := add(freemem, 0x20)                 // freememory location + length word
@@ -519,9 +520,9 @@ library BigNumbers {
         uint256 max_bitlen
     ) private pure returns (bytes memory, uint256) {
         bytes memory result;
-        assembly {
-
-            let result_start := msize()                                       // Get the highest available block of memory
+        assembly ("memory-safe") {
+            // msize()
+            let result_start := mload(0x40)                                  // Get the highest available block of memory
             let carry := 0
             let uint_max := sub(0,1)
 
@@ -614,9 +615,9 @@ library BigNumbers {
         bytes memory result;
         uint256 carry = UINTZERO;
         uint256 uint_max = type(uint256).max;
-        assembly {
-                
-            let result_start := msize()                                     // Get the highest available block of 
+        assembly ("memory-safe") {
+            // msize()
+            let result_start := mload(0x40)                                   // Get the highest available block of 
                                                                             // memory
         
             let max_len := mload(max)
@@ -709,7 +710,7 @@ library BigNumbers {
     ) internal pure returns(BigNumber memory){
         bytes memory _modulus = BYTESZERO;
         uint256 mod_index;
-        assembly {
+        assembly ("memory-safe") {
             mod_index := mul(mload(add(a, 0x20)), e)               // a.bitlen * e is the max bitlength of result
             let first_word_modulus := shl(mod(mod_index, 256), 1)  // set bit in first modulus word.
             mstore(_modulus, mul(add(div(mod_index,256),1),0x20))  // store length of modulus
@@ -736,7 +737,7 @@ library BigNumbers {
         bytes memory _e, 
         bytes memory _m
     ) internal view returns(bytes memory r) {
-        assembly {
+        assembly ("memory-safe") {
             
             let bl := mload(_b)
             let el := mload(_e)
