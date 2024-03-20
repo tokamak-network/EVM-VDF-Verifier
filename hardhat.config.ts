@@ -12,11 +12,12 @@ import "solidity-coverage"
 /** @type import('hardhat/config').HardhatUserConfig */
 
 const optimizerSettings = {
+    viaIR: true,
     optimizer: {
         enabled: true,
-        runs: 1000000,
+        runs: 4294967295,
         details: {
-            yul: false,
+            yul: true,
         },
     },
 }
