@@ -12,422 +12,550 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 import { assert } from "chai"
-import { dataLength, toBeHex } from "ethers"
+import { dataLength, toBeHex, Transaction } from "ethers"
 import fs from "fs"
-import { ethers, network } from "hardhat"
-import { developmentChains } from "../../helper-hardhat-config"
+import { ethers } from "hardhat"
 import { MinimalApplication } from "../../typechain-types"
 import { TestCase } from "../shared/interfacesV2"
 
-!developmentChains.includes(network.name)
-    ? describe.skip
-    : describe("Optimized Pietrzak Verification", async () => {
-          let minimalApplication: MinimalApplication
-          //   it("operation compare", async function () {
-          //       let x = 5n
-          //       const n = 19n
-          //       const delta = 4n
-          //       const firstResult = x ** (2n ** (2n ** delta)) % n
+describe("Optimized Pietrzak Verification", async () => {
+    let minimalApplication: MinimalApplication
+    //   it("operation compare", async function () {
+    //       let x = 5n
+    //       const n = 19n
+    //       const delta = 4n
+    //       const firstResult = x ** (2n ** (2n ** delta)) % n
 
-          //       let thirdResult = x ** (2n ** (2n ** delta) % n) % n
+    //       let thirdResult = x ** (2n ** (2n ** delta) % n) % n
 
-          //       x = x ** 2n % n
-          //       let i = 1n
-          //       while (i++ < 2n ** delta) {
-          //           x = x ** 2n % n
-          //       }
-          //       const secondResult = x
-          //       console.log(firstResult, secondResult, thirdResult)
-          //   })
-          it("verifyRecursiveHalvingProofNTXYVInProof", async function () {
-              const lambdas: string[] = ["λ1024", "λ2048", "λ3072"]
-              const Ts: string[] = ["T2^20", "T2^21", "T2^22", "T2^23", "T2^24", "T2^25"]
-              const proofLastIndex: number[] = [20, 21, 22, 23, 24, 25]
-              const jsonName: string = "one"
-              const minimalApplicationFactory =
-                  await ethers.getContractFactory("MinimalApplication")
-              const data = []
-              for (let i: number = 0; i < lambdas.length; i++) {
-                  for (let j: number = 0; j < Ts.length; j++) {
-                      minimalApplication = (await minimalApplicationFactory.deploy(
-                          proofLastIndex[j],
-                      )) as MinimalApplication
-                      await minimalApplication.waitForDeployment()
-                      const shift128TestCase = createshift128TestCaseNXYVT(
-                          lambdas[i],
-                          Ts[j],
-                          jsonName,
-                      )
-                      const gasUsed =
-                          await minimalApplication.verifyRecursiveHalvingProofNTXYVInProofExternal.estimateGas(
-                              shift128TestCase.recoveryProofs,
-                          )
-                      const trueOrFalse =
-                          await minimalApplication.verifyRecursiveHalvingProofNTXYVInProofExternal(
-                              shift128TestCase.recoveryProofs,
-                          )
-                      assert(trueOrFalse)
-                      data.push([Number(gasUsed), lambdas[i], Ts[j]])
-                  }
-              }
-              console.log(data)
-          })
-          it("verifyRecursiveHalvingProofNTXYVDeltaApplied", async function () {
-              const lambdas: string[] = ["λ2048"]
-              const Ts: string[] = ["T2^22", "T2^23", "T2^24"]
-              const proofLastIndex: number[] = [22, 23, 24]
-              const jsonName: string = "one"
-              const deltas: number[] = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]
-              const minimalApplicationFactory =
-                  await ethers.getContractFactory("MinimalApplication")
-              const data = []
-              for (let k: number = 0; k < deltas.length; k++) {
-                  const delta: number = deltas[k]
-                  console.log("delta = ", delta)
-                  for (let i: number = 0; i < lambdas.length; i++) {
-                      for (let j: number = 0; j < Ts.length; j++) {
-                          minimalApplication = (await minimalApplicationFactory.deploy(
-                              proofLastIndex[j],
-                          )) as MinimalApplication
-                          await minimalApplication.waitForDeployment()
-                          const shift128TestCase = createshift128TestCaseNXYVT(
-                              lambdas[i],
-                              Ts[j],
-                              jsonName,
-                          )
-                          if (delta > 0)
-                              shift128TestCase.recoveryProofs =
-                                  shift128TestCase.recoveryProofs.slice(0, -delta)
-                          const gasUsedYesDelta =
-                              await minimalApplication.verifyRecursiveHalvingProofNTXYVDeltaAppliedExternal.estimateGas(
-                                  shift128TestCase.recoveryProofs,
-                                  toBeHex(2 ** delta, getLength(dataLength(toBeHex(2 ** delta)))),
-                                  delta,
-                              )
-                          const trueOrFalse =
-                              await minimalApplication.verifyRecursiveHalvingProofNTXYVDeltaAppliedExternal(
-                                  shift128TestCase.recoveryProofs,
-                                  toBeHex(2 ** delta, getLength(dataLength(toBeHex(2 ** delta)))),
-                                  delta,
-                              )
-                          assert(trueOrFalse)
-                          data.push([delta, Number(gasUsedYesDelta), lambdas[i], Ts[j]])
-                      }
-                  }
-              }
-              console.log(data)
-          })
-          it("verifyRecursiveHalvingProofNTXYVDeltaRepeated", async function () {
-              const lambdas: string[] = ["λ2048"]
-              const Ts: string[] = ["T2^22", "T2^23", "T2^24"]
-              const proofLastIndex: number[] = [22, 23, 24]
-              const jsonName: string = "one"
-              const deltas: number[] = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
-              const minimalApplicationFactory =
-                  await ethers.getContractFactory("MinimalApplication")
-              const data = []
-              for (let k: number = 0; k < deltas.length; k++) {
-                  const delta: number = deltas[k]
-                  for (let i: number = 0; i < lambdas.length; i++) {
-                      for (let j: number = 0; j < Ts.length; j++) {
-                          minimalApplication = (await minimalApplicationFactory.deploy(
-                              proofLastIndex[j],
-                          )) as MinimalApplication
-                          await minimalApplication.waitForDeployment()
-                          const shift128TestCase = createshift128TestCaseNXYVT(
-                              lambdas[i],
-                              Ts[j],
-                              jsonName,
-                          )
-                          if (delta > 0)
-                              shift128TestCase.recoveryProofs =
-                                  shift128TestCase.recoveryProofs.slice(0, -delta)
-                          const gasUsedYesDelta =
-                              await minimalApplication.verifyRecursiveHalvingProofNTXYVDeltaRepeatedExternal.estimateGas(
-                                  shift128TestCase.recoveryProofs,
-                                  delta,
-                              )
-                          const trueOrFalse =
-                              await minimalApplication.verifyRecursiveHalvingProofNTXYVDeltaRepeatedExternal(
-                                  shift128TestCase.recoveryProofs,
-                                  delta,
-                              )
-                          assert(trueOrFalse)
-                          data.push([delta, Number(gasUsedYesDelta), lambdas[i], Ts[j]])
-                      }
-                  }
-              }
-              console.log(data)
-          })
-          it("verifyRecursiveHalvingProofSkippingN", async function () {
-              const lambdas: string[] = ["λ1024", "λ2048", "λ3072"]
-              const Ts: string[] = ["T2^20", "T2^21", "T2^22", "T2^23", "T2^24", "T2^25"]
-              const proofLastIndex: number[] = [20, 21, 22, 23, 24, 25]
-              const jsonName: string = "one"
-              const minimalApplicationFactory =
-                  await ethers.getContractFactory("MinimalApplication")
-              const data = []
-              for (let i: number = 0; i < lambdas.length; i++) {
-                  for (let j: number = 0; j < Ts.length; j++) {
-                      minimalApplication = (await minimalApplicationFactory.deploy(
-                          proofLastIndex[j],
-                      )) as MinimalApplication
-                      await minimalApplication.waitForDeployment()
-                      const shift128TestCase = createshift128TestCaseSkippingN(
-                          lambdas[i],
-                          Ts[j],
-                          jsonName,
-                      )
-                      const gasUsedYesDelta =
-                          await minimalApplication.verifyRecursiveHalvingProofSkippingNExternal.estimateGas(
-                              shift128TestCase.n,
-                              shift128TestCase.recoveryProofs,
-                          )
-                      const trueOrFalse =
-                          await minimalApplication.verifyRecursiveHalvingProofSkippingNExternal(
-                              shift128TestCase.n,
-                              shift128TestCase.recoveryProofs,
-                          )
-                      assert(trueOrFalse)
-                      data.push([Number(gasUsedYesDelta), lambdas[i], Ts[j]])
-                  }
-              }
-              console.log(data)
-          })
-          it("verifyRecursiveHalvingProofSkippingTXY", async function () {
-              const lambdas: string[] = ["λ1024", "λ2048", "λ3072"]
-              const Ts: string[] = ["T2^20", "T2^21", "T2^22", "T2^23", "T2^24", "T2^25"]
-              const proofLastIndex: number[] = [20, 21, 22, 23, 24, 25]
-              const jsonName: string = "one"
-              const minimalApplicationFactory =
-                  await ethers.getContractFactory("MinimalApplication")
-              const data = []
-              for (let i: number = 0; i < lambdas.length; i++) {
-                  for (let j: number = 0; j < Ts.length; j++) {
-                      minimalApplication = (await minimalApplicationFactory.deploy(
-                          proofLastIndex[j],
-                      )) as MinimalApplication
-                      await minimalApplication.waitForDeployment()
-                      const shift128TestCase = createshift128TestCaseSkippingT(
-                          lambdas[i],
-                          Ts[j],
-                          jsonName,
-                      )
-                      const x = shift128TestCase.recoveryProofs[0].x
-                      const y = shift128TestCase.recoveryProofs[0].y
-                      for (let i: number = 0; i < shift128TestCase.recoveryProofs.length; i++) {
-                          delete shift128TestCase.recoveryProofs[i].x
-                          delete shift128TestCase.recoveryProofs[i].y
-                      }
-                      const gasUsedYesDelta =
-                          await minimalApplication.verifyRecursiveHalvingProofSkippingTXYExternal.estimateGas(
-                              shift128TestCase.recoveryProofs,
-                              x,
-                              y,
-                              shift128TestCase.T,
-                          )
-                      const trueOrFalse =
-                          await minimalApplication.verifyRecursiveHalvingProofSkippingTXYExternal(
-                              shift128TestCase.recoveryProofs,
-                              x,
-                              y,
-                              shift128TestCase.T,
-                          )
-                      assert(trueOrFalse)
-                      //console.log(trueOrFalse)
-                      data.push([Number(gasUsedYesDelta), lambdas[i], Ts[j]])
-                      console.log("recoveryProofs Length", shift128TestCase.recoveryProofs.length)
-                      console.log("Gas Used =", gasUsedYesDelta, lambdas[i], Ts[j])
-                  }
-              }
-              console.log(data)
-          })
-          it("verifyRecursiveHalvingProofWithoutDelta Shortening Proof Size", async function () {
-              const lambdas: string[] = ["λ1024", "λ2048", "λ3072"]
-              const Ts: string[] = ["T2^20", "T2^21", "T2^22", "T2^23", "T2^24", "T2^25"]
-              const proofLastIndex: number[] = [20, 21, 22, 23, 24, 25]
-              const jsonName: string = "one"
-              const minimalApplicationFactory =
-                  await ethers.getContractFactory("MinimalApplication")
-              const data = []
-              for (let i: number = 0; i < lambdas.length; i++) {
-                  for (let j: number = 0; j < Ts.length; j++) {
-                      minimalApplication = (await minimalApplicationFactory.deploy(
-                          proofLastIndex[j],
-                      )) as MinimalApplication
-                      await minimalApplication.waitForDeployment()
-                      const shift128TestCase = createshift128TestCaseNXYVT(
-                          lambdas[i],
-                          Ts[j],
-                          jsonName,
-                      )
-                      const x = shift128TestCase.recoveryProofs[0].x
-                      const y = shift128TestCase.recoveryProofs[0].y
-                      for (let i: number = 0; i < shift128TestCase.recoveryProofs.length; i++) {
-                          delete shift128TestCase.recoveryProofs[i].x
-                          delete shift128TestCase.recoveryProofs[i].y
-                          delete shift128TestCase.recoveryProofs[i].n
-                          delete shift128TestCase.recoveryProofs[i].T
-                      }
-                      let recoveryProofs = []
-                      for (let i: number = 0; i < shift128TestCase.recoveryProofs.length; i++) {
-                          recoveryProofs.push(shift128TestCase.recoveryProofs[i].v)
-                      }
-                      const gasUsedYesDelta =
-                          await minimalApplication.verifyRecursiveHalvingProofWithoutDeltaExternal.estimateGas(
-                              recoveryProofs,
-                              x,
-                              y,
-                              shift128TestCase.n,
-                              shift128TestCase.T,
-                          )
-                      const trueOrFalse =
-                          await minimalApplication.verifyRecursiveHalvingProofWithoutDeltaExternal(
-                              recoveryProofs,
-                              x,
-                              y,
-                              shift128TestCase.n,
-                              shift128TestCase.T,
-                          )
-                      assert(trueOrFalse)
-                      data.push([Number(gasUsedYesDelta), lambdas[i], Ts[j]])
-                      console.log("recoveryProofs Length", shift128TestCase.recoveryProofs.length)
-                      console.log("Gas Used =", gasUsedYesDelta, lambdas[i], Ts[j])
-                  }
-              }
-              console.log(data)
-          })
-          it("verifyRecursiveHalvingProof 2048bits, delta 22~24", async function () {
-              const lambdas: string[] = ["λ2048"]
-              const Ts: string[] = ["T2^22", "T2^23", "T2^24"]
-              const proofLastIndex: number[] = [22, 23, 24]
-              const jsonName: string = "one"
-              const deltas: number[] = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]
-              const minimalApplicationFactory =
-                  await ethers.getContractFactory("MinimalApplication")
-              const data = []
-              for (let k: number = 0; k < deltas.length; k++) {
-                  const delta: number = deltas[k]
-                  for (let i: number = 0; i < lambdas.length; i++) {
-                      for (let j: number = 0; j < Ts.length; j++) {
-                          minimalApplication = (await minimalApplicationFactory.deploy(
-                              proofLastIndex[j],
-                          )) as MinimalApplication
-                          await minimalApplication.waitForDeployment()
-                          const shift128TestCase = createshift128TestCaseNXYVT(
-                              lambdas[i],
-                              Ts[j],
-                              jsonName,
-                          )
-                          const x = shift128TestCase.recoveryProofs[0].x
-                          const y = shift128TestCase.recoveryProofs[0].y
-                          if (delta > 0)
-                              shift128TestCase.recoveryProofs =
-                                  shift128TestCase.recoveryProofs.slice(0, -delta)
+    //       x = x ** 2n % n
+    //       let i = 1n
+    //       while (i++ < 2n ** delta) {
+    //           x = x ** 2n % n
+    //       }
+    //       const secondResult = x
+    //       console.log(firstResult, secondResult, thirdResult)
+    //   })
+    it("verifyRecursiveHalvingProofNTXYVInProof", async function () {
+        const lambdas: string[] = ["λ1024", "λ2048", "λ3072"]
+        const Ts: string[] = ["T2^20", "T2^21", "T2^22", "T2^23", "T2^24", "T2^25"]
+        const proofLastIndex: number[] = [20, 21, 22, 23, 24, 25]
+        const jsonName: string = "one"
+        const minimalApplicationFactory = await ethers.getContractFactory("MinimalApplication")
+        const data = []
+        for (let i: number = 0; i < lambdas.length; i++) {
+            for (let j: number = 0; j < Ts.length; j++) {
+                minimalApplication = (await minimalApplicationFactory.deploy(
+                    proofLastIndex[j],
+                )) as MinimalApplication
+                await minimalApplication.waitForDeployment()
+                const shift128TestCase = createshift128TestCaseNXYVT(lambdas[i], Ts[j], jsonName)
+                const gasUsed =
+                    await minimalApplication.verifyRecursiveHalvingProofNTXYVInProofExternal.estimateGas(
+                        shift128TestCase.recoveryProofs,
+                    )
+                const trueOrFalse =
+                    await minimalApplication.verifyRecursiveHalvingProofNTXYVInProofExternal(
+                        shift128TestCase.recoveryProofs,
+                    )
+                assert(trueOrFalse)
+                data.push([Number(gasUsed), lambdas[i], Ts[j]])
+            }
+        }
+        console.log(data)
+    })
+    it("verifyRecursiveHalvingProofNTXYVDeltaApplied", async function () {
+        const lambdas: string[] = ["λ2048"]
+        const Ts: string[] = ["T2^22", "T2^23", "T2^24"]
+        const proofLastIndex: number[] = [22, 23, 24]
+        const jsonName: string = "one"
+        const deltas: number[] = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]
+        const minimalApplicationFactory = await ethers.getContractFactory("MinimalApplication")
+        const data = []
+        for (let k: number = 0; k < deltas.length; k++) {
+            const delta: number = deltas[k]
+            for (let i: number = 0; i < lambdas.length; i++) {
+                for (let j: number = 0; j < Ts.length; j++) {
+                    minimalApplication = (await minimalApplicationFactory.deploy(
+                        proofLastIndex[j],
+                    )) as MinimalApplication
+                    await minimalApplication.waitForDeployment()
+                    const shift128TestCase = createshift128TestCaseNXYVT(
+                        lambdas[i],
+                        Ts[j],
+                        jsonName,
+                    )
+                    if (delta > 0)
+                        shift128TestCase.recoveryProofs = shift128TestCase.recoveryProofs.slice(
+                            0,
+                            -delta,
+                        )
+                    const gasUsedYesDelta =
+                        await minimalApplication.verifyRecursiveHalvingProofNTXYVDeltaAppliedExternal.estimateGas(
+                            shift128TestCase.recoveryProofs,
+                            toBeHex(2 ** delta, getLength(dataLength(toBeHex(2 ** delta)))),
+                            delta,
+                        )
+                    const trueOrFalse =
+                        await minimalApplication.verifyRecursiveHalvingProofNTXYVDeltaAppliedExternal(
+                            shift128TestCase.recoveryProofs,
+                            toBeHex(2 ** delta, getLength(dataLength(toBeHex(2 ** delta)))),
+                            delta,
+                        )
+                    assert(trueOrFalse)
+                    data.push([delta, Number(gasUsedYesDelta), lambdas[i], Ts[j]])
+                }
+            }
+        }
+        console.log(data)
+    })
+    it("verifyRecursiveHalvingProofNTXYVDeltaRepeated", async function () {
+        const lambdas: string[] = ["λ2048"]
+        const Ts: string[] = ["T2^22", "T2^23", "T2^24"]
+        const proofLastIndex: number[] = [22, 23, 24]
+        const jsonName: string = "one"
+        const deltas: number[] = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+        const minimalApplicationFactory = await ethers.getContractFactory("MinimalApplication")
+        const data = []
+        for (let k: number = 0; k < deltas.length; k++) {
+            const delta: number = deltas[k]
+            for (let i: number = 0; i < lambdas.length; i++) {
+                for (let j: number = 0; j < Ts.length; j++) {
+                    minimalApplication = (await minimalApplicationFactory.deploy(
+                        proofLastIndex[j],
+                    )) as MinimalApplication
+                    await minimalApplication.waitForDeployment()
+                    const shift128TestCase = createshift128TestCaseNXYVT(
+                        lambdas[i],
+                        Ts[j],
+                        jsonName,
+                    )
+                    if (delta > 0)
+                        shift128TestCase.recoveryProofs = shift128TestCase.recoveryProofs.slice(
+                            0,
+                            -delta,
+                        )
+                    const gasUsedYesDelta =
+                        await minimalApplication.verifyRecursiveHalvingProofNTXYVDeltaRepeatedExternal.estimateGas(
+                            shift128TestCase.recoveryProofs,
+                            delta,
+                        )
+                    const trueOrFalse =
+                        await minimalApplication.verifyRecursiveHalvingProofNTXYVDeltaRepeatedExternal(
+                            shift128TestCase.recoveryProofs,
+                            delta,
+                        )
+                    assert(trueOrFalse)
+                    data.push([delta, Number(gasUsedYesDelta), lambdas[i], Ts[j]])
+                }
+            }
+        }
+        console.log(data)
+    })
+    it("verifyRecursiveHalvingProofSkippingN", async function () {
+        const lambdas: string[] = ["λ1024", "λ2048", "λ3072"]
+        const Ts: string[] = ["T2^20", "T2^21", "T2^22", "T2^23", "T2^24", "T2^25"]
+        const proofLastIndex: number[] = [20, 21, 22, 23, 24, 25]
+        const jsonName: string = "one"
+        const minimalApplicationFactory = await ethers.getContractFactory("MinimalApplication")
+        const data = []
+        for (let i: number = 0; i < lambdas.length; i++) {
+            for (let j: number = 0; j < Ts.length; j++) {
+                minimalApplication = (await minimalApplicationFactory.deploy(
+                    proofLastIndex[j],
+                )) as MinimalApplication
+                await minimalApplication.waitForDeployment()
+                const shift128TestCase = createshift128TestCaseSkippingN(
+                    lambdas[i],
+                    Ts[j],
+                    jsonName,
+                )
+                const gasUsedYesDelta =
+                    await minimalApplication.verifyRecursiveHalvingProofSkippingNExternal.estimateGas(
+                        shift128TestCase.n,
+                        shift128TestCase.recoveryProofs,
+                    )
+                const trueOrFalse =
+                    await minimalApplication.verifyRecursiveHalvingProofSkippingNExternal(
+                        shift128TestCase.n,
+                        shift128TestCase.recoveryProofs,
+                    )
+                assert(trueOrFalse)
+                data.push([Number(gasUsedYesDelta), lambdas[i], Ts[j]])
+            }
+        }
+        console.log(data)
+    })
+    it("verifyRecursiveHalvingProofSkippingTXY", async function () {
+        const lambdas: string[] = ["λ1024", "λ2048", "λ3072"]
+        const Ts: string[] = ["T2^20", "T2^21", "T2^22", "T2^23", "T2^24", "T2^25"]
+        const proofLastIndex: number[] = [20, 21, 22, 23, 24, 25]
+        const jsonName: string = "one"
+        const minimalApplicationFactory = await ethers.getContractFactory("MinimalApplication")
+        const data = []
+        for (let i: number = 0; i < lambdas.length; i++) {
+            for (let j: number = 0; j < Ts.length; j++) {
+                minimalApplication = (await minimalApplicationFactory.deploy(
+                    proofLastIndex[j],
+                )) as MinimalApplication
+                await minimalApplication.waitForDeployment()
+                const shift128TestCase = createshift128TestCaseSkippingT(
+                    lambdas[i],
+                    Ts[j],
+                    jsonName,
+                )
+                const x = shift128TestCase.recoveryProofs[0].x
+                const y = shift128TestCase.recoveryProofs[0].y
+                for (let i: number = 0; i < shift128TestCase.recoveryProofs.length; i++) {
+                    delete shift128TestCase.recoveryProofs[i].x
+                    delete shift128TestCase.recoveryProofs[i].y
+                }
+                const gasUsedYesDelta =
+                    await minimalApplication.verifyRecursiveHalvingProofSkippingTXYExternal.estimateGas(
+                        shift128TestCase.recoveryProofs,
+                        x,
+                        y,
+                        shift128TestCase.T,
+                    )
+                const trueOrFalse =
+                    await minimalApplication.verifyRecursiveHalvingProofSkippingTXYExternal(
+                        shift128TestCase.recoveryProofs,
+                        x,
+                        y,
+                        shift128TestCase.T,
+                    )
+                assert(trueOrFalse)
+                //console.log(trueOrFalse)
+                data.push([Number(gasUsedYesDelta), lambdas[i], Ts[j]])
+                console.log("recoveryProofs Length", shift128TestCase.recoveryProofs.length)
+                console.log("Gas Used =", gasUsedYesDelta, lambdas[i], Ts[j])
+            }
+        }
+        console.log(data)
+    })
+    it("verifyRecursiveHalvingProofWithoutDelta Shortening Proof Size", async function () {
+        const lambdas: string[] = ["λ1024", "λ2048", "λ3072"]
+        const Ts: string[] = ["T2^20", "T2^21", "T2^22", "T2^23", "T2^24", "T2^25"]
+        const proofLastIndex: number[] = [20, 21, 22, 23, 24, 25]
+        const jsonName: string = "one"
+        const minimalApplicationFactory = await ethers.getContractFactory("MinimalApplication")
+        const data = []
+        for (let i: number = 0; i < lambdas.length; i++) {
+            for (let j: number = 0; j < Ts.length; j++) {
+                minimalApplication = (await minimalApplicationFactory.deploy(
+                    proofLastIndex[j],
+                )) as MinimalApplication
+                await minimalApplication.waitForDeployment()
+                const shift128TestCase = createshift128TestCaseNXYVT(lambdas[i], Ts[j], jsonName)
+                const x = shift128TestCase.recoveryProofs[0].x
+                const y = shift128TestCase.recoveryProofs[0].y
+                for (let i: number = 0; i < shift128TestCase.recoveryProofs.length; i++) {
+                    delete shift128TestCase.recoveryProofs[i].x
+                    delete shift128TestCase.recoveryProofs[i].y
+                    delete shift128TestCase.recoveryProofs[i].n
+                    delete shift128TestCase.recoveryProofs[i].T
+                }
+                let recoveryProofs = []
+                for (let i: number = 0; i < shift128TestCase.recoveryProofs.length; i++) {
+                    recoveryProofs.push(shift128TestCase.recoveryProofs[i].v)
+                }
+                const gasUsedYesDelta =
+                    await minimalApplication.verifyRecursiveHalvingProofWithoutDeltaExternal.estimateGas(
+                        recoveryProofs,
+                        x,
+                        y,
+                        shift128TestCase.n,
+                        shift128TestCase.T,
+                    )
+                const trueOrFalse =
+                    await minimalApplication.verifyRecursiveHalvingProofWithoutDeltaExternal(
+                        recoveryProofs,
+                        x,
+                        y,
+                        shift128TestCase.n,
+                        shift128TestCase.T,
+                    )
+                assert(trueOrFalse)
+                data.push([Number(gasUsedYesDelta), lambdas[i], Ts[j]])
+                console.log("recoveryProofs Length", shift128TestCase.recoveryProofs.length)
+                console.log("Gas Used =", gasUsedYesDelta, lambdas[i], Ts[j])
+            }
+        }
+        console.log(data)
+    })
+    it("verifyRecursiveHalvingProof 2048bits, delta 22~24", async function () {
+        const lambdas: string[] = ["λ2048"]
+        const Ts: string[] = ["T2^22", "T2^23", "T2^24"]
+        const proofLastIndex: number[] = [22, 23, 24]
+        const jsonName: string = "one"
+        const deltas: number[] = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]
+        const minimalApplicationFactory = await ethers.getContractFactory("MinimalApplication")
+        const data = []
+        for (let k: number = 0; k < deltas.length; k++) {
+            const delta: number = deltas[k]
+            for (let i: number = 0; i < lambdas.length; i++) {
+                for (let j: number = 0; j < Ts.length; j++) {
+                    minimalApplication = (await minimalApplicationFactory.deploy(
+                        proofLastIndex[j],
+                    )) as MinimalApplication
+                    await minimalApplication.waitForDeployment()
+                    const shift128TestCase = createshift128TestCaseNXYVT(
+                        lambdas[i],
+                        Ts[j],
+                        jsonName,
+                    )
+                    const x = shift128TestCase.recoveryProofs[0].x
+                    const y = shift128TestCase.recoveryProofs[0].y
+                    if (delta > 0)
+                        shift128TestCase.recoveryProofs = shift128TestCase.recoveryProofs.slice(
+                            0,
+                            -delta,
+                        )
 
-                          for (let i: number = 0; i < shift128TestCase.recoveryProofs.length; i++) {
-                              delete shift128TestCase.recoveryProofs[i].n
-                              delete shift128TestCase.recoveryProofs[i].T
-                              delete shift128TestCase.recoveryProofs[i].x
-                              delete shift128TestCase.recoveryProofs[i].y
-                          }
-                          let recoveryProofs = []
-                          for (let i: number = 0; i < shift128TestCase.recoveryProofs.length; i++) {
-                              recoveryProofs.push(shift128TestCase.recoveryProofs[i].v)
-                          }
-                          const gasUsedYesDelta =
-                              await minimalApplication.verifyRecursiveHalvingProofExternal.estimateGas(
-                                  recoveryProofs,
-                                  x,
-                                  y,
-                                  shift128TestCase.n,
-                                  toBeHex(2 ** delta, getLength(dataLength(toBeHex(2 ** delta)))),
-                                  delta,
-                                  shift128TestCase.T,
-                              )
-                          const trueOrFalse =
-                              await minimalApplication.verifyRecursiveHalvingProofExternal(
-                                  recoveryProofs,
-                                  x,
-                                  y,
-                                  shift128TestCase.n,
-                                  toBeHex(2 ** delta, getLength(dataLength(toBeHex(2 ** delta)))),
-                                  delta,
-                                  shift128TestCase.T,
-                              )
-                          assert(trueOrFalse)
-                          data.push([delta, Number(gasUsedYesDelta), lambdas[i], Ts[j]])
-                      }
-                  }
-              }
-              console.log(data)
-          })
-          it("verifyRecursiveHalvingProof", async function () {
-              const lambdas: string[] = ["λ1024", "λ2048", "λ3072"]
-              const Ts: string[] = ["T2^20", "T2^21", "T2^22", "T2^23", "T2^24", "T2^25"]
-              const proofLastIndex: number[] = [20, 21, 22, 23, 24, 25]
-              const jsonName: string = "one"
-              const deltas: number[] = [8, 9, 10]
-              const minimalApplicationFactory =
-                  await ethers.getContractFactory("MinimalApplication")
-              const data = []
-              for (let k: number = 0; k < deltas.length; k++) {
-                  const delta: number = deltas[k]
-                  for (let i: number = 0; i < lambdas.length; i++) {
-                      for (let j: number = 0; j < Ts.length; j++) {
-                          minimalApplication = (await minimalApplicationFactory.deploy(
-                              proofLastIndex[j],
-                          )) as MinimalApplication
-                          await minimalApplication.waitForDeployment()
-                          const shift128TestCase = createshift128TestCaseNXYVT(
-                              lambdas[i],
-                              Ts[j],
-                              jsonName,
-                          )
-                          const x = shift128TestCase.recoveryProofs[0].x
-                          const y = shift128TestCase.recoveryProofs[0].y
-                          if (delta > 0)
-                              shift128TestCase.recoveryProofs =
-                                  shift128TestCase.recoveryProofs.slice(0, -delta)
+                    for (let i: number = 0; i < shift128TestCase.recoveryProofs.length; i++) {
+                        delete shift128TestCase.recoveryProofs[i].n
+                        delete shift128TestCase.recoveryProofs[i].T
+                        delete shift128TestCase.recoveryProofs[i].x
+                        delete shift128TestCase.recoveryProofs[i].y
+                    }
+                    let recoveryProofs = []
+                    for (let i: number = 0; i < shift128TestCase.recoveryProofs.length; i++) {
+                        recoveryProofs.push(shift128TestCase.recoveryProofs[i].v)
+                    }
+                    const gasUsedYesDelta =
+                        await minimalApplication.verifyRecursiveHalvingProofExternal.estimateGas(
+                            recoveryProofs,
+                            x,
+                            y,
+                            shift128TestCase.n,
+                            toBeHex(2 ** delta, getLength(dataLength(toBeHex(2 ** delta)))),
+                            delta,
+                            shift128TestCase.T,
+                        )
+                    const trueOrFalse =
+                        await minimalApplication.verifyRecursiveHalvingProofExternal(
+                            recoveryProofs,
+                            x,
+                            y,
+                            shift128TestCase.n,
+                            toBeHex(2 ** delta, getLength(dataLength(toBeHex(2 ** delta)))),
+                            delta,
+                            shift128TestCase.T,
+                        )
+                    assert(trueOrFalse)
+                    data.push([delta, Number(gasUsedYesDelta), lambdas[i], Ts[j]])
+                }
+            }
+        }
+        console.log(data)
+    })
+    it("verifyRecursiveHalvingProof", async function () {
+        const lambdas: string[] = ["λ1024", "λ2048", "λ3072"]
+        const Ts: string[] = ["T2^20", "T2^21", "T2^22", "T2^23", "T2^24", "T2^25"]
+        const proofLastIndex: number[] = [20, 21, 22, 23, 24, 25]
+        const jsonName: string = "one"
+        const deltas: number[] = [8, 9, 10]
+        const minimalApplicationFactory = await ethers.getContractFactory("MinimalApplication")
+        const data = []
+        for (let k: number = 0; k < deltas.length; k++) {
+            const delta: number = deltas[k]
+            for (let i: number = 0; i < lambdas.length; i++) {
+                for (let j: number = 0; j < Ts.length; j++) {
+                    minimalApplication = (await minimalApplicationFactory.deploy(
+                        proofLastIndex[j],
+                    )) as MinimalApplication
+                    await minimalApplication.waitForDeployment()
+                    const shift128TestCase = createshift128TestCaseNXYVT(
+                        lambdas[i],
+                        Ts[j],
+                        jsonName,
+                    )
+                    const x = shift128TestCase.recoveryProofs[0].x
+                    const y = shift128TestCase.recoveryProofs[0].y
+                    if (delta > 0)
+                        shift128TestCase.recoveryProofs = shift128TestCase.recoveryProofs.slice(
+                            0,
+                            -delta,
+                        )
 
-                          for (let i: number = 0; i < shift128TestCase.recoveryProofs.length; i++) {
-                              delete shift128TestCase.recoveryProofs[i].n
-                              delete shift128TestCase.recoveryProofs[i].T
-                              delete shift128TestCase.recoveryProofs[i].x
-                              delete shift128TestCase.recoveryProofs[i].y
-                          }
-                          let recoveryProofs = []
-                          for (let i: number = 0; i < shift128TestCase.recoveryProofs.length; i++) {
-                              recoveryProofs.push(shift128TestCase.recoveryProofs[i].v)
-                          }
-                          const gasUsedYesDelta =
-                              await minimalApplication.verifyRecursiveHalvingProofExternal.estimateGas(
-                                  recoveryProofs,
-                                  x,
-                                  y,
-                                  shift128TestCase.n,
-                                  toBeHex(2 ** delta, getLength(dataLength(toBeHex(2 ** delta)))),
-                                  delta,
-                                  shift128TestCase.T,
-                              )
-                          const trueOrFalse =
-                              await minimalApplication.verifyRecursiveHalvingProofExternal(
-                                  recoveryProofs,
-                                  x,
-                                  y,
-                                  shift128TestCase.n,
-                                  toBeHex(2 ** delta, getLength(dataLength(toBeHex(2 ** delta)))),
-                                  delta,
-                                  shift128TestCase.T,
-                              )
-                          assert(trueOrFalse)
-                          data.push([delta, Number(gasUsedYesDelta), lambdas[i], Ts[j]])
-                      }
-                  }
-              }
-              console.log(data)
-          })
-      })
+                    for (let i: number = 0; i < shift128TestCase.recoveryProofs.length; i++) {
+                        delete shift128TestCase.recoveryProofs[i].n
+                        delete shift128TestCase.recoveryProofs[i].T
+                        delete shift128TestCase.recoveryProofs[i].x
+                        delete shift128TestCase.recoveryProofs[i].y
+                    }
+                    let recoveryProofs = []
+                    for (let i: number = 0; i < shift128TestCase.recoveryProofs.length; i++) {
+                        recoveryProofs.push(shift128TestCase.recoveryProofs[i].v)
+                    }
+                    const gasUsedYesDelta =
+                        await minimalApplication.verifyRecursiveHalvingProofExternal.estimateGas(
+                            recoveryProofs,
+                            x,
+                            y,
+                            shift128TestCase.n,
+                            toBeHex(2 ** delta, getLength(dataLength(toBeHex(2 ** delta)))),
+                            delta,
+                            shift128TestCase.T,
+                        )
+
+                    const trueOrFalse =
+                        await minimalApplication.verifyRecursiveHalvingProofExternal(
+                            recoveryProofs,
+                            x,
+                            y,
+                            shift128TestCase.n,
+                            toBeHex(2 ** delta, getLength(dataLength(toBeHex(2 ** delta)))),
+                            delta,
+                            shift128TestCase.T,
+                        )
+                    assert(trueOrFalse)
+                    data.push([delta, Number(gasUsedYesDelta), lambdas[i], Ts[j]])
+                }
+            }
+        }
+        console.log(data)
+    })
+    it("encode function data", async function () {
+        const lambdas: string[] = ["λ1024", "λ2048", "λ3072"]
+        const Ts: string[] = ["T2^20", "T2^21", "T2^22", "T2^23", "T2^24", "T2^25"]
+        const proofLastIndex: number[] = [20, 21, 22, 23, 24, 25]
+        const jsonName: string = "one"
+        const minimalApplicationFactory = await ethers.getContractFactory("MinimalApplication")
+        const data = []
+        for (let i: number = 0; i < lambdas.length; i++) {
+            for (let j: number = 0; j < Ts.length; j++) {
+                minimalApplication = (await minimalApplicationFactory.deploy(
+                    proofLastIndex[j],
+                )) as MinimalApplication
+                await minimalApplication.waitForDeployment()
+                const shift128TestCase = createshift128TestCaseNXYVT(lambdas[i], Ts[j], jsonName)
+                //   const gasUsed =
+                //       await minimalApplication.verifyRecursiveHalvingProofNTXYVInProofExternal.estimateGas(
+                //           shift128TestCase.recoveryProofs,
+                //       )
+                //   const trueOrFalse =
+                //       await minimalApplication.verifyRecursiveHalvingProofNTXYVInProofExternal(
+                //           shift128TestCase.recoveryProofs,
+                //       )
+                //   assert(trueOrFalse)
+                const itfce = minimalApplication.interface
+                const transactionrawdata = itfce.encodeFunctionData(
+                    "verifyRecursiveHalvingProofNTXYVInProofExternal",
+                    [shift128TestCase.recoveryProofs],
+                )
+                const sizeInBytes = (transactionrawdata.length - 2) / 2
+                const sizeInKb = sizeInBytes / 1024
+                data.push([sizeInKb, lambdas[i], Ts[j]])
+            }
+        }
+        console.log(data)
+    })
+    it("encode function data2", async function () {
+        const lambdas: string[] = ["λ1024", "λ2048", "λ3072"]
+        const Ts: string[] = ["T2^20", "T2^21", "T2^22", "T2^23", "T2^24", "T2^25"]
+        const proofLastIndex: number[] = [20, 21, 22, 23, 24, 25]
+        const jsonName: string = "one"
+        const deltas: number[] = [8, 9, 10]
+        const minimalApplicationFactory = await ethers.getContractFactory("MinimalApplication")
+        const data = []
+        for (let k: number = 0; k < deltas.length; k++) {
+            const delta: number = deltas[k]
+            for (let i: number = 0; i < lambdas.length; i++) {
+                for (let j: number = 0; j < Ts.length; j++) {
+                    minimalApplication = (await minimalApplicationFactory.deploy(
+                        proofLastIndex[j],
+                    )) as MinimalApplication
+                    await minimalApplication.waitForDeployment()
+                    const shift128TestCase = createshift128TestCaseNXYVT(
+                        lambdas[i],
+                        Ts[j],
+                        jsonName,
+                    )
+                    const x = shift128TestCase.recoveryProofs[0].x
+                    const y = shift128TestCase.recoveryProofs[0].y
+                    if (delta > 0)
+                        shift128TestCase.recoveryProofs = shift128TestCase.recoveryProofs.slice(
+                            0,
+                            -delta,
+                        )
+
+                    for (let i: number = 0; i < shift128TestCase.recoveryProofs.length; i++) {
+                        delete shift128TestCase.recoveryProofs[i].n
+                        delete shift128TestCase.recoveryProofs[i].T
+                        delete shift128TestCase.recoveryProofs[i].x
+                        delete shift128TestCase.recoveryProofs[i].y
+                    }
+                    let recoveryProofs = []
+                    for (let i: number = 0; i < shift128TestCase.recoveryProofs.length; i++) {
+                        recoveryProofs.push(shift128TestCase.recoveryProofs[i].v)
+                    }
+                    //   const gasUsedYesDelta =
+                    //       await minimalApplication.verifyRecursiveHalvingProofExternal.estimateGas(
+                    //           recoveryProofs,
+                    //           x,
+                    //           y,
+                    //           shift128TestCase.n,
+                    //           toBeHex(2 ** delta, getLength(dataLength(toBeHex(2 ** delta)))),
+                    //           delta,
+                    //           shift128TestCase.T,
+                    //       )
+
+                    //   const trueOrFalse =
+                    //       await minimalApplication.verifyRecursiveHalvingProofExternal(
+                    //           recoveryProofs,
+                    //           x,
+                    //           y,
+                    //           shift128TestCase.n,
+                    //           toBeHex(2 ** delta, getLength(dataLength(toBeHex(2 ** delta)))),
+                    //           delta,
+                    //           shift128TestCase.T,
+                    //       )
+                    //   assert(trueOrFalse)
+                    const itfce = minimalApplication.interface
+                    const transactionrawdata = itfce.encodeFunctionData(
+                        "verifyRecursiveHalvingProofExternal",
+                        [
+                            recoveryProofs,
+                            x,
+                            y,
+                            shift128TestCase.n,
+                            toBeHex(2 ** delta, getLength(dataLength(toBeHex(2 ** delta)))),
+                            delta,
+                            shift128TestCase.T,
+                        ],
+                    )
+
+                    console.log(transactionrawdata)
+                    const sizeInBytes = (transactionrawdata.length - 2) / 2
+                    const sizeInKb = sizeInBytes / 1024
+
+                    data.push([delta, sizeInKb, lambdas[i], Ts[j]])
+                }
+            }
+        }
+        console.log(data)
+    })
+    it("get raw transaction data size", async function () {
+        const tx = await ethers.provider.getTransaction(
+            "0x138a2554b2b7c8e1138e15680face3b67918807a65b02503f8e6ee6b128d939c",
+        )
+        const unsignedTx = {
+            to: tx!.to,
+            nonce: tx!.nonce,
+            gasLimit: tx!.gasLimit,
+            gasPrice: tx!.gasPrice,
+            data: tx!.data,
+            value: tx!.value,
+            chainId: tx!.chainId,
+            accessList: tx!.accessList,
+            signature: tx!.signature,
+        }
+
+        const serialized = Transaction.from(unsignedTx).serialized
+        console.log(serialized)
+    })
+})
 
 interface BigNumber {
     val: string
