@@ -4,7 +4,7 @@ pragma solidity ^0.8.23;
 import "./libraries/BigNumbers.sol";
 import "hardhat/console.sol";
 
-contract PietrzakVDF {
+library PietrzakVDF {
     error XPrimeNotEqualAtIndex(uint256 index);
     error YPrimeNotEqualAtIndex(uint256 index);
     error NotVerifiedAtTOne();
@@ -49,29 +49,25 @@ contract PietrzakVDF {
     uint256 private constant ZERO = 0;
     uint256 private constant ONE = 1;
     //uint256 private constant T = 4194304; // 2^22\
-    uint256 private constant DELTA = 1;
-    uint256 private constant POW2POW2DELTA = 4;
-    uint256 private immutable i_proofLastIndex;
     uint256 private constant PROOFLASTINDEXOPTIMIZED = 20;
     uint256 private constant PROOFOPTIMIZEDLENGTH = 21;
-
-    constructor(uint256 proofLastIndex) {
-        i_proofLastIndex = proofLastIndex;
-    }
 
     function verifyRecursiveHalvingAppliedDeltaRepeat(
         VDFClaimXYV[] memory proofList,
         BigNumber memory n,
         uint256 twoPowerOfDelta,
-        uint256 delta,
         uint256 T
     ) internal view returns (bool) {
         uint i;
-        uint256 iMax = i_proofLastIndex - delta;
+        uint256 iMax;
+        unchecked {
+            iMax = proofList.length - ONE;
+        }
         do {
-            BigNumber memory _r = _modHashMod128(
-                bytes.concat(proofList[i].y.val, proofList[i].v.val),
-                proofList[i].x
+            BigNumber memory _r = _hash128(
+                proofList[i].x.val,
+                proofList[i].y.val,
+                proofList[i].v.val
             );
             if (
                 !BigNumbers.eq(
@@ -105,8 +101,7 @@ contract PietrzakVDF {
                 ++i;
             }
         }
-        if (!BigNumbers.eq(proofList[i_proofLastIndex - delta].y, BigNumbers.init(_x)))
-            return false;
+        if (!BigNumbers.eq(proofList[iMax].y, BigNumbers.init(_x))) return false;
         return true;
     }
 
@@ -118,25 +113,19 @@ contract PietrzakVDF {
         uint256 T
     ) internal view returns (bool) {
         uint i;
-        uint256 iMax = i_proofLastIndex;
-        BigNumber memory _r;
+        uint256 iMax = v.length;
+        BigNumber memory _two = BigNumber(BigNumbers.BYTESTWO, BigNumbers.UINTTWO);
         do {
-            _r = _modHashMod128(bytes.concat(y.val, v[i].val), x);
+            BigNumber memory _r = _hash128(x.val, y.val, v[i].val);
             x = BigNumbers.modmul(BigNumbers.modexp(x, _r, n), v[i], n);
-            if (T & 1 != 0)
-                y = BigNumbers.modexp(y, BigNumber(BigNumbers.BYTESTWO, BigNumbers.UINTTWO), n);
+            if (T & 1 != 0) y = BigNumbers.modexp(y, _two, n);
             y = BigNumbers.modmul(BigNumbers.modexp(v[i], _r, n), y, n);
             unchecked {
                 ++i;
                 T = T >> 1;
             }
         } while (i < iMax);
-        if (
-            !BigNumbers.eq(
-                y,
-                BigNumbers.modexp(x, BigNumber(BigNumbers.BYTESTWO, BigNumbers.UINTTWO), n)
-            )
-        ) return false;
+        if (!BigNumbers.eq(y, BigNumbers.modexp(x, _two, n))) return false;
         return true;
     }
 
@@ -146,17 +135,16 @@ contract PietrzakVDF {
         BigNumber memory y,
         BigNumber memory n,
         bytes memory bigNumTwoPowerOfDelta,
-        uint256 delta,
+        uint256 twoPowerOfDelta,
         uint256 T
     ) internal view returns (bool) {
         uint i;
-        uint256 iMax = i_proofLastIndex - delta;
-        BigNumber memory _r;
+        uint256 iMax = v.length;
+        BigNumber memory _two = BigNumber(BigNumbers.BYTESTWO, BigNumbers.UINTTWO);
         do {
-            _r = _modHashMod128(bytes.concat(y.val, v[i].val), x);
+            BigNumber memory _r = _hash128(x.val, y.val, v[i].val);
             x = BigNumbers.modmul(BigNumbers.modexp(x, _r, n), v[i], n);
-            if (T & 1 != 0)
-                y = BigNumbers.modexp(y, BigNumber(BigNumbers.BYTESTWO, BigNumbers.UINTTWO), n);
+            if (T & 1 != 0) y = BigNumbers.modexp(y, _two, n);
             y = BigNumbers.modmul(BigNumbers.modexp(v[i], _r, n), y, n);
             unchecked {
                 ++i;
@@ -172,12 +160,49 @@ contract PietrzakVDF {
                         BigNumbers._modexp(
                             BigNumbers.BYTESTWO,
                             bigNumTwoPowerOfDelta,
-                            BigNumbers
-                                ._powModulus(
-                                    BigNumber(BigNumbers.BYTESTWO, BigNumbers.UINTTWO),
-                                    2 ** delta
-                                )
-                                .val
+                            BigNumbers._powModulus(_two, twoPowerOfDelta).val
+                        ),
+                        n.val
+                    )
+                )
+            )
+        ) return false;
+        return true;
+    }
+
+    function verifyRecursiveHalvingProofCorrect(
+        BigNumber[] memory v,
+        BigNumber memory x,
+        BigNumber memory y,
+        BigNumber memory n,
+        bytes memory bigNumTwoPowerOfDelta,
+        uint256 twoPowerOfDelta,
+        uint256 T
+    ) internal view returns (bool) {
+        uint i;
+        uint256 iMax = v.length;
+        BigNumber memory _two = BigNumber(BigNumbers.BYTESTWO, BigNumbers.UINTTWO);
+        do {
+            //BigNumber memory _r = _hash128(bytes.concat(x.val, y.val, v[i].val));
+            BigNumber memory _r = _hash128(x.val, y.val, v[i].val);
+            x = BigNumbers.modmul(BigNumbers.modexp(x, _r, n), v[i], n);
+            if (T & 1 != 0) y = BigNumbers.modexp(y, _two, n);
+            y = BigNumbers.modmul(BigNumbers.modexp(v[i], _r, n), y, n);
+            unchecked {
+                ++i;
+                T = T >> 1;
+            }
+        } while (i < iMax);
+        if (
+            !BigNumbers.eq(
+                y,
+                BigNumbers.init(
+                    BigNumbers._modexp(
+                        x.val,
+                        BigNumbers._modexp(
+                            BigNumbers.BYTESTWO,
+                            bigNumTwoPowerOfDelta,
+                            BigNumbers._powModulus(_two, twoPowerOfDelta).val
                         ),
                         n.val
                     )
@@ -189,15 +214,18 @@ contract PietrzakVDF {
 
     function verifyRecursiveHalvingProofNTXYVDeltaRepeated(
         VDFClaimTXYVN[] memory proofList,
-        uint256 delta
+        uint256 twoPowerOfDelta
     ) internal view returns (bool) {
         uint i;
-        uint256 iMax = i_proofLastIndex - delta;
-        BigNumber memory _r;
+        uint256 iMax;
+        unchecked {
+            iMax = proofList.length - ONE;
+        }
         do {
-            _r = _modHashMod128(
-                bytes.concat(proofList[i].y.val, proofList[i].v.val),
-                proofList[i].x
+            BigNumber memory _r = _hash128(
+                proofList[i].x.val,
+                proofList[i].y.val,
+                proofList[i].v.val
             );
             if (
                 !BigNumbers.eq(
@@ -232,30 +260,32 @@ contract PietrzakVDF {
         bytes memory nVal = proofList[0].n.val;
         bytes memory _x = BigNumbers._modexp(proofList[i].x.val, BigNumbers.BYTESTWO, nVal);
         i = 1;
-        uint256 twoPowerOfDelta = 2 ** delta;
         while (i < twoPowerOfDelta) {
             _x = BigNumbers._modexp(_x, BigNumbers.BYTESTWO, nVal);
             unchecked {
                 ++i;
             }
         }
-        if (!BigNumbers.eq(proofList[i_proofLastIndex - delta].y, BigNumbers.init(_x)))
-            return false;
+        if (!BigNumbers.eq(proofList[iMax].y, BigNumbers.init(_x))) return false;
         return true;
     }
 
     function verifyRecursiveHalvingProofNTXYVDeltaApplied(
         VDFClaimTXYVN[] memory proofList,
         bytes memory bigNumTwoPowerOfDelta,
-        uint256 delta
+        uint256 twoPowerOfDelta
     ) internal view returns (bool) {
         uint i;
-        uint256 iMax = i_proofLastIndex - delta;
-        BigNumber memory _r;
+        uint256 iMax;
+        unchecked {
+            iMax = proofList.length - ONE;
+        }
+        BigNumber memory _two = BigNumber(BigNumbers.BYTESTWO, BigNumbers.UINTTWO);
         do {
-            _r = _modHashMod128(
-                bytes.concat(proofList[i].y.val, proofList[i].v.val),
-                proofList[i].x
+            BigNumber memory _r = _hash128(
+                proofList[i].x.val,
+                proofList[i].y.val,
+                proofList[i].v.val
             );
             if (
                 !BigNumbers.eq(
@@ -268,11 +298,7 @@ contract PietrzakVDF {
                 )
             ) return false;
             if (proofList[i].T & 1 == 1)
-                proofList[i].y = BigNumbers.modexp(
-                    proofList[i].y,
-                    BigNumber(BigNumbers.BYTESTWO, BigNumbers.UINTTWO),
-                    proofList[i].n
-                );
+                proofList[i].y = BigNumbers.modexp(proofList[i].y, _two, proofList[i].n);
             if (
                 !BigNumbers.eq(
                     BigNumbers.modmul(
@@ -296,12 +322,7 @@ contract PietrzakVDF {
                         BigNumbers._modexp(
                             BigNumbers.BYTESTWO,
                             bigNumTwoPowerOfDelta,
-                            BigNumbers
-                                ._powModulus(
-                                    BigNumber(BigNumbers.BYTESTWO, BigNumbers.UINTTWO),
-                                    2 ** delta
-                                )
-                                .val
+                            BigNumbers._powModulus(_two, twoPowerOfDelta).val
                         ),
                         proofList[i].n.val
                     )
@@ -318,20 +339,19 @@ contract PietrzakVDF {
         uint256 T
     ) internal view returns (bool) {
         uint i;
-        BigNumber memory _r;
+        uint256 iMax;
+        unchecked {
+            iMax = proofList.length - ONE;
+        }
+        BigNumber memory _two = BigNumber(BigNumbers.BYTESTWO, BigNumbers.UINTTWO);
         do {
-            _r = _modHashMod128(bytes.concat(y.val, proofList[i].v.val), x);
+            BigNumber memory _r = _hash128(x.val, y.val, proofList[i].v.val);
             x = BigNumbers.modmul(
                 BigNumbers.modexp(x, _r, proofList[i].n),
                 proofList[i].v,
                 proofList[i].n
             );
-            if (T & 1 != 0)
-                y = BigNumbers.modexp(
-                    y,
-                    BigNumber(BigNumbers.BYTESTWO, BigNumbers.UINTTWO),
-                    proofList[i].n
-                );
+            if (T & 1 != 0) y = BigNumbers.modexp(y, _two, proofList[i].n);
             y = BigNumbers.modmul(
                 BigNumbers.modexp(proofList[i].v, _r, proofList[i].n),
                 y,
@@ -341,17 +361,8 @@ contract PietrzakVDF {
                 ++i;
                 T = T >> 1;
             }
-        } while (i < i_proofLastIndex);
-        if (
-            !BigNumbers.eq(
-                y,
-                BigNumbers.modexp(
-                    x,
-                    BigNumber(BigNumbers.BYTESTWO, BigNumbers.UINTTWO),
-                    proofList[i].n
-                )
-            )
-        ) return false;
+        } while (i < iMax);
+        if (!BigNumbers.eq(y, BigNumbers.modexp(x, _two, proofList[i].n))) return false;
         return true;
     }
 
@@ -360,11 +371,16 @@ contract PietrzakVDF {
         VDFClaimTXYV[] memory proofList
     ) internal view returns (bool) {
         uint i;
-        BigNumber memory _r;
+        uint256 iMax;
+        unchecked {
+            iMax = proofList.length - ONE;
+        }
+        BigNumber memory _two = BigNumber(BigNumbers.BYTESTWO, BigNumbers.UINTTWO);
         do {
-            _r = _modHashMod128(
-                bytes.concat(proofList[i].y.val, proofList[i].v.val),
-                proofList[i].x
+            BigNumber memory _r = _hash128(
+                proofList[i].x.val,
+                proofList[i].y.val,
+                proofList[i].v.val
             );
             if (
                 !BigNumbers.eq(
@@ -373,11 +389,7 @@ contract PietrzakVDF {
                 )
             ) return false;
             if (proofList[i].T & 1 == 1)
-                proofList[i].y = BigNumbers.modexp(
-                    proofList[i].y,
-                    BigNumber(BigNumbers.BYTESTWO, BigNumbers.UINTTWO),
-                    n
-                );
+                proofList[i].y = BigNumbers.modexp(proofList[i].y, _two, n);
             if (
                 !BigNumbers.eq(
                     BigNumbers.modmul(BigNumbers.modexp(proofList[i].v, _r, n), proofList[i].y, n),
@@ -387,17 +399,9 @@ contract PietrzakVDF {
             unchecked {
                 ++i;
             }
-        } while (i < i_proofLastIndex);
-        if (
-            !BigNumbers.eq(
-                proofList[i].y,
-                BigNumbers.modexp(
-                    proofList[i].x,
-                    BigNumber(BigNumbers.BYTESTWO, BigNumbers.UINTTWO),
-                    n
-                )
-            )
-        ) return false;
+        } while (i < iMax);
+        if (!BigNumbers.eq(proofList[i].y, BigNumbers.modexp(proofList[i].x, _two, n)))
+            return false;
         return true;
     }
 
@@ -405,11 +409,16 @@ contract PietrzakVDF {
         VDFClaimTXYVN[] memory proofList
     ) internal view returns (bool) {
         uint i;
-        BigNumber memory _r;
+        uint256 iMax;
+        unchecked {
+            iMax = proofList.length - ONE;
+        }
+        BigNumber memory _two = BigNumber(BigNumbers.BYTESTWO, BigNumbers.UINTTWO);
         do {
-            _r = _modHashMod128(
-                bytes.concat(proofList[i].y.val, proofList[i].v.val),
-                proofList[i].x
+            BigNumber memory _r = _hash128(
+                proofList[i].x.val,
+                proofList[i].y.val,
+                proofList[i].v.val
             );
             if (
                 !BigNumbers.eq(
@@ -422,11 +431,7 @@ contract PietrzakVDF {
                 )
             ) return false;
             if (proofList[i].T & 1 == 1)
-                proofList[i].y = BigNumbers.modexp(
-                    proofList[i].y,
-                    BigNumber(BigNumbers.BYTESTWO, BigNumbers.UINTTWO),
-                    proofList[i].n
-                );
+                proofList[i].y = BigNumbers.modexp(proofList[i].y, _two, proofList[i].n);
             if (
                 !BigNumbers.eq(
                     BigNumbers.modmul(
@@ -440,17 +445,9 @@ contract PietrzakVDF {
             unchecked {
                 ++i;
             }
-        } while (i < i_proofLastIndex);
-        if (
-            !BigNumbers.eq(
-                proofList[i].y,
-                BigNumbers.modexp(
-                    proofList[i].x,
-                    BigNumber(BigNumbers.BYTESTWO, BigNumbers.UINTTWO),
-                    proofList[i].n
-                )
-            )
-        ) return false;
+        } while (i < iMax);
+        if (!BigNumbers.eq(proofList[i].y, BigNumbers.modexp(proofList[i].x, _two, proofList[i].n)))
+            return false;
         return true;
     }
 
@@ -496,7 +493,7 @@ contract PietrzakVDF {
         BigNumber memory y,
         BigNumber[PROOFOPTIMIZEDLENGTH] memory pi,
         BigNumber memory n
-    ) external view {
+    ) internal view {
         uint256 i;
         BigNumber memory r;
         do {
@@ -509,18 +506,12 @@ contract PietrzakVDF {
             revert NotVerified();
     }
 
-    function _modHashMod128(
-        bytes memory strings,
-        BigNumber memory n
+    function _hash128(
+        bytes memory a,
+        bytes memory b,
+        bytes memory c
     ) private view returns (BigNumber memory) {
-        return
-            BigNumbers.init(
-                abi.encodePacked(
-                    (bytes32(
-                        BigNumbers.mod(BigNumbers.init(abi.encodePacked(keccak256(strings))), n).val
-                    ) >> 128)
-                )
-            );
+        return BigNumbers.init(abi.encodePacked(keccak256(bytes.concat(a, b, c)) >> 128));
     }
 
     function _hashMod128(bytes memory strings) private view returns (BigNumber memory) {

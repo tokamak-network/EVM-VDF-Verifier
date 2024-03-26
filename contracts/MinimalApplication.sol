@@ -4,57 +4,69 @@ import "./PietrzakVDF.sol";
 
 //verifyRecursiveHalvingProofAppliedDelta
 //verifyRecursiveHalvingProofNotAppliedDelta
-contract MinimalApplication is PietrzakVDF {
-    constructor(uint256 proofLastIndex) PietrzakVDF(proofLastIndex) {}
-
+contract MinimalApplication {
     function verifyRecursiveHalvingProofExternal(
         BigNumber[] memory v,
         BigNumber memory x,
         BigNumber memory y,
         BigNumber memory n,
         bytes memory bigNumTwoPowerOfDelta,
-        uint256 delta,
+        uint256 twoPowerOfDelta,
         uint256 T
     ) external view returns (bool) {
-        return verifyRecursiveHalvingProof(v, x, y, n, bigNumTwoPowerOfDelta, delta, T);
+        return
+            PietrzakVDF.verifyRecursiveHalvingProof(
+                v,
+                x,
+                y,
+                n,
+                bigNumTwoPowerOfDelta,
+                twoPowerOfDelta,
+                T
+            );
     }
 
     function verifyRecursiveHalvingProofSkippingTXYExternal(
-        VDFClaimNV[] memory proofList,
+        PietrzakVDF.VDFClaimNV[] memory proofList,
         BigNumber memory x,
         BigNumber memory y,
         uint256 T
     ) external view returns (bool) {
-        return verifyRecursiveHalvingProofSkippingTXY(proofList, x, y, T);
+        return PietrzakVDF.verifyRecursiveHalvingProofSkippingTXY(proofList, x, y, T);
     }
 
     function verifyRecursiveHalvingProofNTXYVInProofExternal(
-        VDFClaimTXYVN[] memory proofList
+        PietrzakVDF.VDFClaimTXYVN[] memory proofList
     ) external view returns (bool) {
-        return verifyRecursiveHalvingProofNTXYVInProof(proofList);
+        return PietrzakVDF.verifyRecursiveHalvingProofNTXYVInProof(proofList);
     }
 
     function verifyRecursiveHalvingProofSkippingNExternal(
         BigNumber memory n,
-        VDFClaimTXYV[] memory proofList
+        PietrzakVDF.VDFClaimTXYV[] memory proofList
     ) external view returns (bool) {
-        return verifyRecursiveHalvingProofSkippingN(n, proofList);
+        return PietrzakVDF.verifyRecursiveHalvingProofSkippingN(n, proofList);
     }
 
     function verifyRecursiveHalvingProofNTXYVDeltaAppliedExternal(
-        VDFClaimTXYVN[] memory proofList,
+        PietrzakVDF.VDFClaimTXYVN[] memory proofList,
         bytes memory bigNumTwoPowerOfDelta,
-        uint256 delta
+        uint256 twoPowerOfDelta
     ) external view returns (bool) {
         return
-            verifyRecursiveHalvingProofNTXYVDeltaApplied(proofList, bigNumTwoPowerOfDelta, delta);
+            PietrzakVDF.verifyRecursiveHalvingProofNTXYVDeltaApplied(
+                proofList,
+                bigNumTwoPowerOfDelta,
+                twoPowerOfDelta
+            );
     }
 
     function verifyRecursiveHalvingProofNTXYVDeltaRepeatedExternal(
-        VDFClaimTXYVN[] memory proofList,
-        uint256 delta
+        PietrzakVDF.VDFClaimTXYVN[] memory proofList,
+        uint256 twoPowerOfDelta
     ) external view returns (bool) {
-        return verifyRecursiveHalvingProofNTXYVDeltaRepeated(proofList, delta);
+        return
+            PietrzakVDF.verifyRecursiveHalvingProofNTXYVDeltaRepeated(proofList, twoPowerOfDelta);
     }
 
     function verifyRecursiveHalvingProofWithoutDeltaExternal(
@@ -64,6 +76,27 @@ contract MinimalApplication is PietrzakVDF {
         BigNumber memory n,
         uint256 T
     ) external view returns (bool) {
-        return verifyRecursiveHalvingProofWithoutDelta(v, x, y, n, T);
+        return PietrzakVDF.verifyRecursiveHalvingProofWithoutDelta(v, x, y, n, T);
+    }
+
+    function verifyRecursiveHalvingProofCorrectExternal(
+        BigNumber[] memory v,
+        BigNumber memory x,
+        BigNumber memory y,
+        BigNumber memory n,
+        bytes memory bigNumTwoPowerOfDelta,
+        uint256 twoPowerOfDelta,
+        uint256 T
+    ) external view returns (bool) {
+        return
+            PietrzakVDF.verifyRecursiveHalvingProofCorrect(
+                v,
+                x,
+                y,
+                n,
+                bigNumTwoPowerOfDelta,
+                twoPowerOfDelta,
+                T
+            );
     }
 }
