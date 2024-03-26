@@ -19,29 +19,20 @@ async function requestRandomWord() {
     const registrationDuration = 86400n
     const totalPrizeAmount = 1000n * 10n ** 18n
     console.log("EOA address:", deployer)
-    const airdropConsumerAddress = (await deployments.get("AirdropConsumer")).address
-    console.log("airdropConsumer address:", airdropConsumerAddress)
-    const airdropConsumerContract = await ethers.getContractAt(
-        "AirdropConsumer",
-        airdropConsumerAddress,
-    )
+    const cryptoDiceConsumerAddress = (await deployments.get("CryptoDice")).address
+    console.log("CryptoDice address:", cryptoDiceConsumerAddress)
+    const cryptoDiceContract = await ethers.getContractAt("CryptoDice", cryptoDiceConsumerAddress)
     try {
-        const round = (await airdropConsumerContract.getNextRandomAirdropRound()) - 1n
+        const round = (await cryptoDiceContract.getNextCryptoDiceRound()) - 1n
         console.log("Round:", round.toString())
         console.log("Requesting random word...")
         let tx
         if (chainId == 5050 || 55004)
-            tx = await airdropConsumerContract.requestRandomWord(round, { gasLimit: 240000 })
-        else tx = await airdropConsumerContract.requestRandomWord(round)
+            tx = await cryptoDiceContract.requestRandomWord(round, { gasLimit: 240000 })
+        else tx = await cryptoDiceContract.requestRandomWord(round)
         const receipt = await tx.wait()
         console.log("Transaction receipt", receipt)
         console.log("Random word requested")
-        const prizeAmountStartingAtFifthPlace =
-            await airdropConsumerContract.getPrizeAmountStartingAtFifthPlace(round)
-        console.log(
-            "Prize amount starting at fifth place:",
-            prizeAmountStartingAtFifthPlace.toString(),
-        )
         console.log("----------------------")
     } catch (error) {
         console.error(error)

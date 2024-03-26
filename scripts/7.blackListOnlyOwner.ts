@@ -21,32 +21,29 @@ async function requestRandomWord() {
     const chainId: number = network.config.chainId as number
     const { deployer } = await getNamedAccounts()
     console.log("EOA address:", deployer)
-    const airdropConsumerAddress = (await deployments.get("AirdropConsumer")).address
-    console.log("airdropConsumer address:", airdropConsumerAddress)
-    const airdropConsumerContract = await ethers.getContractAt(
-        "AirdropConsumer",
-        airdropConsumerAddress,
-    )
+    const cryptoDiceAddress = (await deployments.get("CryptoDice")).address
+    console.log("cryptoDice address:", cryptoDiceAddress)
+    const cryptoDiceContract = await ethers.getContractAt("CryptoDice", cryptoDiceAddress)
     try {
-        const round = (await airdropConsumerContract.getNextRandomAirdropRound()) - 1n
+        const round = (await cryptoDiceContract.getNextCryptoDiceRound()) - 1n
         console.log("Round:", round.toString())
         console.log("blackLists...")
-        const participants = await airdropConsumerContract.getParticipantsAtRound(round)
-        for (let i = 0; i < blackListAddress.length; i++) {
-            if (!participants.includes(blackListAddress[i])) {
-                console.log("not registered address:", blackListAddress[i])
-                process.exit(1)
-            }
-        }
-        const participatedLength = await airdropConsumerContract.getNumOfParticipants(round)
+        //const participants = await cryptoDiceContract.getParticipantsAtRound(round)
+        // for (let i = 0; i < blackListAddress.length; i++) {
+        //     if (!participants.includes(blackListAddress[i])) {
+        //         console.log("not registered address:", blackListAddress[i])
+        //         process.exit(1)
+        //     }
+        // }
+        const participatedLength = await cryptoDiceContract.getRegisteredCount(round)
         let tx
         if (chainId == 5050 || 55004)
-            tx = await airdropConsumerContract.blackList(round, blackListAddress, {
+            tx = await cryptoDiceContract.blackList(round, blackListAddress, {
                 gasLimit: 197694,
             })
-        else tx = await airdropConsumerContract.blackList(round, blackListAddress)
+        else tx = await cryptoDiceContract.blackList(round, blackListAddress)
         const receipt = await tx.wait()
-        const participatedLengthAfter = await airdropConsumerContract.getNumOfParticipants(round)
+        const participatedLengthAfter = await cryptoDiceContract.getRegisteredCount(round)
         console.log("Transaction receipt", receipt)
         console.log("BlackList Done")
         console.log("Participated Length Before:", participatedLength.toString())

@@ -19,11 +19,11 @@ async function requestRandomWord() {
     const registrationDuration = 86400n
     const totalPrizeAmount = 1000n * 10n ** 18n
     console.log("EOA address:", deployer)
-    const airdropConsumerAddress = (await deployments.get("AirdropConsumer")).address
-    console.log("airdropConsumer address:", airdropConsumerAddress)
-    const airdropConsumerContract = await ethers.getContractAt(
-        "AirdropConsumer",
-        airdropConsumerAddress,
+    const cryptoDiceConsumerAddress = (await deployments.get("CryptoDice")).address
+    console.log("cryptoDice address:", cryptoDiceConsumerAddress)
+    const cryptoDiceConsumerContract = await ethers.getContractAt(
+        "CryptoDice",
+        cryptoDiceConsumerAddress,
     )
     const crrrngCoordinatorAddress = (await deployments.get("CRRRNGCoordinator")).address
     console.log("CRRRNGCoordinator address:", crrrngCoordinatorAddress)
@@ -32,8 +32,7 @@ async function requestRandomWord() {
         crrrngCoordinatorAddress,
     )
     try {
-        const round = (await airdropConsumerContract.getNextRandomAirdropRound()) - 1n
-        const requestIdAtRound = await airdropConsumerContract.getRequestIdAtRound(round)
+        const round = (await cryptoDiceConsumerContract.getNextCryptoDiceRound()) - 1n
         console.log("Round:", round.toString())
         console.log("Requesting random word...")
         let tx

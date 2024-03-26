@@ -24,29 +24,31 @@ async function withdrawAirdropTokenOnlyOwner() {
         tonTokenAddress = networkConfig[chainId].tonAddress
     }
     const tonTokenContract = await ethers.getContractAt("TonToken", tonTokenAddress)
-    const airdropConsumerAddress = (await deployments.get("AirdropConsumer")).address
-    console.log("airdropConsumer address:", airdropConsumerAddress)
-    const airdropConsumerContract = await ethers.getContractAt(
-        "AirdropConsumer",
-        airdropConsumerAddress,
+    const cryptoDiceConsumerAddress = (await deployments.get("CryptoDice")).address
+    console.log("cryptoDiceConsumer address:", cryptoDiceConsumerAddress)
+    const cryptoDiceConsumerContract = await ethers.getContractAt(
+        "CryptoDice",
+        cryptoDiceConsumerAddress,
     )
     try {
         console.log("withdraw token only owner")
-        const balanceOfAirDropConsumer = await tonTokenContract.balanceOf(airdropConsumerAddress)
+        const balanceOfCryptoDiceConsumer =
+            await tonTokenContract.balanceOf(cryptoDiceConsumerAddress)
         const balanceOfEOA = await tonTokenContract.balanceOf(deployer)
         console.log(
-            "Balance of AirdropConsumer before withdraw:",
-            balanceOfAirDropConsumer.toString(),
+            "Balance of CryptoDice before withdraw:",
+            balanceOfCryptoDiceConsumer.toString(),
         )
         console.log("Balance of EOA before withdraw:", balanceOfEOA.toString())
-        const tx = await airdropConsumerContract.withdrawAirdropTokenOnlyOwner()
+        const tx = await cryptoDiceConsumerContract.withdrawAirdropTokenOnlyOwner()
         const receipt = await tx.wait()
         console.log("Transaction receipt", receipt)
         console.log("Withdrawed")
-        const newBalanceOfAirDropConsumer = await tonTokenContract.balanceOf(airdropConsumerAddress)
+        const newBalanceOfCryptoDiceConsumer =
+            await tonTokenContract.balanceOf(cryptoDiceConsumerAddress)
         console.log(
-            "Balance of AirdropConsumer after withdraw:",
-            newBalanceOfAirDropConsumer.toString(),
+            "Balance of CryptoDice after withdraw:",
+            newBalanceOfCryptoDiceConsumer.toString(),
         )
         const newBalanceOfEOA = await tonTokenContract.balanceOf(deployer)
         console.log("Balance of EOA after withdraw:", newBalanceOfEOA.toString())

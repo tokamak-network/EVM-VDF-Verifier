@@ -19,15 +19,12 @@ async function startRegistration() {
     const registrationDuration = 86400n
     const totalPrizeAmount = 1000n * 10n ** 18n
     console.log("EOA address:", deployer)
-    const airdropConsumerAddress = (await deployments.get("AirdropConsumer")).address
-    console.log("airdropConsumer address:", airdropConsumerAddress)
-    const airdropConsumerContract = await ethers.getContractAt(
-        "AirdropConsumer",
-        airdropConsumerAddress,
-    )
+    const cryptoDiceAddress = (await deployments.get("CryptoDice")).address
+    console.log("cryptoDiceAddress address:", cryptoDiceAddress)
+    const cryptoDiceConsumerContract = await ethers.getContractAt("CryptoDice", cryptoDiceAddress)
     try {
         console.log("Starting registration...")
-        const tx = await airdropConsumerContract.startRegistration(
+        const tx = await cryptoDiceConsumerContract.startRegistration(
             registrationDuration,
             totalPrizeAmount,
         )

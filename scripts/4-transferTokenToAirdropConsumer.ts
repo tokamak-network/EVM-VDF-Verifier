@@ -14,7 +14,7 @@
 import { deployments, ethers, getNamedAccounts, network } from "hardhat"
 import { networkConfig } from "../helper-hardhat-config"
 
-async function transferTokenToAirdropConsumer() {
+async function transferTokenToCryptoDiceConsumer() {
     const chainId: number = network.config.chainId as number
     const { deployer } = await getNamedAccounts()
     console.log("EOA address:", deployer)
@@ -25,23 +25,25 @@ async function transferTokenToAirdropConsumer() {
         tonTokenAddress = networkConfig[chainId].tonAddress
     }
     const tonTokenContract = await ethers.getContractAt("TonToken", tonTokenAddress)
-    const airdropConsumerAddress = (await deployments.get("AirdropConsumer")).address
+    const cryptoDiceConsumerAddress = (await deployments.get("CryptoDice")).address
     console.log("ton token address:", await tonTokenContract.getAddress())
     try {
-        const balanceOfAirDropConsumer = await tonTokenContract.balanceOf(airdropConsumerAddress)
+        const balanceOfCryptoDiceConsumer =
+            await tonTokenContract.balanceOf(cryptoDiceConsumerAddress)
         const balanceOfEOA = await tonTokenContract.balanceOf(deployer)
         console.log(
-            "Balance of AirdropConsumer before transfer:",
-            balanceOfAirDropConsumer.toString(),
+            "Balance of AirdrCryptoDiceopConsumer before transfer:",
+            balanceOfCryptoDiceConsumer.toString(),
         )
         console.log("Balance of EOA before transfer:", balanceOfEOA.toString())
-        const tx = await tonTokenContract.transfer(airdropConsumerAddress, 1000n * 10n ** 18n)
+        const tx = await tonTokenContract.transfer(cryptoDiceConsumerAddress, 1000n * 10n ** 18n)
         const receipt = await tx.wait()
         console.log("Transaction receipt", receipt)
-        const newBalanceOfAirDropConsumer = await tonTokenContract.balanceOf(airdropConsumerAddress)
+        const newBalanceOfCryptoDiceConsumer =
+            await tonTokenContract.balanceOf(cryptoDiceConsumerAddress)
         console.log(
-            "Balance of AirdropConsumer after transfer:",
-            newBalanceOfAirDropConsumer.toString(),
+            "Balance of CryptoDice after transfer:",
+            newBalanceOfCryptoDiceConsumer.toString(),
         )
         const newBalanceOfEOA = await tonTokenContract.balanceOf(deployer)
         console.log("Balance of EOA after transfer:", newBalanceOfEOA.toString())
@@ -50,7 +52,7 @@ async function transferTokenToAirdropConsumer() {
     }
 }
 
-transferTokenToAirdropConsumer()
+transferTokenToCryptoDiceConsumer()
     .then(() => process.exit(0))
     .catch((error) => {
         console.error(error)
