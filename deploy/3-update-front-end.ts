@@ -23,7 +23,7 @@ const FRONT_END_ADDRESS_FILE_TESTERC20 =
     __dirname + "/../../demo-front/constants/testErc20Address.json"
 const FRONT_END_ABI_FILE_TESTERC20 = __dirname + "/../../demo-front/constants/testErc20Abi.json"
 const FRONT_END_ABI_FILE_CONSUMER =
-    __dirname + "/../../demo-front/constants/airdropConsumerAbi.json"
+    __dirname + "/../../demo-front/constants/cryptoDiceConsumerAbi.json"
 const FRONT_END_ABI_FILE_COORDINATOR = __dirname + "/../../demo-front/constants/crrngAbi.json"
 const updateFrontEnd: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
     if (process.env.UPDATE_ABI_ADDRESS_FRONTEND_VDFPROVER) {
@@ -34,8 +34,8 @@ const updateFrontEnd: DeployFunction = async (hre: HardhatRuntimeEnvironment) =>
 }
 async function updateAbi() {
     const chainId = network.config.chainId?.toString()
-    const airdropConsumer = await ethers.getContract("AirdropConsumer")
-    fs.writeFileSync(FRONT_END_ABI_FILE_CONSUMER, airdropConsumer.interface.formatJson())
+    const cryptoDice = await ethers.getContract("CryptoDice")
+    fs.writeFileSync(FRONT_END_ABI_FILE_CONSUMER, cryptoDice.interface.formatJson())
     const crrngCoordinator = await ethers.getContract("CRRRNGCoordinator")
     fs.writeFileSync(FRONT_END_ABI_FILE_COORDINATOR, crrngCoordinator.interface.formatJson())
     if (chainId == "31337") {
@@ -45,15 +45,15 @@ async function updateAbi() {
 }
 async function updateContractAddress() {
     // airdropConsumer
-    const airdropConsumer = await ethers.getContract("AirdropConsumer")
+    const cryptoDice = await ethers.getContract("CryptoDice")
     const chainId = network.config.chainId?.toString()
     const currentAddress = JSON.parse(fs.readFileSync(FRONT_END_ADDRESS_FILE_CONSUMER, "utf8"))
     if (chainId! in currentAddress) {
-        if (!currentAddress[chainId!].includes(await airdropConsumer.getAddress())) {
-            currentAddress[chainId!].push(await airdropConsumer.getAddress())
+        if (!currentAddress[chainId!].includes(await cryptoDice.getAddress())) {
+            currentAddress[chainId!].push(await cryptoDice.getAddress())
         }
     } else {
-        currentAddress[chainId!] = [await airdropConsumer.getAddress()]
+        currentAddress[chainId!] = [await cryptoDice.getAddress()]
     }
     fs.writeFileSync(FRONT_END_ADDRESS_FILE_CONSUMER, JSON.stringify(currentAddress))
     // crrngCoordinator

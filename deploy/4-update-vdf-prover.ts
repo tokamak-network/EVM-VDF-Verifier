@@ -27,16 +27,16 @@ export default async function updateVDFProver() {
     }
 }
 async function updateContractAddress() {
-    // airdropConsumer
-    const airdropConsumer = await ethers.getContract("AirdropConsumer")
+    // cryptoDice
+    const cryptoDice = await ethers.getContract("CryptoDice")
     const chainId = network.config.chainId?.toString()
     const currentAddress = JSON.parse(fs.readFileSync(VDF_PROVER_ADDRESS_FILE_CONSUMER, "utf8"))
     if (chainId! in currentAddress) {
-        if (!currentAddress[chainId!].includes(await airdropConsumer.getAddress())) {
-            currentAddress[chainId!].push(await airdropConsumer.getAddress())
+        if (!currentAddress[chainId!].includes(await cryptoDice.getAddress())) {
+            currentAddress[chainId!].push(await cryptoDice.getAddress())
         }
     } else {
-        currentAddress[chainId!] = [await airdropConsumer.getAddress()]
+        currentAddress[chainId!] = [await cryptoDice.getAddress()]
     }
     fs.writeFileSync(VDF_PROVER_ADDRESS_FILE_CONSUMER, JSON.stringify(currentAddress))
     // crrngCoordinator
@@ -55,8 +55,8 @@ async function updateContractAddress() {
 }
 
 async function updateAbi() {
-    const airdropConsumer = await ethers.getContract("AirdropConsumer")
-    fs.writeFileSync(VDF_PROVER_ABI_FILE_CONSUMER, airdropConsumer.interface.formatJson())
+    const cryptoDice = await ethers.getContract("CryptoDice")
+    fs.writeFileSync(VDF_PROVER_ABI_FILE_CONSUMER, cryptoDice.interface.formatJson())
     const crrngCoordinator = await ethers.getContract("CRRRNGCoordinator")
     fs.writeFileSync(VDF_PROVER_ABI_FILE_COORDINATOR, crrngCoordinator.interface.formatJson())
 }

@@ -12,11 +12,22 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import { BytesLike, dataLength, toBeHex } from "ethers"
+import fs from "fs"
 import { DeployFunction } from "hardhat-deploy/types"
 import { HardhatRuntimeEnvironment } from "hardhat/types"
 import { VERIFICATION_BLOCK_CONFIRMATIONS } from "../helper-hardhat-config"
-import { TestCase } from "../test/shared/interfacesV2"
-import { createTestCaseV2 } from "../test/shared/testFunctionsV2"
+
+interface BigNumber {
+    val: BytesLike
+    bitlen: number
+}
+function getLength(value: number): number {
+    let length: number = 32
+    while (length < value) length += 32
+    return length
+}
+
 const deployCRRRNGCoordinator: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
     const { deployments, getNamedAccounts, network, ethers } = hre
     const { deploy, log } = deployments
@@ -29,16 +40,53 @@ const deployCRRRNGCoordinator: DeployFunction = async (hre: HardhatRuntimeEnviro
             : VERIFICATION_BLOCK_CONFIRMATIONS
     log("----------------------------------------------------")
     log("initialize Coordinator contract...")
-    const testcases: TestCase = createTestCaseV2()
+    const testCaseJson = createCorrectAlgorithmVersionTestCase()
+    //****** initialize params...
+    const delta: number = 9
+    const twoPowerOfDeltaBytes: BytesLike = toBeHex(
+        2 ** delta,
+        getLength(dataLength(toBeHex(2 ** delta))),
+    )
+    let initializeParams: {
+        v: BigNumber[]
+        x: BigNumber
+        y: BigNumber
+        bigNumTwoPowerOfDelta: BytesLike
+        delta: number
+    } = {
+        v: [],
+        x: { val: "0x0", bitlen: 0 },
+        y: { val: "0x0", bitlen: 0 },
+        bigNumTwoPowerOfDelta: twoPowerOfDeltaBytes,
+        delta: delta,
+    }
+    initializeParams.x = testCaseJson.setupProofs[0].x
+    initializeParams.y = testCaseJson.setupProofs[0].y
+    if (delta > 0) {
+        testCaseJson.setupProofs = testCaseJson.setupProofs?.slice(0, -(delta + 1))
+    }
+    for (let i = 0; i < testCaseJson.setupProofs.length; i++) {
+        initializeParams.v.push(testCaseJson.setupProofs[i].v)
+    }
+    initializeParams.bigNumTwoPowerOfDelta = twoPowerOfDeltaBytes
+    initializeParams.delta = delta
+
     const crrrngCoordinatorAddress = (await deployments.get("CRRRNGCoordinator")).address
     const crrngCoordinatorContract = await ethers.getContractAt(
         "CRRRNGCoordinator",
         crrrngCoordinatorAddress,
     )
-    const tx = await crrngCoordinatorContract.initialize(testcases.setupProofs)
-    await tx.wait()
+    // const tx = await crrngCoordinatorContract.initialize(testcases.setupProofs)
+    // await tx.wait()
     log("initialized!")
     log("----------------------------------------------------")
 }
 export default deployCRRRNGCoordinator
 deployCRRRNGCoordinator.tags = ["all", "CRRRNGCoordinatorInitialize"]
+
+const createCorrectAlgorithmVersionTestCase = () => {
+    const testCaseJson = JSON.parse(
+        fs.readFileSync(__dirname + "/../test/shared/correct.json", "utf-8"),
+    )
+    return testCaseJson
+}
