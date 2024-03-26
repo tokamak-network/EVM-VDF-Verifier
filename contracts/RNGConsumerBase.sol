@@ -12,20 +12,12 @@ abstract contract RNGConsumerBase {
         i_rngCoordinator = rngCoordinator;
     }
 
-    function fulfillRandomWords(
-        uint256 round,
-        bytes memory omegaVal,
-        uint256 omegaBitLen
-    ) internal virtual;
+    function fulfillRandomWords(uint256 round, uint256 hashedOmegaVal) internal virtual;
 
-    function rawFulfillRandomWords(
-        uint256 round,
-        bytes memory omegaVal,
-        uint256 omegaBitLen
-    ) external {
+    function rawFulfillRandomWords(uint256 round, uint256 hashedOmegaVal) external {
         if (msg.sender != i_rngCoordinator) {
             revert OnlyCoordinatorCanFulfill(msg.sender, i_rngCoordinator);
         }
-        fulfillRandomWords(round, omegaVal, omegaBitLen);
+        fulfillRandomWords(round, hashedOmegaVal);
     }
 }

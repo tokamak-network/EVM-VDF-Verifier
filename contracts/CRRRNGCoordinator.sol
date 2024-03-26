@@ -13,19 +13,19 @@ contract CRRRNGCoordinator is ICRRRNGCoordinator {
     uint256 private constant T = 4194304; // 2^22
     uint256 private constant COMMITDURATION = 120;
     uint256 private constant COMMITREVEALDURATION = 240;
-    uint256 private constant PROOFLASTINDEX = 22;
-    uint256 private constant NBITLEN = 2048;
-    uint256 private constant GBITLEN = 2047;
-    uint256 private constant HBITLEN = 2047;
+    uint256 private constant DEFAULTPROOFLASTINDEX = 22;
+    uint256 private constant NBITLEN = 2047;
+    uint256 private constant GBITLEN = 2046;
+    uint256 private constant HBITLEN = 2044;
     // 5k is plenty for an EXTCODESIZE call (2600) + warm CALL (100) and some arithmetic operations
     uint256 private constant GAS_FOR_CALL_EXACT_CHECK = 5_000;
     // bytes
     bytes private constant NVAL =
-        hex"84fc05d1050f4a0a93e13f6f8cadaebded77ca89d3d29ad57aef6af6055f76e6b7e806205195a4b717058f865ce0c7c7e5f733c2f4d8270238cf127f0532f2260854b8d688b97f5dd0d435302c1d90c9fe6645c22e6b61802b95fb64565877abd821ae0e162377197a6d4cf7a9639f6b0cdd03f07df49a1269a4b48d163b58323f8a0b61a68cdf006cd1274b13a328e02a0bcb3a86968636e3211468993dabced34a68e907648d5996478ec07831282d9b11a6c1be26eddc6be0c2bebc89655955de18789c192f8b630e729510cfc7edd9d22a13a2a1f2b8be4839a207cce02ae59faf6b20fda5cc8572c9b6f048ce8811288068d787cbd1682d2ba8fd0546b5";
+        hex"4e502cc741a1a63c4ae0cea62d6eefae5d0395e137075a15b515f0ced5c811334f06272c0f1e85c1bed5445025b039e42d0a949989e2c210c9b68b9af5ada8c0f72fa445ce8f4af9a2e56478c8a6b17a6f1c389445467fe096a4c35262e4b06a6ba67a419bcca5d565e698ead674fca78e5d91fdc18f854b8e43edbca302c5d2d2d47ce49afb7405a4db2e87c98c2fd0718af32c1881e4d6d762f624de2d57663754aedfb02cbcc944812d2f8de4f694c933a1c11ecdbb2e67cf22f410487d598ef3d82190feabf11b5a83a4a058cdda1def94cd244fd30412eb8fa6d467398c21a15af04bf55078d9c73e12e3d0f5939804845b1487fae1fb526fa583e27d71";
     bytes private constant GVAL =
-        hex"635dfea702e324f9c6deddb44625cdcb782680120a2756ec78c39b59540a6a5cd81d774011e877f54413565b4491f2b30dede36dc6bccfb71bacb5d4deeefe743a1097d5106bf2f195ca83e6760ddfa8993659a1d912da3f2c4cb4b055e0c21b9b54cb4f7b45f02cc8ce8ec9b5b2b700a4b719620c254bf71355e58f5874860dfa0e988f066f8c98e0a261b0de924bdabb53c5029631f2b78cb6d7e7e9e18ef419dffb09f25042cb31d751d45842bf52d81630811a950e1ff9a103f3071b22863606fbb3ae11a3e8a08e7f5911c395c6bfeb8d391b871a5d2e372de52d7781615c610f8d44e86d355d2cc8fa1ed95990476e4ed41ff2910ffa7961b4d2895345";
+        hex"34bea67f7d10481d71f794f7bf849b91a460b6488fc0def25ff20b19ff63e984e88daef00289931b566f3e25121e8757751e670a04735a78ff255d804caa197aa65da842913a243add64d375e378380e818b330cc9ef2a89753046248e41eff0f87d8ef4f7764e0ed3698b7f87b07805d235627c80e695f3f6095ca6523312a2916456ed011863d5287a33bf603f495071878ebcb06b9303ffa57ac9b5a77121a20fdbe15004010935d65fc39b199692bbadf172ae84a279f63e31997865c133a6cb8ca4e6c29677a46b932c75297347c605b7fe1c292a96d6401f22b4e4ff474e47cfa59ccfef24d99c3777c98bff523f4a587d54ddc395f572bcde1ae93ba1";
     bytes private constant HVAL =
-        hex"48250b8eea437c276608d6921f2fa8e3d9504bf0a006830704ec45121475ef9ca020391797ef2949982a354d8ac8ef3edc244566855b0d0d5cd425b7b4cc944d8e0a6d16077e84a3d2fe1bcff494b0937d95e73da5711a72becc31db1baf38abc1c970862797b2fe03e10e35eac2d627912fa5f4bea912da8f7fb1d409eb0201fbf53a1cf1b036d601a9896853b50f2b03ce14b8ba5a0273259fe2ab79fe95efd955ced4f736307427f9b21a81c30fdff6c24239b51f08ceb89c69e8545e97797cee195e40211bb1e72d8c1d9c75e2d3b33b5a9d61a35a66058d25a2f597b44657616a4d02532000aa1721d9ceda2765d2d40c4f84b79cf58f0fc8fba5eea479";
+        hex"08d72e28d1cef1b56bc3047d29624445ce203a0c6de5343a5f4873b4017f479e93fc4c3179d4db28dc7e4a6c859469868e50f3347b8736da84cd0995c661b99df90afa21267a8d7588704b9fc249bac3a3087ff1372f8fbfe1f8625c1a42113ebda7fc364a27d8a0c85dab8802f1b3983e867c3b11fedab831b5d6c1d49a906dd5366dd30816c174d6d384295e0229ddb1685eb5c57b9cde512ff50d82bf659eff8b9f3c8d2f0c2737c83eb44463ca23d93e29fa9630c06809b8a6327a29468e19042a7eac025c234be9fe349a19d7b3e5e4acca63f0b4a592b1749a15a1f054689b1809a4b95b27b8513fa1639c98ca9e18113bf36d631944c37459b5575a17";
 
     /* State variables */
     uint256 private s_nextRound;
@@ -87,18 +87,21 @@ contract CRRRNGCoordinator is ICRRRNGCoordinator {
     }
 
     function initialize(
-        VDFClaim[] memory proofList,
+        BigNumber[] memory v,
+        BigNumber memory x,
+        BigNumber memory y,
         bytes memory bigNumTwoPowerOfDelta,
         uint256 delta
     ) external {
         if (s_verified) revert AlreadyVerified();
-        require(BigNumbers.eq(BigNumber(GVAL, GBITLEN), proofList[BigNumbers.UINTZERO].x));
-        require(BigNumbers.eq(BigNumber(HVAL, HBITLEN), proofList[BigNumbers.UINTZERO].y));
+        require(BigNumbers.eq(BigNumber(GVAL, GBITLEN), x));
+        require(BigNumbers.eq(BigNumber(HVAL, HBITLEN), y));
         _verifyRecursiveHalvingProof(
-            proofList,
+            v,
+            x,
+            y,
             BigNumber(NVAL, NBITLEN),
             bigNumTwoPowerOfDelta,
-            2 ** delta,
             delta
         );
         s_verified = true;
@@ -183,7 +186,7 @@ contract CRRRNGCoordinator is ICRRRNGCoordinator {
         BigNumber memory _n = BigNumber(NVAL, NBITLEN);
         BigNumber memory _temp;
         for (uint256 i; i < _numOfPariticipants; i = _unchecked_inc(i)) {
-            _temp = _hash(bytes.concat(s_commitRevealValues[round][i].c.val, _bStar));
+            _temp = _hash(s_commitRevealValues[round][i].c.val, _bStar);
             _temp = BigNumbers.modexp(
                 BigNumbers.modexp(_h, _temp, _n),
                 s_commitRevealValues[round][i].a,
@@ -198,7 +201,9 @@ contract CRRRNGCoordinator is ICRRRNGCoordinator {
 
     function recover(
         uint256 round,
-        VDFClaim[] memory proofs,
+        BigNumber[] memory v,
+        BigNumber memory x,
+        BigNumber memory y,
         bytes memory bigNumTwoPowerOfDelta,
         uint256 delta
     ) external checkRecoverStage(round) nonReentrant {
@@ -208,20 +213,20 @@ contract CRRRNGCoordinator is ICRRRNGCoordinator {
         if (s_valuesAtRound[round].isCompleted) revert OmegaAlreadyCompleted();
         BigNumber memory _n = BigNumber(NVAL, NBITLEN);
         bytes memory _bStar = s_valuesAtRound[round].bStar;
-        _verifyRecursiveHalvingProof(proofs, _n, bigNumTwoPowerOfDelta, 2 ** delta, delta);
+        _verifyRecursiveHalvingProof(v, x, y, _n, bigNumTwoPowerOfDelta, delta);
         BigNumber memory _recov = BigNumber(BigNumbers.BYTESONE, BigNumbers.UINTONE);
         for (uint256 i; i < _numOfPariticipants; i = _unchecked_inc(i)) {
             BigNumber memory _c = s_commitRevealValues[round][i].c;
             _recov = BigNumbers.modmul(
                 _recov,
-                BigNumbers.modexp(_c, _hash(bytes.concat(_c.val, _bStar)), _n),
+                BigNumbers.modexp(_c, _hash(_c.val, _bStar), _n),
                 _n
             );
         }
-        if (!BigNumbers.eq(_recov, proofs[BigNumbers.UINTZERO].x)) revert RecovNotMatchX();
+        if (!BigNumbers.eq(_recov, x)) revert RecovNotMatchX();
         // effect
         s_valuesAtRound[round].isCompleted = true;
-        s_valuesAtRound[round].omega = proofs[BigNumbers.UINTZERO].y;
+        s_valuesAtRound[round].omega = y;
         s_valuesAtRound[round].stage = Stages.Finished;
         // interaction
         // Do not allow any non-view/non-pure coordinator functions to be called during the consumers callback code via reentrancyLock.
@@ -231,12 +236,11 @@ contract CRRRNGCoordinator is ICRRRNGCoordinator {
             abi.encodeWithSelector(
                 RNGConsumerBase.rawFulfillRandomWords.selector,
                 round,
-                proofs[BigNumbers.UINTZERO].y.val,
-                proofs[BigNumbers.UINTZERO].y.bitlen
+                uint256(keccak256(y.val))
             )
         );
         s_reentrancyLock = false;
-        emit Recovered(round, _recov.val, proofs[BigNumbers.UINTZERO].y.val, success);
+        emit Recovered(round, _recov.val, y.val, success);
     }
 
     function getNextRound() external view returns (uint256) {
@@ -269,22 +273,20 @@ contract CRRRNGCoordinator is ICRRRNGCoordinator {
         return s_userInfosAtRound[_round][_owner];
     }
 
-    function _modHashMod128(
-        bytes memory strings,
-        BigNumber memory n
+    function _hash128(
+        bytes memory a,
+        bytes memory b,
+        bytes memory c
     ) private view returns (BigNumber memory) {
-        return
-            BigNumbers.init(
-                abi.encodePacked(
-                    (bytes32(
-                        BigNumbers.mod(BigNumbers.init(abi.encodePacked(keccak256(strings))), n).val
-                    ) >> 128)
-                )
-            );
+        return BigNumbers.init(abi.encodePacked(keccak256(bytes.concat(a, b, c)) >> 128));
     }
 
     function _hash(bytes memory strings) private view returns (BigNumber memory) {
         return BigNumbers.init(abi.encodePacked(keccak256(strings)));
+    }
+
+    function _hash(bytes memory a, bytes memory b) private view returns (BigNumber memory) {
+        return BigNumbers.init(abi.encodePacked(keccak256(bytes.concat(a, b))));
     }
 
     function _unchecked_inc(uint256 i) private pure returns (uint256) {
@@ -294,44 +296,37 @@ contract CRRRNGCoordinator is ICRRRNGCoordinator {
     }
 
     function _verifyRecursiveHalvingProof(
-        VDFClaim[] memory proofList,
+        BigNumber[] memory v,
+        BigNumber memory x,
+        BigNumber memory y,
         BigNumber memory n,
         bytes memory bigNumTwoPowerOfDelta,
-        uint256 twoPowerOfDelta,
         uint256 delta
     ) private view {
         uint i;
-        uint256 iMax = PROOFLASTINDEX - delta;
+        uint256 iMax;
+        unchecked {
+            iMax = DEFAULTPROOFLASTINDEX - delta;
+        }
         do {
-            BigNumber memory _r = _modHashMod128(
-                bytes.concat(proofList[i].y.val, proofList[i].v.val),
-                proofList[i].x
-            );
-            if (
-                !BigNumbers.eq(
-                    BigNumbers.modmul(BigNumbers.modexp(proofList[i].x, _r, n), proofList[i].v, n),
-                    proofList[_unchecked_inc(i)].x
-                )
-            ) revert XPrimeNotEqualAtIndex(i);
-            if (
-                !BigNumbers.eq(
-                    BigNumbers.modmul(BigNumbers.modexp(proofList[i].v, _r, n), proofList[i].y, n),
-                    proofList[_unchecked_inc(i)].y
-                )
-            ) revert YPrimeNotEqualAtIndex(i);
-            i = _unchecked_inc(i);
+            BigNumber memory _r = _hash128(x.val, y.val, v[i].val);
+            x = BigNumbers.modmul(BigNumbers.modexp(x, _r, n), v[i], n);
+            y = BigNumbers.modmul(BigNumbers.modexp(v[i], _r, n), y, n);
+            unchecked {
+                ++i;
+            }
         } while (i < iMax);
         BigNumber memory _two = BigNumber(BigNumbers.BYTESTWO, BigNumbers.UINTTWO);
         if (
             !BigNumbers.eq(
-                proofList[i].y,
+                y,
                 BigNumbers.init(
                     BigNumbers._modexp(
-                        proofList[i].x.val,
+                        x.val,
                         BigNumbers._modexp(
-                            _two.val,
+                            BigNumbers.BYTESTWO,
                             bigNumTwoPowerOfDelta,
-                            BigNumbers._powModulus(_two, twoPowerOfDelta).val
+                            BigNumbers._powModulus(_two, 2 ** delta).val
                         ),
                         n.val
                     )

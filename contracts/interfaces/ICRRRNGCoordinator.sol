@@ -107,7 +107,6 @@ interface ICRRRNGCoordinator {
     function calculateOmega(uint256 round) external;
 
     /**
-     * @param proofs the proof of the recovered value
      * @notice Recover function
      * @notice The recovered value must be less than the modulor
      * @notice revert if currently at commit stage
@@ -116,7 +115,9 @@ interface ICRRRNGCoordinator {
      */
     function recover(
         uint256 round,
-        VDFClaim[] calldata proofs,
+        BigNumber[] memory v,
+        BigNumber memory x,
+        BigNumber memory y,
         bytes memory bigNumTwoPowerOfDelta,
         uint256 delta
     ) external;
