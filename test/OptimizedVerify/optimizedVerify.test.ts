@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 import { assert } from "chai"
-import { dataLength, toBeHex, Transaction } from "ethers"
+import { dataLength, toBeHex } from "ethers"
 import fs from "fs"
 import { ethers } from "hardhat"
 import { MinimalApplication } from "../../typechain-types"
@@ -45,9 +45,8 @@ describe("Optimized Pietrzak Verification", async () => {
         const data = []
         for (let i: number = 0; i < lambdas.length; i++) {
             for (let j: number = 0; j < Ts.length; j++) {
-                minimalApplication = (await minimalApplicationFactory.deploy(
-                    proofLastIndex[j],
-                )) as MinimalApplication
+                minimalApplication =
+                    (await minimalApplicationFactory.deploy()) as MinimalApplication
                 await minimalApplication.waitForDeployment()
                 const shift128TestCase = createshift128TestCaseNXYVT(lambdas[i], Ts[j], jsonName)
                 const gasUsed =
@@ -76,9 +75,8 @@ describe("Optimized Pietrzak Verification", async () => {
             const delta: number = deltas[k]
             for (let i: number = 0; i < lambdas.length; i++) {
                 for (let j: number = 0; j < Ts.length; j++) {
-                    minimalApplication = (await minimalApplicationFactory.deploy(
-                        proofLastIndex[j],
-                    )) as MinimalApplication
+                    minimalApplication =
+                        (await minimalApplicationFactory.deploy()) as MinimalApplication
                     await minimalApplication.waitForDeployment()
                     const shift128TestCase = createshift128TestCaseNXYVT(
                         lambdas[i],
@@ -94,13 +92,13 @@ describe("Optimized Pietrzak Verification", async () => {
                         await minimalApplication.verifyRecursiveHalvingProofNTXYVDeltaAppliedExternal.estimateGas(
                             shift128TestCase.recoveryProofs,
                             toBeHex(2 ** delta, getLength(dataLength(toBeHex(2 ** delta)))),
-                            delta,
+                            2 ** delta,
                         )
                     const trueOrFalse =
                         await minimalApplication.verifyRecursiveHalvingProofNTXYVDeltaAppliedExternal(
                             shift128TestCase.recoveryProofs,
                             toBeHex(2 ** delta, getLength(dataLength(toBeHex(2 ** delta)))),
-                            delta,
+                            2 ** delta,
                         )
                     assert(trueOrFalse)
                     data.push([delta, Number(gasUsedYesDelta), lambdas[i], Ts[j]])
@@ -121,9 +119,8 @@ describe("Optimized Pietrzak Verification", async () => {
             const delta: number = deltas[k]
             for (let i: number = 0; i < lambdas.length; i++) {
                 for (let j: number = 0; j < Ts.length; j++) {
-                    minimalApplication = (await minimalApplicationFactory.deploy(
-                        proofLastIndex[j],
-                    )) as MinimalApplication
+                    minimalApplication =
+                        (await minimalApplicationFactory.deploy()) as MinimalApplication
                     await minimalApplication.waitForDeployment()
                     const shift128TestCase = createshift128TestCaseNXYVT(
                         lambdas[i],
@@ -138,12 +135,12 @@ describe("Optimized Pietrzak Verification", async () => {
                     const gasUsedYesDelta =
                         await minimalApplication.verifyRecursiveHalvingProofNTXYVDeltaRepeatedExternal.estimateGas(
                             shift128TestCase.recoveryProofs,
-                            delta,
+                            2 ** delta,
                         )
                     const trueOrFalse =
                         await minimalApplication.verifyRecursiveHalvingProofNTXYVDeltaRepeatedExternal(
                             shift128TestCase.recoveryProofs,
-                            delta,
+                            2 ** delta,
                         )
                     assert(trueOrFalse)
                     data.push([delta, Number(gasUsedYesDelta), lambdas[i], Ts[j]])
@@ -161,9 +158,8 @@ describe("Optimized Pietrzak Verification", async () => {
         const data = []
         for (let i: number = 0; i < lambdas.length; i++) {
             for (let j: number = 0; j < Ts.length; j++) {
-                minimalApplication = (await minimalApplicationFactory.deploy(
-                    proofLastIndex[j],
-                )) as MinimalApplication
+                minimalApplication =
+                    (await minimalApplicationFactory.deploy()) as MinimalApplication
                 await minimalApplication.waitForDeployment()
                 const shift128TestCase = createshift128TestCaseSkippingN(
                     lambdas[i],
@@ -195,9 +191,8 @@ describe("Optimized Pietrzak Verification", async () => {
         const data = []
         for (let i: number = 0; i < lambdas.length; i++) {
             for (let j: number = 0; j < Ts.length; j++) {
-                minimalApplication = (await minimalApplicationFactory.deploy(
-                    proofLastIndex[j],
-                )) as MinimalApplication
+                minimalApplication =
+                    (await minimalApplicationFactory.deploy()) as MinimalApplication
                 await minimalApplication.waitForDeployment()
                 const shift128TestCase = createshift128TestCaseSkippingT(
                     lambdas[i],
@@ -242,9 +237,8 @@ describe("Optimized Pietrzak Verification", async () => {
         const data = []
         for (let i: number = 0; i < lambdas.length; i++) {
             for (let j: number = 0; j < Ts.length; j++) {
-                minimalApplication = (await minimalApplicationFactory.deploy(
-                    proofLastIndex[j],
-                )) as MinimalApplication
+                minimalApplication =
+                    (await minimalApplicationFactory.deploy()) as MinimalApplication
                 await minimalApplication.waitForDeployment()
                 const shift128TestCase = createshift128TestCaseNXYVT(lambdas[i], Ts[j], jsonName)
                 const x = shift128TestCase.recoveryProofs[0].x
@@ -256,7 +250,8 @@ describe("Optimized Pietrzak Verification", async () => {
                     delete shift128TestCase.recoveryProofs[i].T
                 }
                 let recoveryProofs = []
-                for (let i: number = 0; i < shift128TestCase.recoveryProofs.length; i++) {
+                let imax = shift128TestCase.recoveryProofs.length - 1
+                for (let i: number = 0; i < imax; i++) {
                     recoveryProofs.push(shift128TestCase.recoveryProofs[i].v)
                 }
                 const gasUsedYesDelta =
@@ -295,9 +290,8 @@ describe("Optimized Pietrzak Verification", async () => {
             const delta: number = deltas[k]
             for (let i: number = 0; i < lambdas.length; i++) {
                 for (let j: number = 0; j < Ts.length; j++) {
-                    minimalApplication = (await minimalApplicationFactory.deploy(
-                        proofLastIndex[j],
-                    )) as MinimalApplication
+                    minimalApplication =
+                        (await minimalApplicationFactory.deploy()) as MinimalApplication
                     await minimalApplication.waitForDeployment()
                     const shift128TestCase = createshift128TestCaseNXYVT(
                         lambdas[i],
@@ -319,7 +313,8 @@ describe("Optimized Pietrzak Verification", async () => {
                         delete shift128TestCase.recoveryProofs[i].y
                     }
                     let recoveryProofs = []
-                    for (let i: number = 0; i < shift128TestCase.recoveryProofs.length; i++) {
+                    let imax = shift128TestCase.recoveryProofs.length - 1
+                    for (let i: number = 0; i < imax; i++) {
                         recoveryProofs.push(shift128TestCase.recoveryProofs[i].v)
                     }
                     const gasUsedYesDelta =
@@ -329,7 +324,7 @@ describe("Optimized Pietrzak Verification", async () => {
                             y,
                             shift128TestCase.n,
                             toBeHex(2 ** delta, getLength(dataLength(toBeHex(2 ** delta)))),
-                            delta,
+                            2 ** delta,
                             shift128TestCase.T,
                         )
                     const trueOrFalse =
@@ -339,7 +334,7 @@ describe("Optimized Pietrzak Verification", async () => {
                             y,
                             shift128TestCase.n,
                             toBeHex(2 ** delta, getLength(dataLength(toBeHex(2 ** delta)))),
-                            delta,
+                            2 ** delta,
                             shift128TestCase.T,
                         )
                     assert(trueOrFalse)
@@ -361,9 +356,8 @@ describe("Optimized Pietrzak Verification", async () => {
             const delta: number = deltas[k]
             for (let i: number = 0; i < lambdas.length; i++) {
                 for (let j: number = 0; j < Ts.length; j++) {
-                    minimalApplication = (await minimalApplicationFactory.deploy(
-                        proofLastIndex[j],
-                    )) as MinimalApplication
+                    minimalApplication =
+                        (await minimalApplicationFactory.deploy()) as MinimalApplication
                     await minimalApplication.waitForDeployment()
                     const shift128TestCase = createshift128TestCaseNXYVT(
                         lambdas[i],
@@ -385,7 +379,8 @@ describe("Optimized Pietrzak Verification", async () => {
                         delete shift128TestCase.recoveryProofs[i].y
                     }
                     let recoveryProofs = []
-                    for (let i: number = 0; i < shift128TestCase.recoveryProofs.length; i++) {
+                    let imax = shift128TestCase.recoveryProofs.length - 1
+                    for (let i: number = 0; i < imax; i++) {
                         recoveryProofs.push(shift128TestCase.recoveryProofs[i].v)
                     }
                     const gasUsedYesDelta =
@@ -395,7 +390,7 @@ describe("Optimized Pietrzak Verification", async () => {
                             y,
                             shift128TestCase.n,
                             toBeHex(2 ** delta, getLength(dataLength(toBeHex(2 ** delta)))),
-                            delta,
+                            2 ** delta,
                             shift128TestCase.T,
                         )
 
@@ -406,7 +401,7 @@ describe("Optimized Pietrzak Verification", async () => {
                             y,
                             shift128TestCase.n,
                             toBeHex(2 ** delta, getLength(dataLength(toBeHex(2 ** delta)))),
-                            delta,
+                            2 ** delta,
                             shift128TestCase.T,
                         )
                     assert(trueOrFalse)
@@ -425,9 +420,8 @@ describe("Optimized Pietrzak Verification", async () => {
         const data = []
         for (let i: number = 0; i < lambdas.length; i++) {
             for (let j: number = 0; j < Ts.length; j++) {
-                minimalApplication = (await minimalApplicationFactory.deploy(
-                    proofLastIndex[j],
-                )) as MinimalApplication
+                minimalApplication =
+                    (await minimalApplicationFactory.deploy()) as MinimalApplication
                 await minimalApplication.waitForDeployment()
                 const shift128TestCase = createshift128TestCaseNXYVT(lambdas[i], Ts[j], jsonName)
                 //   const gasUsed =
@@ -463,9 +457,8 @@ describe("Optimized Pietrzak Verification", async () => {
             const delta: number = deltas[k]
             for (let i: number = 0; i < lambdas.length; i++) {
                 for (let j: number = 0; j < Ts.length; j++) {
-                    minimalApplication = (await minimalApplicationFactory.deploy(
-                        proofLastIndex[j],
-                    )) as MinimalApplication
+                    minimalApplication =
+                        (await minimalApplicationFactory.deploy()) as MinimalApplication
                     await minimalApplication.waitForDeployment()
                     const shift128TestCase = createshift128TestCaseNXYVT(
                         lambdas[i],
@@ -487,31 +480,10 @@ describe("Optimized Pietrzak Verification", async () => {
                         delete shift128TestCase.recoveryProofs[i].y
                     }
                     let recoveryProofs = []
-                    for (let i: number = 0; i < shift128TestCase.recoveryProofs.length; i++) {
+                    let imax = shift128TestCase.recoveryProofs.length - 1
+                    for (let i: number = 0; i < imax; i++) {
                         recoveryProofs.push(shift128TestCase.recoveryProofs[i].v)
                     }
-                    //   const gasUsedYesDelta =
-                    //       await minimalApplication.verifyRecursiveHalvingProofExternal.estimateGas(
-                    //           recoveryProofs,
-                    //           x,
-                    //           y,
-                    //           shift128TestCase.n,
-                    //           toBeHex(2 ** delta, getLength(dataLength(toBeHex(2 ** delta)))),
-                    //           delta,
-                    //           shift128TestCase.T,
-                    //       )
-
-                    //   const trueOrFalse =
-                    //       await minimalApplication.verifyRecursiveHalvingProofExternal(
-                    //           recoveryProofs,
-                    //           x,
-                    //           y,
-                    //           shift128TestCase.n,
-                    //           toBeHex(2 ** delta, getLength(dataLength(toBeHex(2 ** delta)))),
-                    //           delta,
-                    //           shift128TestCase.T,
-                    //       )
-                    //   assert(trueOrFalse)
                     const itfce = minimalApplication.interface
                     const transactionrawdata = itfce.encodeFunctionData(
                         "verifyRecursiveHalvingProofExternal",
@@ -521,12 +493,12 @@ describe("Optimized Pietrzak Verification", async () => {
                             y,
                             shift128TestCase.n,
                             toBeHex(2 ** delta, getLength(dataLength(toBeHex(2 ** delta)))),
-                            delta,
+                            2 ** delta,
                             shift128TestCase.T,
                         ],
                     )
 
-                    console.log(transactionrawdata)
+                    //console.log(transactionrawdata)
                     const sizeInBytes = (transactionrawdata.length - 2) / 2
                     const sizeInKb = sizeInBytes / 1024
 
@@ -536,24 +508,48 @@ describe("Optimized Pietrzak Verification", async () => {
         }
         console.log(data)
     })
-    it("get raw transaction data size", async function () {
-        const tx = await ethers.provider.getTransaction(
-            "0x138a2554b2b7c8e1138e15680face3b67918807a65b02503f8e6ee6b128d939c",
-        )
-        const unsignedTx = {
-            to: tx!.to,
-            nonce: tx!.nonce,
-            gasLimit: tx!.gasLimit,
-            gasPrice: tx!.gasPrice,
-            data: tx!.data,
-            value: tx!.value,
-            chainId: tx!.chainId,
-            accessList: tx!.accessList,
-            signature: tx!.signature,
+    it("test correct algorithm version", async function () {
+        const minimalApplicationFactory = await ethers.getContractFactory("MinimalApplication")
+        minimalApplication = (await minimalApplicationFactory.deploy()) as MinimalApplication
+        await minimalApplication.waitForDeployment()
+        const testCase = createCorrectAlgorithmVersionTestCase()
+        const x = testCase.recoveryProofs[0].x
+        const y = testCase.recoveryProofs[0].y
+        const delta = 9
+        console.log(testCase.recoveryProofs.length)
+        testCase.recoveryProofs = testCase.recoveryProofs.slice(0, -(delta + 1))
+        for (let i: number = 0; i < testCase.recoveryProofs.length; i++) {
+            delete testCase.recoveryProofs[i].n
+            delete testCase.recoveryProofs[i].T
+            delete testCase.recoveryProofs[i].x
+            delete testCase.recoveryProofs[i].y
         }
-
-        const serialized = Transaction.from(unsignedTx).serialized
-        console.log(serialized)
+        let recoveryProofs = []
+        for (let i: number = 0; i < testCase.recoveryProofs.length; i++) {
+            recoveryProofs.push(testCase.recoveryProofs[i].v)
+        }
+        console.log(recoveryProofs.length, delta)
+        const gasUsed =
+            await minimalApplication.verifyRecursiveHalvingProofCorrectExternal.estimateGas(
+                recoveryProofs,
+                x,
+                y,
+                testCase.n,
+                toBeHex(2 ** delta, getLength(dataLength(toBeHex(2 ** delta)))),
+                2 ** delta,
+                testCase.T,
+            )
+        const trueOrFalse = await minimalApplication.verifyRecursiveHalvingProofCorrectExternal(
+            recoveryProofs,
+            x,
+            y,
+            testCase.n,
+            toBeHex(2 ** delta, getLength(dataLength(toBeHex(2 ** delta)))),
+            2 ** delta,
+            testCase.T,
+        )
+        assert(trueOrFalse)
+        console.log(gasUsed)
     })
 })
 
@@ -562,10 +558,15 @@ interface BigNumber {
     bitlen: number
 }
 
+const createCorrectAlgorithmVersionTestCase = () => {
+    const testCaseJson = JSON.parse(fs.readFileSync(__dirname + "/../shared/correct.json", "utf-8"))
+    return testCaseJson
+}
+
 const createshift128TestCaseNXYVT = (lambd: string, T: string, jsonName: string) => {
     const testCaseJson = JSON.parse(
         fs.readFileSync(
-            __dirname + `/../shared/shift128TestCases/${lambd}/${T}/${jsonName}.json`,
+            __dirname + `/../shared/correctAlgorithmTestCase/${lambd}/${T}/${jsonName}.json`,
             "utf-8",
         ),
     )
@@ -575,7 +576,7 @@ const createshift128TestCaseNXYVT = (lambd: string, T: string, jsonName: string)
 const createshift128TestCase = (lambd: string, T: string, jsonName: string): TestCase => {
     const testCaseJson = JSON.parse(
         fs.readFileSync(
-            __dirname + `/../shared/shift128TestCases/${lambd}/${T}/${jsonName}.json`,
+            __dirname + `/../shared/correctAlgorithmTestCase/${lambd}/${T}/${jsonName}.json`,
             "utf-8",
         ),
     )
@@ -593,7 +594,7 @@ const createshift128TestCase = (lambd: string, T: string, jsonName: string): Tes
 const createshift128TestCaseSkippingN = (lambd: string, T: string, jsonName: string) => {
     const testCaseJson = JSON.parse(
         fs.readFileSync(
-            __dirname + `/../shared/shift128TestCases/${lambd}/${T}/${jsonName}.json`,
+            __dirname + `/../shared/correctAlgorithmTestCase/${lambd}/${T}/${jsonName}.json`,
             "utf-8",
         ),
     )
@@ -609,7 +610,7 @@ const createshift128TestCaseSkippingN = (lambd: string, T: string, jsonName: str
 const createshift128TestCaseSkippingT = (lambd: string, T: string, jsonName: string) => {
     const testCaseJson = JSON.parse(
         fs.readFileSync(
-            __dirname + `/../shared/shift128TestCases/${lambd}/${T}/${jsonName}.json`,
+            __dirname + `/../shared/correctAlgorithmTestCase/${lambd}/${T}/${jsonName}.json`,
             "utf-8",
         ),
     )
