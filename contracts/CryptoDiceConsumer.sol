@@ -173,6 +173,10 @@ contract CryptoDice is RNGConsumerBase, Ownable {
 
     // *** getter functions ***
 
+    function getWithdrawedRounds(address participant) external view returns (uint256[] memory) {
+        return s_withdrawedRounds[participant];
+    }
+
     function getDiceNumAtRound(uint256 round, address participant) external view returns (uint256) {
         return s_diceNumAtRound[participant][round];
     }
