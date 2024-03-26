@@ -44,7 +44,7 @@ async function updateAbi() {
     }
 }
 async function updateContractAddress() {
-    // airdropConsumer
+    // cryptoDice
     const cryptoDice = await ethers.getContract("CryptoDice")
     const chainId = network.config.chainId?.toString()
     const currentAddress = JSON.parse(fs.readFileSync(FRONT_END_ADDRESS_FILE_CONSUMER, "utf8"))

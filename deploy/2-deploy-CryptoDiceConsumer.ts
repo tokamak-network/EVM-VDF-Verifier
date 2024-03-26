@@ -34,19 +34,19 @@ const deployCryptoDice: DeployFunction = async (hre: HardhatRuntimeEnvironment) 
     } else {
         tonTokenAddress = networkConfig[chainId!].tonAddress
     }
-    const airdropConsumer = await deploy("CryptoDice", {
+    const cryptoDice = await deploy("CryptoDice", {
         from: deployer,
         log: true,
         args: [crrRngCoordinatorAddress, tonTokenAddress],
         waitConfirmations: waitBlockConfirmations,
     })
     // deploy result
-    log("airdropConsumer deployed at:", airdropConsumer.address)
+    log("cryptoDice deployed at:", cryptoDice.address)
     if (chainId !== 31337 && process.env.ETHERSCAN_API_KEY) {
         log("Verifying...")
-        await verify(airdropConsumer.address, [crrRngCoordinatorAddress, tonTokenAddress])
+        await verify(cryptoDice.address, [crrRngCoordinatorAddress, tonTokenAddress])
     }
     log("----------------------------------------------------")
 }
 export default deployCryptoDice
-deployCryptoDice.tags = ["all", "airdropConsumer"]
+deployCryptoDice.tags = ["all", "cryptoDice"]
