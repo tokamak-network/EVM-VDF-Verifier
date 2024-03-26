@@ -365,6 +365,10 @@ function dimitrovTypescriptFixedB2(
           })
           it("multiExp, x^a * y^b, Fixed b=2", async () => {
               const exps: bigint[] = [
+                  2n ** 2n,
+                  2n ** 4n,
+                  2n ** 8n,
+                  2n ** 16n,
                   2n ** 32n,
                   2n ** 64n,
                   2n ** 128n,
@@ -374,6 +378,10 @@ function dimitrovTypescriptFixedB2(
                   2n ** 2048n,
               ]
               const expsString: string[] = [
+                  "2^2",
+                  "2^4",
+                  "2^8",
+                  "2^16",
                   "2^32",
                   "2^64",
                   "2^128",
