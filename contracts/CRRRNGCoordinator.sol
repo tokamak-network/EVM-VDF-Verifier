@@ -152,7 +152,7 @@ contract CRRRNGCoordinator is ICRRRNGCoordinator {
     }
 
     function requestRandomWord() external returns (uint256) {
-        require(s_verified);
+        if (!s_verified) revert NotVerified();
         uint256 _round = s_nextRound++;
         s_valuesAtRound[_round].startTime = block.timestamp;
         s_valuesAtRound[_round].stage = Stages.Commit;

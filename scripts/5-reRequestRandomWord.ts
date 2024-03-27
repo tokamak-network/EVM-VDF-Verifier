@@ -36,7 +36,7 @@ async function requestRandomWord() {
         console.log("Round:", round.toString())
         console.log("Requesting random word...")
         let tx
-        if (chainId == 5050 || 55004)
+        if (chainId == 5050 || chainId == 55004)
             tx = await crrngCoordinatorContract.reRequestRandomWordAtRound(round, {
                 gasLimit: 810000,
             })
