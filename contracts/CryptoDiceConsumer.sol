@@ -221,6 +221,10 @@ contract CryptoDice is RNGConsumerBase, Ownable {
         return s_roundStatus[round].prizeAmountForEachWinner;
     }
 
+    function getDiceNumCount(uint256 round, uint256 diceNum) external view returns (uint256) {
+        return s_diceNumCount[round][diceNum];
+    }
+
     function fulfillRandomWords(uint256 requestId, uint256 hashedOmegaVal) internal override {
         //check
         uint256 _round = s_requestIdToRound[requestId];

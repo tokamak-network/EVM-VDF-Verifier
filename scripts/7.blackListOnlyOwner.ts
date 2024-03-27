@@ -37,7 +37,7 @@ async function blackList() {
         // }
         const participatedLength = await cryptoDiceContract.getRegisteredCount(round)
         let tx
-        if (chainId == 5050 || 55004)
+        if (chainId == 5050 || chainId == 55004)
             tx = await cryptoDiceContract.blackList(round, blackListAddress, {
                 gasLimit: 197694,
             })
