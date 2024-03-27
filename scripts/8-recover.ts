@@ -61,13 +61,13 @@ async function recover() {
         bigNumTwoPowerOfDelta: twoPowerOfDeltaBytes,
         delta: delta,
     }
-    recoverParams.x = testCaseJson.setupProofs[0].x
-    recoverParams.y = testCaseJson.setupProofs[0].y
+    recoverParams.x = testCaseJson.recoveryProofs[0].x
+    recoverParams.y = testCaseJson.recoveryProofs[0].y
     if (delta > 0) {
-        testCaseJson.setupProofs = testCaseJson.setupProofs?.slice(0, -(delta + 1))
+        testCaseJson.recoveryProofs = testCaseJson.recoveryProofs?.slice(0, -(delta + 1))
     }
-    for (let i = 0; i < testCaseJson.setupProofs.length; i++) {
-        recoverParams.v.push(testCaseJson.setupProofs[i].v)
+    for (let i = 0; i < testCaseJson.recoveryProofs.length; i++) {
+        recoverParams.v.push(testCaseJson.recoveryProofs[i].v)
     }
     recoverParams.bigNumTwoPowerOfDelta = twoPowerOfDeltaBytes
     recoverParams.delta = delta
@@ -89,7 +89,7 @@ async function recover() {
 
 const createCorrectAlgorithmVersionTestCase = () => {
     const testCaseJson = JSON.parse(
-        fs.readFileSync(__dirname + "/../test/shared/correct.json", "utf-8"),
+        fs.readFileSync(__dirname + "/../test/shared/correct2.json", "utf-8"),
     )
     return testCaseJson
 }
