@@ -76,8 +76,17 @@ const deployCRRRNGCoordinator: DeployFunction = async (hre: HardhatRuntimeEnviro
         "CRRRNGCoordinator",
         crrrngCoordinatorAddress,
     )
-    // const tx = await crrngCoordinatorContract.initialize(testcases.setupProofs)
-    // await tx.wait()
+    const tx = await crrngCoordinatorContract.initialize(
+        initializeParams.v,
+        initializeParams.x,
+        initializeParams.y,
+        initializeParams.bigNumTwoPowerOfDelta,
+        initializeParams.delta,
+        { from: deployer, gasLimit: 3000000 },
+    )
+    const receipt = await tx.wait()
+    log("Transaction receipt")
+    log(receipt)
     log("initialized!")
     log("----------------------------------------------------")
 }

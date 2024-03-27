@@ -17,7 +17,7 @@ const blackListAddress = [
     "0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC",
     "0x90F79bf6EB2c4f870365E785982E1f101E93b906",
 ]
-async function requestRandomWord() {
+async function blackList() {
     const chainId: number = network.config.chainId as number
     const { deployer } = await getNamedAccounts()
     console.log("EOA address:", deployer)
@@ -54,7 +54,7 @@ async function requestRandomWord() {
     }
 }
 
-requestRandomWord()
+blackList()
     .then(() => process.exit(0))
     .catch((error) => {
         console.error(error)
