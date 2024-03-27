@@ -217,6 +217,10 @@ contract CryptoDice is RNGConsumerBase, Ownable {
         return s_winningDiceNum[round];
     }
 
+    function getPrizeAmountForEachWinner(uint256 round) external view returns (uint256) {
+        return s_roundStatus[round].prizeAmountForEachWinner;
+    }
+
     function fulfillRandomWords(uint256 requestId, uint256 hashedOmegaVal) internal override {
         //check
         uint256 _round = s_requestIdToRound[requestId];
@@ -226,8 +230,10 @@ contract CryptoDice is RNGConsumerBase, Ownable {
         s_roundStatus[_round].randNumfulfilled = true;
         uint256 winningDiceNum = (hashedOmegaVal % 6) + 1;
         s_winningDiceNum[_round] = winningDiceNum;
-        s_roundStatus[_round].prizeAmountForEachWinner =
-            s_roundStatus[_round].totalPrizeAmount /
-            s_diceNumCount[_round][winningDiceNum];
+        uint256 _diceNumCount = s_diceNumCount[_round][winningDiceNum];
+        if (_diceNumCount != 0)
+            s_roundStatus[_round].prizeAmountForEachWinner =
+                s_roundStatus[_round].totalPrizeAmount /
+                s_diceNumCount[_round][winningDiceNum];
     }
 }
