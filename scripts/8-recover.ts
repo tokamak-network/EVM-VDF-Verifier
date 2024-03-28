@@ -80,6 +80,7 @@ async function recover() {
         recoverParams.y,
         recoverParams.bigNumTwoPowerOfDelta,
         recoverParams.delta,
+        { gasLimit: 4000000 },
     )
     const receipt = await tx.wait()
     console.log("Transaction receipt", receipt)
