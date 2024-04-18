@@ -34,15 +34,6 @@ const LOW_OPTIMIZER_COMPILER_SETTINGS = {
     version: "0.8.23",
     settings: optimizerEnabledFalse,
 }
-const MAINNET_RPC_URL = process.env.MAINNET_RPC_URL
-const SEPOLIA_RPC_URL = process.env.SEPOLIA_RPC_URL
-const POLYGON_MAINNET_RPC_URL = process.env.POLYGON_MAINNET_RPC_URL
-const PRIVATE_KEY = process.env.PRIVATE_KEY
-
-// Your API key for Etherscan, obtain one at https://etherscan.io/
-const ETHERSCAN_API_KEY = process.env.ETHERSCAN_API_KEY || "Your etherscan API key"
-const POLYGONSCAN_API_KEY = process.env.POLYGONSCAN_API_KEY || "Your polygonscan API key"
-const REPORT_GAS = process.env.REPORT_GAS || false
 
 const config: HardhatUserConfig = {
     defaultNetwork: "hardhat",
@@ -62,41 +53,16 @@ const config: HardhatUserConfig = {
             chainId: 31337,
             allowUnlimitedContractSize: true,
         },
-        sepolia: {
-            url: SEPOLIA_RPC_URL,
-            accounts: PRIVATE_KEY !== undefined ? [PRIVATE_KEY] : [],
-            //   accounts: {
-            //     mnemonic: MNEMONIC,
-            //   },
-            saveDeployments: true,
-            allowUnlimitedContractSize: true,
-            chainId: 11155111,
-        },
-        mainnet: {
-            url: MAINNET_RPC_URL,
-            accounts: PRIVATE_KEY !== undefined ? [PRIVATE_KEY] : [],
-            //   accounts: {
-            //     mnemonic: MNEMONIC,
-            //   },
-            saveDeployments: true,
-            chainId: 1,
-        },
-        polygon: {
-            url: POLYGON_MAINNET_RPC_URL,
-            accounts: PRIVATE_KEY !== undefined ? [PRIVATE_KEY] : [],
-            saveDeployments: true,
-            chainId: 137,
-        },
         titangoerli: {
             url: "https://rpc.titan-goerli.tokamak.network",
-            accounts: [`${process.env.PRIVATE_KEY}`],
+            //accounts: [`${process.env.PRIVATE_KEY}`],
             chainId: 5050,
             //gasPrice: 250000,
             //deploy: ['deploy_titan_goerli']
         },
         titan: {
             url: "https://rpc.titan.tokamak.network",
-            accounts: [`${process.env.PRIVATE_KEY}`],
+            //accounts: [`${process.env.PRIVATE_KEY}`],
             chainId: 55004,
             //gasPrice: 250000,
             //deploy: ["deploy_titan"],
@@ -114,41 +80,6 @@ const config: HardhatUserConfig = {
                 signedTx: "0x00",
             }
         }
-    },
-    etherscan: {
-        // npx hardhat verify --network <NETWORK> <CONTRACT_ADDRESS> <CONSTRUCTOR_PARAMETERS>
-        apiKey: {
-            sepolia: ETHERSCAN_API_KEY,
-            goerli: ETHERSCAN_API_KEY,
-            titangoerli: ETHERSCAN_API_KEY,
-            titan: ETHERSCAN_API_KEY,
-        },
-        customChains: [
-            {
-                network: "titangoerli",
-                chainId: 5050,
-                urls: {
-                    apiURL: "https://explorer.titan-goerli.tokamak.network/api",
-                    browserURL: "https://explorer.titan-goerli.tokamak.network",
-                },
-            },
-            {
-                network: "titan",
-                chainId: 55004,
-                urls: {
-                    apiURL: "https://explorer.titan.tokamak.network/api",
-                    browserURL: "https://explorer.titan.tokamak.network",
-                },
-            },
-        ],
-    },
-    gasReporter: {
-        enabled: true,
-        currency: "ETH",
-        //outputFile: "gas-report.txt",
-        //noColors: true,
-        gasPriceApi: "https://api.etherscan.io/api?module=proxy&action=eth_gasPrice",
-        coinmarketcap: process.env.COINMARKETCAP_API_KEY,
     },
     namedAccounts: {
         deployer: {
