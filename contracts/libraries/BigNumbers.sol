@@ -1,25 +1,48 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.22;
+pragma solidity ^0.8.23;
 
 // Definition here allows both the lib and inheriting contracts to use BigNumber directly.
 struct BigNumber { 
     bytes val;
-    uint bitlen;
+    uint256 bitlen;
 }
 
 /**
  * @notice BigNumbers library for Solidity.
  */
 library BigNumbers {
+    error BigNumbers__ShouldNotBeZero();
     
     /// @notice the value for number 0 of a BigNumber instance.
-    bytes constant ZERO = hex"0000000000000000000000000000000000000000000000000000000000000000";
+    bytes constant internal BYTESZERO = hex"0000000000000000000000000000000000000000000000000000000000000000";
     /// @notice the value for number 1 of a BigNumber instance.
-    bytes constant  ONE = hex"0000000000000000000000000000000000000000000000000000000000000001";
+    bytes constant internal  BYTESONE = hex"0000000000000000000000000000000000000000000000000000000000000001";
     /// @notice the value for number 2 of a BigNumber instance.
-    bytes constant  TWO = hex"0000000000000000000000000000000000000000000000000000000000000002";
+    bytes constant internal  BYTESTWO = hex"0000000000000000000000000000000000000000000000000000000000000002";
+    uint256 constant internal UINTZERO = 0;
+    uint256 constant internal UINTONE = 1;
+    uint256 constant internal UINTTWO = 2;
+    uint256 constant internal UINT32 = 32;
+    int256 constant internal INTZERO = 0;
+    int256 constant internal INTONE = 1;
+    int256 constant internal INTMINUSONE = -1;
 
     // ***************** BEGIN EXPOSED MANAGEMENT FUNCTIONS ******************
+/** @notice BigNumber equality
+      * @dev eq: returns true if a==b. sign always considered.
+      *           
+      * @param a BigNumber
+      * @param b BigNumber
+      * @return boolean result
+      */
+    function eq(
+        BigNumber memory a, 
+        BigNumber memory b
+    ) internal pure returns(bool){
+        int256 result = cmp(a, b);
+        return (result==INTZERO) ? true : false;
+    }
+    
     /** @notice initialize a BN instance
      *  @dev wrapper function for _init. initializes from bytes value.
      *
@@ -29,100 +52,22 @@ library BigNumbers {
     function init(
         bytes memory val
     ) internal view returns(BigNumber memory){
-        return _init(val, 0);
+        return _init(val, UINTZERO);
+    }
+
+    /** @notice BigNumber full zero check
+      * @dev isZero: checks if the BigNumber is in the default zero format for BNs (ie. the result from zero()).
+      *             
+      * @param a BigNumber
+      * @return boolean result.
+    */
+    function isZero(
+        BigNumber memory a
+    ) internal pure returns(bool) {
+        return isZero(a.val) && a.val.length==UINT32 && a.bitlen == UINTZERO;
     }
 
     // ***************** BEGIN EXPOSED CORE CALCULATION FUNCTIONS ******************
-    /** @notice BigNumber addition: a + b.
-      * @dev add: Initially prepare BigNumbers for addition operation; internally calls actual addition/subtraction,
-      *           depending on inputs.
-      *           In order to do correct addition or subtraction we have to handle the sign.
-      *           This function discovers the sign of the result based on the inputs, and calls the correct operation.
-      *
-      * @param a first BN
-      * @param b second BN
-      * @return r result  - addition of a and b.
-      */
-    function add(
-        BigNumber memory a, 
-        BigNumber memory b
-    ) internal pure returns(BigNumber memory r) {
-        if(a.bitlen==0 && b.bitlen==0) return zero();
-        if(a.bitlen==0) return b;
-        if(b.bitlen==0) return a;
-        bytes memory val;
-        uint bitlen;
-        int compare = cmp(a,b);
-        if(compare>=0){ // a>=b
-            (val, bitlen) = _add(a.val,b.val,a.bitlen);
-        }
-        else {
-            (val, bitlen) = _add(b.val,a.val,b.bitlen);
-        }
-        r.val = val;
-        r.bitlen = (bitlen);
-    }
-
-    /** @notice BigNumber subtraction: a - b.
-      * @dev sub: Initially prepare BigNumbers for subtraction operation; internally calls actual addition/subtraction,
-                  depending on inputs.
-      *           In order to do correct addition or subtraction we have to handle the sign.
-      *           This function discovers the sign of the result based on the inputs, and calls the correct operation.
-      *
-      * @param a first BN
-      * @param b second BN
-      * @return r result - subtraction of a and b.
-      */  
-    function sub(
-        BigNumber memory a, 
-        BigNumber memory b
-    ) internal pure returns(BigNumber memory r) {
-        if(a.bitlen==0 && b.bitlen==0) return zero();
-        bytes memory val;
-        int compare;
-        uint bitlen;
-        compare = cmp(a,b);
-
-        if(compare == 1) {
-            (val,bitlen) = _sub(a.val,b.val);
-        }
-        else if(compare == -1) { 
-            (val,bitlen) = _sub(b.val,a.val);
-            //r.neg = true;
-        }
-        else return zero(); 
-        r.val = val;
-        r.bitlen = (bitlen);
-    }
-
-    /** @notice BigNumber multiplication: a * b.
-      * @dev mul: takes two BigNumbers and multiplys them. Order is irrelevant.
-      *              multiplication achieved using modexp precompile:
-      *                 (a * b) = ((a + b)**2 - (a - b)**2) / 4
-      *
-      * @param a first BN
-      * @param b second BN
-      * @return r result - multiplication of a and b.
-      */
-    function mul(
-        BigNumber memory a, 
-        BigNumber memory b
-    ) internal view returns(BigNumber memory r){
-            
-        BigNumber memory lhs = add(a,b);
-        BigNumber memory fst = modexp(lhs, two(), _powModulus(lhs, 2)); // (a+b)^2
-        
-        // no need to do subtraction part of the equation if a == b; if so, it has no effect on final result.
-        if(!eq(a,b)) {
-            BigNumber memory rhs = sub(a,b);
-            BigNumber memory snd = modexp(rhs, two(), _powModulus(rhs, 2)); // (a-b)^2
-            r = _shr(sub(fst, snd) , 2); // (a * b) = (((a + b)**2 - (a - b)**2) / 4
-        }
-        else {
-            r = _shr(fst, 2); // a==b ? (((a + b)**2 / 4
-        }
-    }
-
     /** @notice BigNumber modulus: a % n.
       * @dev mod: takes a BigNumber and modulus BigNumber (a,n), and calculates a % n.
       * modexp precompile is used to achieve a % n; an exponent of value '1' is passed.
@@ -134,7 +79,7 @@ library BigNumbers {
         BigNumber memory a, 
         BigNumber memory n
     ) internal view returns(BigNumber memory){
-      return modexp(a,one(),n);
+      return modexp(a,BigNumber(BYTESONE, UINTONE),n);
     }
 
     /** @notice BigNumber modular exponentiation: a^e mod n.
@@ -153,14 +98,14 @@ library BigNumbers {
     ) internal view returns(BigNumber memory) {
         //if exponent is negative, other method with this same name should be used.
         //if modulus is negative or zero, we cannot perform the operation.
-        require(!isZero(n.val));
+        if(isZero(n.val)) revert BigNumbers__ShouldNotBeZero();
 
         bytes memory _result = _modexp(a.val,e.val,n.val);
         //get bitlen of result (TODO: optimise. we know bitlen is in the same byte as the modulus bitlen byte)
-        uint bitlen = bitLength(_result);
+        uint256 bitlen = bitLength(_result);
         
         // if result is 0, immediately return.
-        if(bitlen == 0) return zero();
+        if(bitlen == UINTZERO) return BigNumber(BYTESZERO, UINTZERO);
         // in any other case we return the positive result.
         return BigNumber(_result, bitlen);
     }
@@ -188,6 +133,66 @@ library BigNumbers {
 
 
     // ***************** START EXPOSED HELPER FUNCTIONS ******************
+        /** @notice BigNumber subtraction: a - b.
+      * @dev sub: Initially prepare BigNumbers for subtraction operation; internally calls actual addition/subtraction,
+                  depending on inputs.
+      *           
+      *           This function discovers the sign of the result based on the inputs, and calls the correct operation.
+      *
+      * @param a first BN
+      * @param b second BN
+      * @return r result - subtraction of a and b.
+      */  
+    function sub(
+        BigNumber memory a, 
+        BigNumber memory b
+    ) internal pure returns(BigNumber memory r) {
+        if(a.bitlen==UINTZERO && b.bitlen==UINTZERO) return BigNumber(BYTESZERO, UINTZERO);
+        bytes memory val;
+        int256 compare;
+        uint256 bitlen;
+        compare = cmp(a,b);
+
+        if(compare == INTONE) {
+            (val,bitlen) = _sub(a.val,b.val);
+        }
+        else if(compare == INTMINUSONE) { 
+            (val,bitlen) = _sub(b.val,a.val);
+            //r.neg = true;
+        }
+        else return BigNumber(BYTESZERO, UINTZERO); 
+        r.val = val;
+        r.bitlen = (bitlen);
+    }
+
+    /** @notice BigNumber multiplication: a * b.
+      * @dev mul: takes two BigNumbers and multiplys them. Order is irrelevant.
+      *              multiplication achieved using modexp precompile:
+      *                 (a * b) = ((a + b)**2 - (a - b)**2) / 4
+      *
+      * @param a first BN
+      * @param b second BN
+      * @return r result - multiplication of a and b.
+      */
+    function mul(
+        BigNumber memory a, 
+        BigNumber memory b
+    ) internal view returns(BigNumber memory r){
+            
+        BigNumber memory lhs = add(a,b);
+        BigNumber memory fst = modexp(lhs, BigNumber(BYTESTWO, UINTTWO), _powModulus(lhs, UINTTWO)); // (a+b)^2
+        
+        // no need to do subtraction part of the equation if a == b; if so, it has no effect on final result.
+        if(!eq(a,b)) {
+            BigNumber memory rhs = sub(a,b);
+            BigNumber memory snd = modexp(rhs, BigNumber(BYTESTWO, UINTTWO), _powModulus(rhs, UINTTWO)); // (a-b)^2
+            r = _shr(sub(fst, snd) , UINTTWO); // (a * b) = (((a + b)**2 - (a - b)**2) / 4
+        }
+        else {
+            r = _shr(fst, UINTTWO); // a==b ? (((a + b)**2 / 4
+        }
+    }
+    
     /** @notice BigNumber comparison
       * @dev cmp: Compares BigNumbers a and b. 'signed' parameter indiciates whether to consider the sign of the inputs.
       *           'trigger' is used to decide this - 
@@ -198,57 +203,73 @@ library BigNumbers {
       *           
       * @param a BigNumber
       * @param b BigNumber
-      * @return int result
+      * @return int256 result
       */
     function cmp(
         BigNumber memory a, 
         BigNumber memory b
-    ) internal pure returns(int){
-        int trigger = 1;
+    ) internal pure returns(int256){
+        int256 trigger = INTONE;
 
         if(a.bitlen>b.bitlen) return    trigger;   // 1*trigger
-        if(b.bitlen>a.bitlen) return -1*trigger;
+        if(b.bitlen>a.bitlen) return INTMINUSONE*trigger;
 
-        uint a_ptr;
-        uint b_ptr;
-        uint a_word;
-        uint b_word;
+        uint256 a_ptr;
+        uint256 b_ptr;
+        uint256 a_word;
+        uint256 b_word;
 
-        uint len = a.val.length; //bitlen is same so no need to check length.
+        uint256 len = a.val.length; //bitlen is same so no need to check length.
 
-        assembly{
+        assembly ("memory-safe") {
             a_ptr := add(mload(a),0x20) 
             b_ptr := add(mload(b),0x20)
         }
 
-        for(uint i=0; i<len;i+=32){
-            assembly{
+        for(uint256 i; i<len;i+=UINT32){
+            assembly ("memory-safe") {
                 a_word := mload(add(a_ptr,i))
                 b_word := mload(add(b_ptr,i))
             }
 
             if(a_word>b_word) return    trigger; // 1*trigger
-            if(b_word>a_word) return -1*trigger; 
+            if(b_word>a_word) return INTMINUSONE*trigger; 
 
         }
 
-        return 0; //same value.
+        return INTZERO; //same value.
     }
 
-    /** @notice BigNumber equality
-      * @dev eq: returns true if a==b. sign always considered.
-      *           
-      * @param a BigNumber
-      * @param b BigNumber
-      * @return boolean result
+        /** @notice BigNumber addition: a + b.
+      * @dev add: Initially prepare BigNumbers for addition operation; internally calls actual addition/subtraction,
+      *           depending on inputs.
+      *           In order to do correct addition or subtraction we have to handle the sign.
+      *           This function discovers the sign of the result based on the inputs, and calls the correct operation.
+      *
+      * @param a first BN
+      * @param b second BN
+      * @return r result  - addition of a and b.
       */
-    function eq(
+    function add(
         BigNumber memory a, 
         BigNumber memory b
-    ) internal pure returns(bool){
-        int result = cmp(a, b);
-        return (result==0) ? true : false;
+    ) internal pure returns(BigNumber memory r) {
+        if(a.bitlen==UINTZERO && b.bitlen==UINTZERO) return BigNumber(BYTESZERO, UINTZERO);
+        if(a.bitlen==UINTZERO) return b;
+        if(b.bitlen==UINTZERO) return a;
+        bytes memory val;
+        uint256 bitlen;
+        int256 compare = cmp(a,b);
+        if(compare>=INTZERO){ // a>=b
+            (val, bitlen) = _add(a.val,b.val,a.bitlen);
+        }
+        else {
+            (val, bitlen) = _add(b.val,a.val,b.bitlen);
+        }
+        r.val = val;
+        r.bitlen = (bitlen);
     }
+
     /** @notice right shift BigNumber memory 'dividend' by 'bits' bits.
       * @dev _shr: Shifts input value in-place, ie. does not create new memory. shr function does this.
       * right shift does not necessarily have to copy into a new memory location. where the user wishes the modify
@@ -257,12 +278,12 @@ library BigNumbers {
       * @param bits amount of bits to shift by
       * @return r result
       */
-    function _shr(BigNumber memory bn, uint bits) internal view returns(BigNumber memory){
-        uint length;
-        assembly { length := mload(mload(bn)) }
+    function _shr(BigNumber memory bn, uint256 bits) private view returns(BigNumber memory){
+        uint256 length;
+        assembly ("memory-safe") { length := mload(mload(bn)) }
 
         // if bits is >= the bitlength of the value the result is always 0
-        if(bits >= bn.bitlen) return BigNumber(ZERO,0); 
+        if(bits >= bn.bitlen) return BigNumber(BYTESZERO,UINTZERO); 
         
         // set bitlen initially as we will be potentially modifying 'bits'
         bn.bitlen = bn.bitlen-(bits);
@@ -270,7 +291,7 @@ library BigNumbers {
         // handle shifts greater than 256:
         // if bits is greater than 256 we can simply remove any trailing words, by altering the BN length. 
         // we also update 'bits' so that it is now in the range 0..256.
-        assembly {
+        assembly ("memory-safe") {
             if or(gt(bits, 0x100), eq(bits, 0x100)) {
                 length := sub(length, mul(div(bits, 0x100), 0x20))
                 mstore(mload(bn), length)
@@ -298,7 +319,7 @@ library BigNumbers {
                   let lsw
                   let mask_shift := sub(0x100, bits)
                   let lsw_ptr := add(bn_val_ptr, length)   
-                  for { let i := length } eq(eq(i,0),0) { i := sub(i, 0x20) } { // for(int i=max_length; i!=0; i-=32)
+                  for { let i := length } eq(eq(i,0),0) { i := sub(i, 0x20) } { // for(int256 i=max_length; i!=0; i-=32)
                       switch eq(i,0x20)                                         // if i==32:
                           case 1 { mask := 0 }                                  //    - handles lsword: no mask needed.
                           default { mask := mload(sub(lsw_ptr,0x20)) }          //    - else get mask (previous word)
@@ -324,18 +345,6 @@ library BigNumbers {
         return bn;
     }
 
-    /** @notice BigNumber full zero check
-      * @dev isZero: checks if the BigNumber is in the default zero format for BNs (ie. the result from zero()).
-      *             
-      * @param a BigNumber
-      * @return boolean result.
-      */
-    function isZero(
-        BigNumber memory a
-    ) internal pure returns(bool) {
-        return isZero(a.val) && a.val.length==0x20 && a.bitlen == 0;
-    }
-
 
     /** @notice bytes zero check
       * @dev isZero: checks if input bytes value resolves to zero.
@@ -345,16 +354,16 @@ library BigNumbers {
       */
     function isZero(
         bytes memory a
-    ) internal pure returns(bool) {
-        uint msword;
-        uint msword_ptr;
-        assembly {
+    ) private pure returns(bool) {
+        uint256 msword;
+        uint256 msword_ptr;
+        assembly ("memory-safe") {
             msword_ptr := add(a,0x20)
         }
-        for(uint i=0; i<a.length; i+=32) {
-            assembly { msword := mload(msword_ptr) } // get msword of input
+        for(uint256 i; i<a.length; i+=UINT32) {
+            assembly ("memory-safe") { msword := mload(msword_ptr) } // get msword of input
             if(msword > 0) return false;
-            assembly { msword_ptr := add(msword_ptr, 0x20) }
+            assembly ("memory-safe") { msword_ptr := add(msword_ptr, 0x20) }
         }
         return true;
 
@@ -364,32 +373,32 @@ library BigNumbers {
       * @dev bitLength: returns bytes bit length- ie. log2 (most significant bit of value)
       *             
       * @param a bytes value
-      * @return r uint bit length result.
+      * @return r uint256 bit length result.
       */
     function bitLength(
         bytes memory a
-    ) internal pure returns(uint r){
-        if(isZero(a)) return 0;
-        uint msword; 
-        assembly {
+    ) private pure returns(uint256 r){
+        if(isZero(a)) return UINTZERO;
+        uint256 msword; 
+        assembly ("memory-safe") {
             msword := mload(add(a,0x20))               // get msword of input
         }
         r = bitLength(msword);                         // get bitlen of msword, add to size of remaining words.
-        assembly {                                           
+        assembly ("memory-safe") {                                           
             r := add(r, mul(sub(mload(a), 0x20) , 8))  // res += (val.length-32)*8;  
         }
     }
 
-    /** @notice uint bit length
-        @dev bitLength: get the bit length of a uint input - ie. log2 (most significant bit of 256 bit value (one EVM word))
+    /** @notice uint256 bit length
+        @dev bitLength: get the bit length of a uint256 input - ie. log2 (most significant bit of 256 bit value (one EVM word))
       *                       credit: Tjaden Hess @ ethereum.stackexchange             
-      * @param a uint value
-      * @return r uint bit length result.
+      * @param a uint256 value
+      * @return r uint256 bit length result.
       */
     function bitLength(
-        uint a
-    ) internal pure returns (uint r){
-        assembly {
+        uint256 a
+    ) private pure returns (uint256 r){
+        assembly ("memory-safe") {
             switch eq(a, 0)
             case 1 {
                 r := 0
@@ -428,33 +437,6 @@ library BigNumbers {
             }
         }
     }
-
-    /** @notice BigNumber zero value
-        @dev zero: returns zero encoded as a BigNumber
-      * @return zero encoded as BigNumber
-      */
-    function zero(
-    ) internal pure returns(BigNumber memory) {
-        return BigNumber(ZERO, 0);
-    }
-
-    /** @notice BigNumber one value
-        @dev one: returns one encoded as a BigNumber
-      * @return one encoded as BigNumber
-      */
-    function one(
-    ) internal pure returns(BigNumber memory) {
-        return BigNumber(ONE, 1);
-    }
-
-    /** @notice BigNumber two value
-        @dev two: returns two encoded as a BigNumber
-      * @return two encoded as BigNumber
-      */
-    function two(
-    ) internal pure returns(BigNumber memory) {
-        return BigNumber(TWO, 2);
-    }
     // ***************** END EXPOSED HELPER FUNCTIONS ******************
 
 
@@ -468,20 +450,21 @@ library BigNumbers {
       *            'copy' parameter indicates whether or not to copy the contents of val to a new location in memory (for example where you pass 
       *            the contents of another variable's value in)
       * @param val bytes - bignum value.
-      * @param bitlen uint - bit length of value
+      * @param bitlen uint256 - bit length of value
       * @return r BigNumber initialized value.
       */
     function _init(
         bytes memory val, 
-        uint bitlen
+        uint256 bitlen
     ) private view returns(BigNumber memory r){ 
         // use identity at location 0x4 for cheap memcpy.
         // grab contents of val, load starting from memory end, update memory end pointer.
-        assembly {
+        assembly ("memory-safe") {
             let data := add(val, 0x20)
             let length := mload(val)
             let out
-            let freemem := msize()
+            //let freemem := msize()
+            let freemem := mload(0x40)
             switch eq(mod(length, 0x20), 0)                       // if(val.length % 32 == 0)
                 case 1 {
                     out     := add(freemem, 0x20)                 // freememory location + length word
@@ -508,7 +491,7 @@ library BigNumbers {
             mstore(r, freemem)                                    // store new bytes value in r
         }
 
-        r.bitlen = bitlen == 0 ? bitLength(r.val) : bitlen;
+        r.bitlen = bitlen == UINTZERO ? bitLength(r.val) : bitlen;
     }
     // ***************** END PRIVATE MANAGEMENT FUNCTIONS ******************
 
@@ -527,19 +510,19 @@ library BigNumbers {
       *
       * @param max bytes -  biggest value  (determined from add)
       * @param min bytes -  smallest value (determined from add)
-      * @param max_bitlen uint - bit length of max value.
+      * @param max_bitlen uint256 - bit length of max value.
       * @return bytes result - max + min.
-      * @return uint - bit length of result.
+      * @return uint256 - bit length of result.
       */
     function _add(
         bytes memory max, 
         bytes memory min, 
-        uint max_bitlen
-    ) private pure returns (bytes memory, uint) {
+        uint256 max_bitlen
+    ) private pure returns (bytes memory, uint256) {
         bytes memory result;
-        assembly {
-
-            let result_start := msize()                                       // Get the highest available block of memory
+        assembly ("memory-safe") {
+            // msize()
+            let result_start := mload(0x40)                                  // Get the highest available block of memory
             let carry := 0
             let uint_max := sub(0,1)
 
@@ -548,7 +531,7 @@ library BigNumbers {
 
             let result_ptr := add(add(result_start,0x20), mload(max))         // set result_ptr end.
 
-            for { let i := mload(max) } eq(eq(i,0),0) { i := sub(i, 0x20) } { // for(int i=max_length; i!=0; i-=32)
+            for { let i := mload(max) } eq(eq(i,0),0) { i := sub(i, 0x20) } { // for(int256 i=max_length; i!=0; i-=32)
                 let max_val := mload(max_ptr)                                 // get next word for 'max'
                 switch gt(i,sub(mload(max),mload(min)))                       // if(i>(max_length-min_length)). while 
                                                                               // 'min' words are still available.
@@ -623,18 +606,18 @@ library BigNumbers {
       * @param max bytes -  biggest value  (determined from add)
       * @param min bytes -  smallest value (determined from add)
       * @return bytes result - max + min.
-      * @return uint - bit length of result.
+      * @return uint256 - bit length of result.
       */
     function _sub(
         bytes memory max, 
         bytes memory min
-    ) internal pure returns (bytes memory, uint) {
+    ) private pure returns (bytes memory, uint256) {
         bytes memory result;
-        uint carry = 0;
-        uint uint_max = type(uint256).max;
-        assembly {
-                
-            let result_start := msize()                                     // Get the highest available block of 
+        uint256 carry = UINTZERO;
+        uint256 uint_max = type(uint256).max;
+        assembly ("memory-safe") {
+            // msize()
+            let result_start := mload(0x40)                                   // Get the highest available block of 
                                                                             // memory
         
             let max_len := mload(max)
@@ -649,7 +632,7 @@ library BigNumbers {
             let memory_end := add(result_ptr,0x20)                          // save memory_end to update free memory
                                                                             // pointer at the end.
             
-            for { let i := max_len } eq(eq(i,0),0) { i := sub(i, 0x20) } {  // for(int i=max_length; i!=0; i-=32)
+            for { let i := max_len } eq(eq(i,0),0) { i := sub(i, 0x20) } {  // for(int256 i=max_length; i!=0; i-=32)
                 let max_val := mload(max_ptr)                               // get next word for 'max'
                 switch gt(i,len_diff)                                       // if(i>(max_length-min_length)). while
                                                                             // 'min' words are still available.
@@ -700,7 +683,7 @@ library BigNumbers {
             mstore(0x40, memory_end)                                        // Update freemem pointer.
         }
 
-        uint new_bitlen = bitLength(result);                                // calculate the result's 
+        uint256 new_bitlen = bitLength(result);                                // calculate the result's 
                                                                             // bit length.
         
         return (result, new_bitlen);
@@ -718,16 +701,16 @@ library BigNumbers {
       *         - updating the free memory pointer to come after total length.
       *
       * @param a BigNumber base
-      * @param e uint exponent
+      * @param e uint256 exponent
       * @return BigNumber modulus result
       */
     function _powModulus(
         BigNumber memory a, 
-        uint e
-    ) private pure returns(BigNumber memory){
-        bytes memory _modulus = ZERO;
-        uint mod_index;
-        assembly {
+        uint256 e
+    ) internal pure returns(BigNumber memory){
+        bytes memory _modulus = BYTESZERO;
+        uint256 mod_index;
+        assembly ("memory-safe") {
             mod_index := mul(mload(add(a, 0x20)), e)               // a.bitlen * e is the max bitlength of result
             let first_word_modulus := shl(mod(mod_index, 256), 1)  // set bit in first modulus word.
             mstore(_modulus, mul(add(div(mod_index,256),1),0x20))  // store length of modulus
@@ -753,8 +736,8 @@ library BigNumbers {
         bytes memory _b, 
         bytes memory _e, 
         bytes memory _m
-    ) private view returns(bytes memory r) {
-        assembly {
+    ) internal view returns(bytes memory r) {
+        assembly ("memory-safe") {
             
             let bl := mload(_b)
             let el := mload(_e)
