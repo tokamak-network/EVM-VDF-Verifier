@@ -16,7 +16,7 @@ import { deployments, ethers, getNamedAccounts, network } from "hardhat"
 async function startRegistration() {
     const chainId: number = network.config.chainId as number
     const { deployer } = await getNamedAccounts()
-    const registrationDuration = 86400n
+    const registrationDuration = 120n
     const totalPrizeAmount = 1000n * 10n ** 18n
     console.log("EOA address:", deployer)
     const cryptoDiceAddress = (await deployments.get("CryptoDice")).address
