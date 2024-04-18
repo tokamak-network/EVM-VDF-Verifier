@@ -1,26 +1,39 @@
 import "@typechain/hardhat"
 // import "@nomiclabs/hardhat-waffle"
-import "@nomiclabs/hardhat-etherscan"
-import "@nomiclabs/hardhat-ethers"
-import "hardhat-gas-reporter"
-import "dotenv/config"
-import "solidity-coverage"
-import "hardhat-deploy"
 import "@nomicfoundation/hardhat-chai-matchers"
+import "@nomiclabs/hardhat-ethers"
+import "@nomiclabs/hardhat-etherscan"
+import "dotenv/config"
 import "hardhat-contract-sizer"
+import "hardhat-deploy"
+import "hardhat-gas-reporter"
 import { HardhatUserConfig } from "hardhat/config"
+import "solidity-coverage"
 /** @type import('hardhat/config').HardhatUserConfig */
 
 const optimizerSettings = {
+    viaIR: true,
     optimizer: {
         enabled: true,
-        runs: 1000000,
+        runs: 4294967295,
         details: {
-            yul: false,
+            yul: true,
         },
     },
 }
-
+const optimizerEnabledFalse = {
+    optimizer: {
+        enabled: false,
+    },
+}
+const DEFAULT_COMPILER_SETTINGS = {
+    version: "0.8.23",
+    settings: optimizerSettings,
+}
+const LOW_OPTIMIZER_COMPILER_SETTINGS = {
+    version: "0.8.23",
+    settings: optimizerEnabledFalse,
+}
 const MAINNET_RPC_URL = process.env.MAINNET_RPC_URL
 const SEPOLIA_RPC_URL = process.env.SEPOLIA_RPC_URL
 const POLYGON_MAINNET_RPC_URL = process.env.POLYGON_MAINNET_RPC_URL
@@ -40,7 +53,10 @@ const config: HardhatUserConfig = {
             //   url: MAINNET_RPC_URL
             // }
             chainId: 31337,
-            allowUnlimitedContractSize: true,
+            allowUnlimitedContractSize: false,
+            accounts: {
+                count: 500,
+            },
         },
         localhost: {
             chainId: 31337,
@@ -83,7 +99,7 @@ const config: HardhatUserConfig = {
             accounts: [`${process.env.PRIVATE_KEY}`],
             chainId: 55004,
             //gasPrice: 250000,
-            deploy: ["deploy_titan"],
+            //deploy: ["deploy_titan"],
         },
     },
     deterministicDeployment: (network: string) => {
@@ -105,6 +121,7 @@ const config: HardhatUserConfig = {
             sepolia: ETHERSCAN_API_KEY,
             goerli: ETHERSCAN_API_KEY,
             titangoerli: ETHERSCAN_API_KEY,
+            titan: ETHERSCAN_API_KEY,
         },
         customChains: [
             {
@@ -143,15 +160,20 @@ const config: HardhatUserConfig = {
         },
     },
     solidity: {
-        compilers: [
-            {
-                version: "0.8.22",
-                settings: optimizerSettings,
-            },
-        ],
+        compilers: [DEFAULT_COMPILER_SETTINGS],
+        overrides: {
+            "contracts/strategies/CRRWithNTInProofVerifyAndProcessSeparateFileSeparateWithoutOptimizer.sol":
+                LOW_OPTIMIZER_COMPILER_SETTINGS,
+            "contracts/strategies/interfaces/ICRRWithNTInProofVerifyAndProcessSeparateFileSeparateWithoutOptimizer.sol":
+                LOW_OPTIMIZER_COMPILER_SETTINGS,
+            "contracts/strategies/libraries/Pietrzak_VDFWithoutOptimizer.sol":
+                LOW_OPTIMIZER_COMPILER_SETTINGS,
+            "contracts/strategies/libraries/BigNumbersWithoutOptimizer.sol":
+                LOW_OPTIMIZER_COMPILER_SETTINGS,
+        },
     },
     mocha: {
-        timeout: 200000, // 200 seconds max for running tests
+        timeout: 2000000, // 2000 seconds max for running tests
     },
 }
 

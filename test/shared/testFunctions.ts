@@ -1,40 +1,36 @@
-import { assert, expect } from "chai"
 import { SignerWithAddress } from "@nomicfoundation/hardhat-ethers/signers"
+import { assert } from "chai"
+import { BigNumberish, Contract, ContractTransactionReceipt, dataLength, toBeHex } from "ethers"
+import fs from "fs"
+import { ethers, network } from "hardhat"
+import { networkConfig } from "../../helper-hardhat-config"
 import {
-    BigNumberish,
-    Contract,
-    ContractTransactionReceipt,
-    Log,
-    BytesLike,
-    toBeHex,
-    dataLength,
-} from "ethers"
-import { network, ethers } from "hardhat"
-import {
-    VDFClaim,
-    TestCase,
     BigNumber,
-    SetUpParams,
     CommitParams,
     RevealParams,
+    SetUpParams,
+    TestCase,
     TestCaseJson,
+    VDFClaim,
 } from "./interfaces"
-import { testCases } from "./testcases"
-import { developmentChains, networkConfig } from "../../helper-hardhat-config"
-import fs from "fs"
 
 export const getRankPointOfEachParticipants = async (
-    commitRecoverContract: Contract,
+    CommitRevealRecoverRNGContract: Contract,
     round: number,
 ): Promise<{ addresses: string[]; rankPoints: bigint[] }> => {
     let addresses: string[] = []
     let rankPoints: bigint[] = []
     let a: bigint = BigInt(
-        ethers.keccak256(await commitRecoverContract.valuesAtRound(round).then((x) => x.omega.val)),
+        ethers.keccak256(
+            await CommitRevealRecoverRNGContract.valuesAtRound(round).then((x) => x.omega.val),
+        ),
     )
-    let valuesAtRound: any = await commitRecoverContract.valuesAtRound(round)
+    let valuesAtRound: any = await CommitRevealRecoverRNGContract.valuesAtRound(round)
     for (let i = 0; i < valuesAtRound.numOfParticipants; i++) {
-        let commitRevealValues: any = await commitRecoverContract.commitRevealValues(round, i)
+        let commitRevealValues: any = await CommitRevealRecoverRNGContract.commitRevealValues(
+            round,
+            i,
+        )
         let address: string = commitRevealValues.participantAddress
         addresses.push(address)
         let b: bigint = BigInt(ethers.keccak256(address))
@@ -44,19 +40,20 @@ export const getRankPointOfEachParticipants = async (
     return { addresses, rankPoints }
 }
 
-export const getWinnerAddress = async (commitRecoverContract: Contract, round: number) => {
+export const getWinnerAddress = async (CommitRevealRecoverRNGContract: Contract, round: number) => {
     let winnerIndex: number = 0
-    let setUpValuesAtRound: any = await commitRecoverContract.setUpValuesAtRound(round)
-    let valuesAtRound: any = await commitRecoverContract.valuesAtRound(round)
+    let setUpValuesAtRound: any = await CommitRevealRecoverRNGContract.setUpValuesAtRound(round)
+    let valuesAtRound: any = await CommitRevealRecoverRNGContract.valuesAtRound(round)
     let _n: bigint = setUpValuesAtRound.n.val
     let smallest = _n + 1n
     let _omega: bigint = valuesAtRound.omega.val
     let numOfParticipants: number = valuesAtRound.numOfParticipants
 
     for (let i = 0; i < numOfParticipants; i++) {
-        let participantAddress: bigint = await commitRecoverContract
-            .commitRevealValues(round, i)
-            .then((x) => BigInt(x.participantAddress))
+        let participantAddress: bigint = await CommitRevealRecoverRNGContract.commitRevealValues(
+            round,
+            i,
+        ).then((x) => BigInt(x.participantAddress))
         let _value: bigint = BigInt(BigInt(participantAddress) % BigInt(_n)) - BigInt(_omega)
         _value = _value < 0n ? -_value : _value
         if (_value < smallest) {
@@ -64,9 +61,9 @@ export const getWinnerAddress = async (commitRecoverContract: Contract, round: n
             winnerIndex = i
         }
     }
-    return await commitRecoverContract
-        .commitRevealValues(round, winnerIndex)
-        .then((x) => x.participantAddress)
+    return await CommitRevealRecoverRNGContract.commitRevealValues(round, winnerIndex).then(
+        (x) => x.participantAddress,
+    )
 }
 
 export const createTestCases2 = () => {
@@ -97,7 +94,7 @@ export const createTestCases2 = () => {
                 ),
                 bitlen: getBitLenth2(testData.setupProofs[i].y),
             },
-            T: testData.setupProofs[i].T,
+            // T: testData.setupProofs[i].T,
             v: {
                 //val: toBeHex(testcase[4][i][4]),
                 val: toBeHex(
@@ -126,7 +123,7 @@ export const createTestCases2 = () => {
                 ),
                 bitlen: getBitLenth2(testData.recoveryProofs[i].y),
             },
-            T: testData.recoveryProofs[i].T,
+            // T: testData.recoveryProofs[i].T,
             v: {
                 //val: toBeHex(testcase[9][i][4]),
                 val: toBeHex(
@@ -236,7 +233,7 @@ export const createTestCases = (testcases: any[]) => {
                     ),
                     bitlen: getBitLenth(testcase[4][i][2]),
                 },
-                T: testcase[4][i][3],
+                // T: testcase[4][i][3],
                 v: {
                     //val: toBeHex(testcase[4][i][4]),
                     val: toBeHex(
@@ -265,7 +262,7 @@ export const createTestCases = (testcases: any[]) => {
                     ),
                     bitlen: getBitLenth(testcase[9][i][2]),
                 },
-                T: testcase[9][i][3],
+                // T: testcase[9][i][3],
                 v: {
                     //val: toBeHex(testcase[9][i][4]),
                     val: toBeHex(
@@ -326,133 +323,96 @@ export const createTestCases = (testcases: any[]) => {
     })
     return result
 }
-export const deployCommitRecover = async () => {
-    let commitRecoverContract = await ethers.deployContract("CommitRecover")
-    commitRecoverContract = await commitRecoverContract.waitForDeployment()
-    let tx = commitRecoverContract.deploymentTransaction()
+export const deployCommitRevealRecoverRNG = async () => {
+    let CommitRevealRecoverRNGContract = await ethers.deployContract("CommitRevealRecoverRNG")
+    CommitRevealRecoverRNGContract = await CommitRevealRecoverRNGContract.waitForDeployment()
+    let tx = CommitRevealRecoverRNGContract.deploymentTransaction()
     let receipt = await tx?.wait()
-    return { commitRecoverContract, receipt }
+    return { CommitRevealRecoverRNGContract, receipt }
 }
 
-export const setUpCommitRecoverRound = async (
-    commitRecoverContract: Contract,
+export const deployCImmutableStateCompare = async () => {
+    let CommitRevealRecoverRNGContract = await ethers.deployContract("ImmutableStateCompareTest")
+    CommitRevealRecoverRNGContract = await CommitRevealRecoverRNGContract.waitForDeployment()
+    let tx = CommitRevealRecoverRNGContract.deploymentTransaction()
+    let receipt = await tx?.wait()
+    return { CommitRevealRecoverRNGContract, receipt }
+}
+
+export const setUpCommitRevealRecoverRNGRound = async (
+    CommitRevealRecoverRNGContract: Contract,
     params: SetUpParams,
 ) => {
-    const setUpTx = await commitRecoverContract.setUp(
+    const setUpTx = await CommitRevealRecoverRNGContract.setUp(
         params.commitDuration,
         params.commitRevealDuration,
+        params.T,
         params.n,
         params.setupProofs,
     )
     const receipt = await setUpTx.wait()
-    return { commitRecoverContract, receipt }
+    return { CommitRevealRecoverRNGContract, receipt }
 }
 
 export const commit = async (
-    commitRecoverContract: Contract,
+    CommitRevealRecoverRNGContract: Contract,
     signer: SignerWithAddress,
     params: CommitParams,
 ) => {
-    const tx = await (commitRecoverContract.connect(signer) as Contract).commit(
+    const tx = await (CommitRevealRecoverRNGContract.connect(signer) as Contract).commit(
         params.round,
         params.commit,
     )
     const receipt = await tx.wait()
-    return { commitRecoverContract, receipt }
+    return { CommitRevealRecoverRNGContract, receipt }
 }
 
 export const reveal = async (
-    commitRecoverContract: Contract,
+    CommitRevealRecoverRNGContract: Contract,
     signer: SignerWithAddress,
     params: RevealParams,
 ) => {
-    const tx = await (commitRecoverContract.connect(signer) as Contract).reveal(
+    const tx = await (CommitRevealRecoverRNGContract.connect(signer) as Contract).reveal(
         params.round,
         params.reveal,
     )
     const receipt = await tx.wait()
-    return { commitRecoverContract, receipt }
+    return { CommitRevealRecoverRNGContract, receipt }
 }
 
-export const deployAndSetUpCommitRecoverContract = async (params: any) => {
-    let commitRecover = await ethers.deployContract("CommitRecover", [])
-    commitRecover = await commitRecover.waitForDeployment()
-    const tx = commitRecover.deploymentTransaction()
+export const deployAndSetUpCommitRevealRecoverRNGContract = async (params: any) => {
+    let CommitRevealRecoverRNG = await ethers.deployContract("CommitRevealRecoverRNG", [])
+    CommitRevealRecoverRNG = await CommitRevealRecoverRNG.waitForDeployment()
+    const tx = CommitRevealRecoverRNG.deploymentTransaction()
     let receipt = await tx?.wait()
     console.log("deploy gas used: ", receipt?.gasUsed?.toString())
-    const setUpTx = await commitRecover.setUp(...params)
+    const setUpTx = await CommitRevealRecoverRNG.setUp(...params)
     receipt = await setUpTx.wait()
     console.log("setUp gas used: ", receipt?.gasUsed?.toString())
-    return { commitRecover, receipt }
-}
-
-export const deployFirstTestCaseCommitRecoverContract = async () => {
-    const testcases = createTestCases(testCases)
-    const testcaseNum = 0
-    let params = [
-        networkConfig[network.config.chainId!].commitDuration,
-        networkConfig[network.config.chainId!].commitRevealDuration,
-        testcases[testcaseNum].n,
-        testcases[testcaseNum].setupProofs,
-    ]
-    const { commitRecover, receipt } = await deployAndSetUpCommitRecoverContract(params)
-    //get states
-    // const {
-    //     stage,
-    //     commitSetUpTime,
-    //     commitDuration,
-    //     commitRevealDuration,
-    //     n,
-    //     g,
-    //     h,
-    //     T,
-    //     round,
-    //     deployedEvent,
-    //     deployedBlockNum,
-    //     deployedTimestamp,
-    // } = await getStatesAfterDeployment(commitRecover, receipt as ContractTransactionReceipt)
-    //return states
-    return {
-        commitRecover,
-        receipt,
-        testcases,
-        params,
-        // stage,
-        // commitSetUpTime,
-        // commitDuration,
-        // commitRevealDuration,
-        // n,
-        // g,
-        // h,
-        // T,
-        // round,
-        // deployedEvent,
-        // deployedBlockNum,
-        // deployedTimestamp,
-    }
+    return { CommitRevealRecoverRNG, receipt }
 }
 
 export const getStatesAfterDeployment = async (
-    commitRecoverContract: Contract,
+    CommitRevealRecoverRNGContract: Contract,
     receipt: ContractTransactionReceipt,
 ) => {
     // contract states
-    const stage = await commitRecoverContract.stage()
-    const commitSetUpTime = await commitRecoverContract.setUpTime()
-    const commitDuration = await commitRecoverContract.commitDuration()
-    const commitRevealDuration = await commitRecoverContract.commitRevealDuration()
-    const round = await commitRecoverContract.round()
+    const stage = await CommitRevealRecoverRNGContract.stage()
+    const commitSetUpTime = await CommitRevealRecoverRNGContract.setUpTime()
+    const commitDuration = await CommitRevealRecoverRNGContract.commitDuration()
+    const commitRevealDuration = await CommitRevealRecoverRNGContract.commitRevealDuration()
+    const round = await CommitRevealRecoverRNGContract.round()
     //console.log("round", round)
-    const valuesAtRound = await commitRecoverContract.valuesAtRound(round)
+    const valuesAtRound = await CommitRevealRecoverRNGContract.valuesAtRound(round)
     const n = valuesAtRound.n
     const g = valuesAtRound.g
     const h = valuesAtRound.h
     const T = valuesAtRound.T
 
     // event
-    const topic = commitRecoverContract.interface.getEvent("SetUp")
+    const topic = CommitRevealRecoverRNGContract.interface.getEvent("SetUp")
     const log = receipt.logs.find((x) => x.topics.indexOf(topic?.topicHash!) >= 0)
-    const deployedEvent = commitRecoverContract.interface.parseLog({
+    const deployedEvent = CommitRevealRecoverRNGContract.interface.parseLog({
         topics: log?.topics! as string[],
         data: log?.data!,
     })
@@ -479,7 +439,7 @@ export const getStatesAfterDeployment = async (
 }
 
 export const initializedContractCorrectly = async (
-    commitRecoverContract: Contract,
+    CommitRevealRecoverRNGContract: Contract,
     receipt: ContractTransactionReceipt,
     testcase: TestCase,
 ) => {
@@ -496,7 +456,7 @@ export const initializedContractCorrectly = async (
         deployedEvent,
         deployedBlockNum,
         deployedTimestamp,
-    } = await getStatesAfterDeployment(commitRecoverContract, receipt)
+    } = await getStatesAfterDeployment(CommitRevealRecoverRNGContract, receipt)
 
     assert.equal(
         commitSetUpTime,
@@ -540,7 +500,7 @@ export const initializedContractCorrectly = async (
     // assert.equal(round, deployedEvent!.args?.round, "round should be equal to deployedEvent")
 }
 
-interface CommitRecoverValue {
+interface CommitRevealRecoverRNGValue {
     c: BigNumberish
     a: BigNumberish
     participantAddress: string
@@ -552,25 +512,23 @@ interface UserAtRound {
 }
 
 export const getStatesAfterCommitOrReveal = async (
-    commitRecoverContract: Contract,
+    CommitRevealRecoverRNGContract: Contract,
     receipt: ContractTransactionReceipt,
     signer: SignerWithAddress,
     i: number,
 ) => {
     //contract states
-    const count = await commitRecoverContract.count()
-    const stage = await commitRecoverContract.stage()
-    const commitsString = await commitRecoverContract.commitsString()
-    const round = await commitRecoverContract.round()
-    const valuesAtRound = await commitRecoverContract.valuesAtRound(round)
-    const userInfosAtRound: UserAtRound = await commitRecoverContract.userInfosAtRound(
+    const count = await CommitRevealRecoverRNGContract.count()
+    const stage = await CommitRevealRecoverRNGContract.stage()
+    const commitsString = await CommitRevealRecoverRNGContract.commitsString()
+    const round = await CommitRevealRecoverRNGContract.round()
+    const valuesAtRound = await CommitRevealRecoverRNGContract.valuesAtRound(round)
+    const userInfosAtRound: UserAtRound = await CommitRevealRecoverRNGContract.userInfosAtRound(
         signer.address,
         round,
     )
-    const commitRecoverValue: CommitRecoverValue = await commitRecoverContract.commitRecoverValues(
-        round,
-        i,
-    )
+    const CommitRevealRecoverRNGValue: CommitRevealRecoverRNGValue =
+        await CommitRevealRecoverRNGContract.CommitRevealRecoverRNGValues(round, i)
     return {
         count,
         stage,
@@ -578,12 +536,12 @@ export const getStatesAfterCommitOrReveal = async (
         round,
         valuesAtRound,
         userInfosAtRound,
-        commitRecoverValue,
+        CommitRevealRecoverRNGValue,
     }
 }
 
 export const revealCheck = async (
-    commitRecoverContract: Contract,
+    CommitRevealRecoverRNGContract: Contract,
     receipt: ContractTransactionReceipt,
     random: BigNumber,
     signer: SignerWithAddress,
@@ -599,15 +557,15 @@ export const revealCheck = async (
     //     round,
     //     valuesAtRound,
     //     userInfosAtRound,
-    //     commitRecoverValue,
-    // } = await getStatesAfterCommitOrReveal(commitRecoverContract, receipt, signer, i)
+    //     CommitRevealRecoverRNGValue,
+    // } = await getStatesAfterCommitOrReveal(CommitRevealRecoverRNGContract, receipt, signer, i)
     //console.log("valuesAtRoundvaluesAtRound, ", valuesAtRound)
     //const { omega, bStar, numOfParticipants, isCompleted } = valuesAtRound
 }
 
 let commitsStringTest: string
 export const commitCheck = async (
-    commitRecoverContract: Contract,
+    CommitRevealRecoverRNGContract: Contract,
     receipt: ContractTransactionReceipt,
     commit: BigNumber,
     signer: SignerWithAddress,
@@ -624,8 +582,8 @@ export const commitCheck = async (
     //     round,
     //     valuesAtRound,
     //     userInfosAtRound,
-    //     commitRecoverValue,
-    // } = await getStatesAfterCommitOrReveal(commitRecoverContract, receipt, signer, i)
+    //     CommitRevealRecoverRNGValue,
+    // } = await getStatesAfterCommitOrReveal(CommitRevealRecoverRNGContract, receipt, signer, i)
     //assert.equal(ii + BigInt(1), count, "count should be equal to i")
     // assert.equal(stage, 0, "stage should be 0")
     // assert.equal(round, 1, "round should be 1")
@@ -645,7 +603,7 @@ export const commitCheck = async (
     // //assert.equal(index, ii, "index should be equal to i")
     // assert.equal(committed, true, "committed should be true")
     // assert.equal(revealed, false, "revealed should be false")
-    //     assert.equal(commitRecoverValue.c, commit, "commitRecoverValue.c should be equal to commit")
-    //     assert.equal(commitRecoverValue.participantAddress, signer.address)
-    //     assert.equal(commitRecoverValue.a, 0, "commitRecoverValue.a should be 0")
+    //     assert.equal(CommitRevealRecoverRNGValue.c, commit, "CommitRevealRecoverRNGValue.c should be equal to commit")
+    //     assert.equal(CommitRevealRecoverRNGValue.participantAddress, signer.address)
+    //     assert.equal(CommitRevealRecoverRNGValue.a, 0, "CommitRevealRecoverRNGValue.a should be 0")
 }

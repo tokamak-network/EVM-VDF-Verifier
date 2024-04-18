@@ -1,0 +1,1782 @@
+{
+    "gasCostsCommitRevealCalculateOmega": [
+        [
+            {
+                "λ1024T2^20": [
+                    {
+                        "setUpGas": "2627774",
+                        "recoverGas": 0,
+                        "commitGas": ["382820", "379743", "390682"],
+                        "revealGas": ["405667", "298331", "296903"],
+                        "calculateOmegaGas": "689794",
+                        "verifyRecursiveHalvingProofForSetup": "2050690",
+                        "verifyRecursiveHalvingProofForRecovery": 0
+                    },
+                    {
+                        "setUpGas": "2609273",
+                        "recoverGas": 0,
+                        "commitGas": ["382820", "379743", "390694"],
+                        "revealGas": ["405558", "297917", "296818"],
+                        "calculateOmegaGas": "687892",
+                        "verifyRecursiveHalvingProofForSetup": "2049285",
+                        "verifyRecursiveHalvingProofForRecovery": 0
+                    },
+                    {
+                        "setUpGas": "2601661",
+                        "recoverGas": 0,
+                        "commitGas": ["382832", "379731", "390694"],
+                        "revealGas": ["405667", "298331", "296988"],
+                        "calculateOmegaGas": "688633",
+                        "verifyRecursiveHalvingProofForSetup": "2041681",
+                        "verifyRecursiveHalvingProofForRecovery": 0
+                    },
+                    {
+                        "setUpGas": "2606791",
+                        "recoverGas": 0,
+                        "commitGas": ["382832", "379743", "390694"],
+                        "revealGas": ["405411", "298343", "296915"],
+                        "calculateOmegaGas": "688619",
+                        "verifyRecursiveHalvingProofForSetup": "2046809",
+                        "verifyRecursiveHalvingProofForRecovery": 0
+                    },
+                    {
+                        "setUpGas": "2607894",
+                        "recoverGas": 0,
+                        "commitGas": ["382832", "379755", "390670"],
+                        "revealGas": ["405582", "298343", "297000"],
+                        "calculateOmegaGas": "688275",
+                        "verifyRecursiveHalvingProofForSetup": "2047912",
+                        "verifyRecursiveHalvingProofForRecovery": 0
+                    }
+                ]
+            },
+            {
+                "λ1024T2^21": [
+                    {
+                        "setUpGas": "2744853",
+                        "recoverGas": 0,
+                        "commitGas": ["382820", "379743", "390682"],
+                        "revealGas": ["405741", "298234", "296988"],
+                        "calculateOmegaGas": "688492",
+                        "verifyRecursiveHalvingProofForSetup": "2167676",
+                        "verifyRecursiveHalvingProofForRecovery": 0
+                    },
+                    {
+                        "setUpGas": "2718110",
+                        "recoverGas": 0,
+                        "commitGas": ["382832", "379755", "390682"],
+                        "revealGas": ["405679", "298002", "297000"],
+                        "calculateOmegaGas": "688113",
+                        "verifyRecursiveHalvingProofForSetup": "2158034",
+                        "verifyRecursiveHalvingProofForRecovery": 0
+                    },
+                    {
+                        "setUpGas": "2718346",
+                        "recoverGas": 0,
+                        "commitGas": ["382808", "379743", "390694"],
+                        "revealGas": ["405679", "298343", "296988"],
+                        "calculateOmegaGas": "689148",
+                        "verifyRecursiveHalvingProofForSetup": "2158268",
+                        "verifyRecursiveHalvingProofForRecovery": 0
+                    },
+                    {
+                        "setUpGas": "2718515",
+                        "recoverGas": 0,
+                        "commitGas": ["382820", "379731", "390694"],
+                        "revealGas": ["405582", "298343", "297000"],
+                        "calculateOmegaGas": "689455",
+                        "verifyRecursiveHalvingProofForSetup": "2158439",
+                        "verifyRecursiveHalvingProofForRecovery": 0
+                    },
+                    {
+                        "setUpGas": "2727374",
+                        "recoverGas": 0,
+                        "commitGas": ["382796", "379755", "390670"],
+                        "revealGas": ["405753", "298405", "296732"],
+                        "calculateOmegaGas": "688167",
+                        "verifyRecursiveHalvingProofForSetup": "2167294",
+                        "verifyRecursiveHalvingProofForRecovery": 0
+                    }
+                ]
+            },
+            {
+                "λ1024T2^22": [
+                    {
+                        "setUpGas": "2848477",
+                        "recoverGas": 0,
+                        "commitGas": ["382808", "379743", "390682"],
+                        "revealGas": ["405558", "298319", "296879"],
+                        "calculateOmegaGas": "688908",
+                        "verifyRecursiveHalvingProofForSetup": "2271234",
+                        "verifyRecursiveHalvingProofForRecovery": 0
+                    },
+                    {
+                        "setUpGas": "2830083",
+                        "recoverGas": 0,
+                        "commitGas": ["382832", "379755", "390694"],
+                        "revealGas": ["405582", "298258", "296830"],
+                        "calculateOmegaGas": "688178",
+                        "verifyRecursiveHalvingProofForSetup": "2269939",
+                        "verifyRecursiveHalvingProofForRecovery": 0
+                    },
+                    {
+                        "setUpGas": "2831256",
+                        "recoverGas": 0,
+                        "commitGas": ["382832", "379743", "390694"],
+                        "revealGas": ["405582", "298343", "296915"],
+                        "calculateOmegaGas": "688649",
+                        "verifyRecursiveHalvingProofForSetup": "2271109",
+                        "verifyRecursiveHalvingProofForRecovery": 0
+                    },
+                    {
+                        "setUpGas": "2831687",
+                        "recoverGas": 0,
+                        "commitGas": ["382832", "379755", "390670"],
+                        "revealGas": ["405338", "298343", "297000"],
+                        "calculateOmegaGas": "688560",
+                        "verifyRecursiveHalvingProofForSetup": "2271540",
+                        "verifyRecursiveHalvingProofForRecovery": 0
+                    },
+                    {
+                        "setUpGas": "2840906",
+                        "recoverGas": 0,
+                        "commitGas": ["382820", "379755", "390682"],
+                        "revealGas": ["405741", "298405", "296818"],
+                        "calculateOmegaGas": "688500",
+                        "verifyRecursiveHalvingProofForSetup": "2280753",
+                        "verifyRecursiveHalvingProofForRecovery": 0
+                    }
+                ]
+            },
+            {
+                "λ1024T2^23": [
+                    {
+                        "setUpGas": "2951925",
+                        "recoverGas": 0,
+                        "commitGas": ["382820", "379731", "390682"],
+                        "revealGas": ["405558", "298161", "296976"],
+                        "calculateOmegaGas": "688744",
+                        "verifyRecursiveHalvingProofForSetup": "2374603",
+                        "verifyRecursiveHalvingProofForRecovery": 0
+                    },
+                    {
+                        "setUpGas": "2942844",
+                        "recoverGas": 0,
+                        "commitGas": ["382808", "379755", "390694"],
+                        "revealGas": ["405582", "298417", "297000"],
+                        "calculateOmegaGas": "689703",
+                        "verifyRecursiveHalvingProofForSetup": "2382615",
+                        "verifyRecursiveHalvingProofForRecovery": 0
+                    },
+                    {
+                        "setUpGas": "2940213",
+                        "recoverGas": 0,
+                        "commitGas": ["382796", "379755", "390682"],
+                        "revealGas": ["405423", "298246", "296915"],
+                        "calculateOmegaGas": "687964",
+                        "verifyRecursiveHalvingProofForSetup": "2379988",
+                        "verifyRecursiveHalvingProofForRecovery": 0
+                    },
+                    {
+                        "setUpGas": "2948550",
+                        "recoverGas": 0,
+                        "commitGas": ["382832", "379755", "390694"],
+                        "revealGas": ["405582", "298405", "297000"],
+                        "calculateOmegaGas": "689808",
+                        "verifyRecursiveHalvingProofForSetup": "2388317",
+                        "verifyRecursiveHalvingProofForRecovery": 0
+                    },
+                    {
+                        "setUpGas": "2943751",
+                        "recoverGas": 0,
+                        "commitGas": ["382832", "379755", "390694"],
+                        "revealGas": ["405399", "298246", "296988"],
+                        "calculateOmegaGas": "689647",
+                        "verifyRecursiveHalvingProofForSetup": "2383524",
+                        "verifyRecursiveHalvingProofForRecovery": 0
+                    }
+                ]
+            },
+            {
+                "λ1024T2^24": [
+                    {
+                        "setUpGas": "3080087",
+                        "recoverGas": 0,
+                        "commitGas": ["382820", "379731", "390670"],
+                        "revealGas": ["405667", "298161", "297050"],
+                        "calculateOmegaGas": "687840",
+                        "verifyRecursiveHalvingProofForSetup": "2502673",
+                        "verifyRecursiveHalvingProofForRecovery": 0
+                    },
+                    {
+                        "setUpGas": "3070078",
+                        "recoverGas": 0,
+                        "commitGas": ["382808", "379743", "390682"],
+                        "revealGas": ["405667", "298405", "297000"],
+                        "calculateOmegaGas": "689621",
+                        "verifyRecursiveHalvingProofForSetup": "2509761",
+                        "verifyRecursiveHalvingProofForRecovery": 0
+                    },
+                    {
+                        "setUpGas": "3050462",
+                        "recoverGas": 0,
+                        "commitGas": ["382832", "379755", "390694"],
+                        "revealGas": ["405497", "298343", "296488"],
+                        "calculateOmegaGas": "687475",
+                        "verifyRecursiveHalvingProofForSetup": "2490157",
+                        "verifyRecursiveHalvingProofForRecovery": 0
+                    },
+                    {
+                        "setUpGas": "3057297",
+                        "recoverGas": 0,
+                        "commitGas": ["382820", "379719", "390694"],
+                        "revealGas": ["405679", "298258", "297000"],
+                        "calculateOmegaGas": "689362",
+                        "verifyRecursiveHalvingProofForSetup": "2496989",
+                        "verifyRecursiveHalvingProofForRecovery": 0
+                    },
+                    {
+                        "setUpGas": "3059503",
+                        "recoverGas": 0,
+                        "commitGas": ["382820", "379731", "390694"],
+                        "revealGas": ["405594", "298343", "297000"],
+                        "calculateOmegaGas": "688980",
+                        "verifyRecursiveHalvingProofForSetup": "2499191",
+                        "verifyRecursiveHalvingProofForRecovery": 0
+                    }
+                ]
+            },
+            {
+                "λ1024T2^25": [
+                    {
+                        "setUpGas": "3196851",
+                        "recoverGas": 0,
+                        "commitGas": ["382808", "379731", "390658"],
+                        "revealGas": ["405570", "298075", "296818"],
+                        "calculateOmegaGas": "688504",
+                        "verifyRecursiveHalvingProofForSetup": "2619346",
+                        "verifyRecursiveHalvingProofForRecovery": 0
+                    },
+                    {
+                        "setUpGas": "3178470",
+                        "recoverGas": 0,
+                        "commitGas": ["382820", "379755", "390682"],
+                        "revealGas": ["405679", "298331", "296988"],
+                        "calculateOmegaGas": "689601",
+                        "verifyRecursiveHalvingProofForSetup": "2618060",
+                        "verifyRecursiveHalvingProofForRecovery": 0
+                    },
+                    {
+                        "setUpGas": "3169736",
+                        "recoverGas": 0,
+                        "commitGas": ["382832", "379755", "390694"],
+                        "revealGas": ["405497", "298258", "296830"],
+                        "calculateOmegaGas": "689068",
+                        "verifyRecursiveHalvingProofForSetup": "2609335",
+                        "verifyRecursiveHalvingProofForRecovery": 0
+                    },
+                    {
+                        "setUpGas": "3167952",
+                        "recoverGas": 0,
+                        "commitGas": ["382832", "379743", "390694"],
+                        "revealGas": ["405643", "298258", "296744"],
+                        "calculateOmegaGas": "687719",
+                        "verifyRecursiveHalvingProofForSetup": "2607551",
+                        "verifyRecursiveHalvingProofForRecovery": 0
+                    },
+                    {
+                        "setUpGas": "3170402",
+                        "recoverGas": 0,
+                        "commitGas": ["382832", "379755", "390694"],
+                        "revealGas": ["405667", "298246", "296903"],
+                        "calculateOmegaGas": "687206",
+                        "verifyRecursiveHalvingProofForSetup": "2610003",
+                        "verifyRecursiveHalvingProofForRecovery": 0
+                    }
+                ]
+            }
+        ],
+        [
+            {
+                "λ2048T2^20": [
+                    {
+                        "setUpGas": "4840330",
+                        "recoverGas": 0,
+                        "commitGas": ["565263", "573115", "594997"],
+                        "revealGas": ["1161729", "1028016", "1026709"],
+                        "calculateOmegaGas": "2902205",
+                        "verifyRecursiveHalvingProofForSetup": "3992905",
+                        "verifyRecursiveHalvingProofForRecovery": 0
+                    },
+                    {
+                        "setUpGas": "4832120",
+                        "recoverGas": 0,
+                        "commitGas": ["565227", "573127", "594961"],
+                        "revealGas": ["1162130", "1028028", "1026709"],
+                        "calculateOmegaGas": "2904941",
+                        "verifyRecursiveHalvingProofForSetup": "4001786",
+                        "verifyRecursiveHalvingProofForRecovery": 0
+                    },
+                    {
+                        "setUpGas": "4818283",
+                        "recoverGas": 0,
+                        "commitGas": ["565263", "573127", "595009"],
+                        "revealGas": ["1162094", "1028064", "1026721"],
+                        "calculateOmegaGas": "2902228",
+                        "verifyRecursiveHalvingProofForSetup": "3987959",
+                        "verifyRecursiveHalvingProofForRecovery": 0
+                    },
+                    {
+                        "setUpGas": "4821826",
+                        "recoverGas": 0,
+                        "commitGas": ["565263", "573127", "595021"],
+                        "revealGas": ["1162460", "1028052", "1026709"],
+                        "calculateOmegaGas": "2904233",
+                        "verifyRecursiveHalvingProofForSetup": "3991500",
+                        "verifyRecursiveHalvingProofForRecovery": 0
+                    },
+                    {
+                        "setUpGas": "4820629",
+                        "recoverGas": 0,
+                        "commitGas": ["565275", "573139", "595009"],
+                        "revealGas": ["1161777", "1028052", "1026721"],
+                        "calculateOmegaGas": "2900991",
+                        "verifyRecursiveHalvingProofForSetup": "3990306",
+                        "verifyRecursiveHalvingProofForRecovery": 0
+                    }
+                ]
+            },
+            {
+                "λ2048T2^21": [
+                    {
+                        "setUpGas": "5043987",
+                        "recoverGas": 0,
+                        "commitGas": ["565263", "573103", "595009"],
+                        "revealGas": ["1162106", "1027698", "1026709"],
+                        "calculateOmegaGas": "2904562",
+                        "verifyRecursiveHalvingProofForSetup": "4196428",
+                        "verifyRecursiveHalvingProofForRecovery": 0
+                    },
+                    {
+                        "setUpGas": "5029049",
+                        "recoverGas": 0,
+                        "commitGas": ["565263", "573139", "595021"],
+                        "revealGas": ["1162118", "1027722", "1026709"],
+                        "calculateOmegaGas": "2903192",
+                        "verifyRecursiveHalvingProofForSetup": "4198588",
+                        "verifyRecursiveHalvingProofForRecovery": 0
+                    },
+                    {
+                        "setUpGas": "5034461",
+                        "recoverGas": 0,
+                        "commitGas": ["565275", "573139", "594985"],
+                        "revealGas": ["1161448", "1028040", "1026697"],
+                        "calculateOmegaGas": "2900888",
+                        "verifyRecursiveHalvingProofForSetup": "4203995",
+                        "verifyRecursiveHalvingProofForRecovery": 0
+                    },
+                    {
+                        "setUpGas": "5043465",
+                        "recoverGas": 0,
+                        "commitGas": ["565263", "573139", "594985"],
+                        "revealGas": ["1162460", "1028393", "1026697"],
+                        "calculateOmegaGas": "2904377",
+                        "verifyRecursiveHalvingProofForSetup": "4212996",
+                        "verifyRecursiveHalvingProofForRecovery": 0
+                    },
+                    {
+                        "setUpGas": "5038036",
+                        "recoverGas": 0,
+                        "commitGas": ["565263", "573115", "595009"],
+                        "revealGas": ["1162789", "1027040", "1026709"],
+                        "calculateOmegaGas": "2903093",
+                        "verifyRecursiveHalvingProofForSetup": "4207569",
+                        "verifyRecursiveHalvingProofForRecovery": 0
+                    }
+                ]
+            },
+            {
+                "λ2048T2^22": [
+                    {
+                        "setUpGas": "5275502",
+                        "recoverGas": 0,
+                        "commitGas": ["565263", "573103", "595009"],
+                        "revealGas": ["1161777", "1027686", "1026697"],
+                        "calculateOmegaGas": "2904494",
+                        "verifyRecursiveHalvingProofForSetup": "4427812",
+                        "verifyRecursiveHalvingProofForRecovery": 0
+                    },
+                    {
+                        "setUpGas": "5249309",
+                        "recoverGas": 0,
+                        "commitGas": ["565263", "573127", "595009"],
+                        "revealGas": ["1162118", "1028052", "1026721"],
+                        "calculateOmegaGas": "2903588",
+                        "verifyRecursiveHalvingProofForSetup": "4418726",
+                        "verifyRecursiveHalvingProofForRecovery": 0
+                    },
+                    {
+                        "setUpGas": "5253387",
+                        "recoverGas": 0,
+                        "commitGas": ["565251", "573115", "594997"],
+                        "revealGas": ["1162424", "1028052", "1026355"],
+                        "calculateOmegaGas": "2903008",
+                        "verifyRecursiveHalvingProofForSetup": "4422807",
+                        "verifyRecursiveHalvingProofForRecovery": 0
+                    },
+                    {
+                        "setUpGas": "5252306",
+                        "recoverGas": 0,
+                        "commitGas": ["565239", "573115", "595009"],
+                        "revealGas": ["1162130", "1027710", "1025355"],
+                        "calculateOmegaGas": "2903385",
+                        "verifyRecursiveHalvingProofForSetup": "4421720",
+                        "verifyRecursiveHalvingProofForRecovery": 0
+                    },
+                    {
+                        "setUpGas": "5252144",
+                        "recoverGas": 0,
+                        "commitGas": ["565263", "573127", "595009"],
+                        "revealGas": ["1162436", "1028052", "1026709"],
+                        "calculateOmegaGas": "2903650",
+                        "verifyRecursiveHalvingProofForSetup": "4421555",
+                        "verifyRecursiveHalvingProofForRecovery": 0
+                    }
+                ]
+            },
+            {
+                "λ2048T2^23": [
+                    {
+                        "setUpGas": "5491803",
+                        "recoverGas": 0,
+                        "commitGas": ["565263", "573115", "594997"],
+                        "revealGas": ["1162448", "1027016", "1026697"],
+                        "calculateOmegaGas": "2902939",
+                        "verifyRecursiveHalvingProofForSetup": "4643989",
+                        "verifyRecursiveHalvingProofForRecovery": 0
+                    },
+                    {
+                        "setUpGas": "5468810",
+                        "recoverGas": 0,
+                        "commitGas": ["565263", "573115", "594997"],
+                        "revealGas": ["1162106", "1028064", "1026697"],
+                        "calculateOmegaGas": "2903914",
+                        "verifyRecursiveHalvingProofForSetup": "4638096",
+                        "verifyRecursiveHalvingProofForRecovery": 0
+                    },
+                    {
+                        "setUpGas": "5472425",
+                        "recoverGas": 0,
+                        "commitGas": ["565263", "573139", "595021"],
+                        "revealGas": ["1162106", "1027710", "1026709"],
+                        "calculateOmegaGas": "2901325",
+                        "verifyRecursiveHalvingProofForSetup": "4641711",
+                        "verifyRecursiveHalvingProofForRecovery": 0
+                    },
+                    {
+                        "setUpGas": "5471203",
+                        "recoverGas": 0,
+                        "commitGas": ["565263", "573139", "594997"],
+                        "revealGas": ["1162130", "1027710", "1026038"],
+                        "calculateOmegaGas": "2903732",
+                        "verifyRecursiveHalvingProofForSetup": "4640492",
+                        "verifyRecursiveHalvingProofForRecovery": 0
+                    },
+                    {
+                        "setUpGas": "5464359",
+                        "recoverGas": 0,
+                        "commitGas": ["565263", "573115", "595009"],
+                        "revealGas": ["1161777", "1027016", "1026709"],
+                        "calculateOmegaGas": "2903387",
+                        "verifyRecursiveHalvingProofForSetup": "4633645",
+                        "verifyRecursiveHalvingProofForRecovery": 0
+                    }
+                ]
+            },
+            {
+                "λ2048T2^24": [
+                    {
+                        "setUpGas": "5716064",
+                        "recoverGas": 0,
+                        "commitGas": ["565239", "573115", "594997"],
+                        "revealGas": ["1162765", "1027369", "1027026"],
+                        "calculateOmegaGas": "2904464",
+                        "verifyRecursiveHalvingProofForSetup": "4868110",
+                        "verifyRecursiveHalvingProofForRecovery": 0
+                    },
+                    {
+                        "setUpGas": "5674673",
+                        "recoverGas": 0,
+                        "commitGas": ["565275", "573127", "595021"],
+                        "revealGas": ["1161789", "1027698", "1026379"],
+                        "calculateOmegaGas": "2903166",
+                        "verifyRecursiveHalvingProofForSetup": "4843838",
+                        "verifyRecursiveHalvingProofForRecovery": 0
+                    },
+                    {
+                        "setUpGas": "5689152",
+                        "recoverGas": 0,
+                        "commitGas": ["565227", "573127", "595009"],
+                        "revealGas": ["1161777", "1028381", "1026709"],
+                        "calculateOmegaGas": "2902191",
+                        "verifyRecursiveHalvingProofForSetup": "4858310",
+                        "verifyRecursiveHalvingProofForRecovery": 0
+                    },
+                    {
+                        "setUpGas": "5687955",
+                        "recoverGas": 0,
+                        "commitGas": ["565263", "573127", "594997"],
+                        "revealGas": ["1162118", "1028064", "1027050"],
+                        "calculateOmegaGas": "2902517",
+                        "verifyRecursiveHalvingProofForSetup": "4857108",
+                        "verifyRecursiveHalvingProofForRecovery": 0
+                    },
+                    {
+                        "setUpGas": "5670615",
+                        "recoverGas": 0,
+                        "commitGas": ["565275", "573115", "595009"],
+                        "revealGas": ["1161765", "1027686", "1026721"],
+                        "calculateOmegaGas": "2902283",
+                        "verifyRecursiveHalvingProofForSetup": "4839781",
+                        "verifyRecursiveHalvingProofForRecovery": 0
+                    }
+                ]
+            },
+            {
+                "λ2048T2^25": [
+                    {
+                        "setUpGas": "5914880",
+                        "recoverGas": 0,
+                        "commitGas": ["565227", "573127", "594997"],
+                        "revealGas": ["1162460", "1027357", "1026367"],
+                        "calculateOmegaGas": "2902186",
+                        "verifyRecursiveHalvingProofForSetup": "5066798",
+                        "verifyRecursiveHalvingProofForRecovery": 0
+                    },
+                    {
+                        "setUpGas": "5910632",
+                        "recoverGas": 0,
+                        "commitGas": ["565275", "573127", "595021"],
+                        "revealGas": ["1162789", "1028052", "1026721"],
+                        "calculateOmegaGas": "2903889",
+                        "verifyRecursiveHalvingProofForSetup": "5079647",
+                        "verifyRecursiveHalvingProofForRecovery": 0
+                    },
+                    {
+                        "setUpGas": "5917264",
+                        "recoverGas": 0,
+                        "commitGas": ["565263", "573127", "594985"],
+                        "revealGas": ["1162472", "1027357", "1026379"],
+                        "calculateOmegaGas": "2902795",
+                        "verifyRecursiveHalvingProofForSetup": "5086273",
+                        "verifyRecursiveHalvingProofForRecovery": 0
+                    },
+                    {
+                        "setUpGas": "5909370",
+                        "recoverGas": 0,
+                        "commitGas": ["565263", "573127", "594973"],
+                        "revealGas": ["1162777", "1028393", "1026026"],
+                        "calculateOmegaGas": "2903643",
+                        "verifyRecursiveHalvingProofForSetup": "5078380",
+                        "verifyRecursiveHalvingProofForRecovery": 0
+                    },
+                    {
+                        "setUpGas": "5918952",
+                        "recoverGas": 0,
+                        "commitGas": ["565275", "573127", "594997"],
+                        "revealGas": ["1162460", "1028052", "1027026"],
+                        "calculateOmegaGas": "2905569",
+                        "verifyRecursiveHalvingProofForSetup": "5087960",
+                        "verifyRecursiveHalvingProofForRecovery": 0
+                    }
+                ]
+            }
+        ],
+        [
+            {
+                "λ3072T2^20": [
+                    {
+                        "setUpGas": "8037957",
+                        "recoverGas": 0,
+                        "commitGas": ["747696", "766514", "799305"],
+                        "revealGas": ["2966257", "2805242", "2803911"],
+                        "calculateOmegaGas": "8399741",
+                        "verifyRecursiveHalvingProofForSetup": "6919891",
+                        "verifyRecursiveHalvingProofForRecovery": 0
+                    },
+                    {
+                        "setUpGas": "8025742",
+                        "recoverGas": 0,
+                        "commitGas": ["747684", "766538", "799341"],
+                        "revealGas": ["2968549", "2806742", "2804691"],
+                        "calculateOmegaGas": "8404658",
+                        "verifyRecursiveHalvingProofForSetup": "6924766",
+                        "verifyRecursiveHalvingProofForRecovery": 0
+                    },
+                    {
+                        "setUpGas": "8023139",
+                        "recoverGas": 0,
+                        "commitGas": ["747708", "766514", "799365"],
+                        "revealGas": ["2967793", "2805242", "2802363"],
+                        "calculateOmegaGas": "8401538",
+                        "verifyRecursiveHalvingProofForSetup": "6922171",
+                        "verifyRecursiveHalvingProofForRecovery": 0
+                    },
+                    {
+                        "setUpGas": "8011163",
+                        "recoverGas": 0,
+                        "commitGas": ["747720", "766526", "799329"],
+                        "revealGas": ["2967793", "2805266", "2803143"],
+                        "calculateOmegaGas": "8399609",
+                        "verifyRecursiveHalvingProofForSetup": "6910201",
+                        "verifyRecursiveHalvingProofForRecovery": 0
+                    },
+                    {
+                        "setUpGas": "8018388",
+                        "recoverGas": 0,
+                        "commitGas": ["747708", "766514", "799365"],
+                        "revealGas": ["2967805", "2806766", "2803155"],
+                        "calculateOmegaGas": "8400633",
+                        "verifyRecursiveHalvingProofForSetup": "6917413",
+                        "verifyRecursiveHalvingProofForRecovery": 0
+                    }
+                ]
+            },
+            {
+                "λ3072T2^21": [
+                    {
+                        "setUpGas": "8405431",
+                        "recoverGas": 0,
+                        "commitGas": ["747684", "766526", "799353"],
+                        "revealGas": ["2967793", "2805998", "2803851"],
+                        "calculateOmegaGas": "8400352",
+                        "verifyRecursiveHalvingProofForSetup": "7287153",
+                        "verifyRecursiveHalvingProofForRecovery": 0
+                    },
+                    {
+                        "setUpGas": "8387059",
+                        "recoverGas": 0,
+                        "commitGas": ["747708", "766502", "799341"],
+                        "revealGas": ["2967037", "2806010", "2803875"],
+                        "calculateOmegaGas": "8398740",
+                        "verifyRecursiveHalvingProofForSetup": "7285890",
+                        "verifyRecursiveHalvingProofForRecovery": 0
+                    },
+                    {
+                        "setUpGas": "8385783",
+                        "recoverGas": 0,
+                        "commitGas": ["747720", "766514", "799365"],
+                        "revealGas": ["2967805", "2806010", "2803887"],
+                        "calculateOmegaGas": "8402329",
+                        "verifyRecursiveHalvingProofForSetup": "7284609",
+                        "verifyRecursiveHalvingProofForRecovery": 0
+                    },
+                    {
+                        "setUpGas": "8383807",
+                        "recoverGas": 0,
+                        "commitGas": ["747708", "766526", "799341"],
+                        "revealGas": ["2967769", "2805266", "2805411"],
+                        "calculateOmegaGas": "8402873",
+                        "verifyRecursiveHalvingProofForSetup": "7282626",
+                        "verifyRecursiveHalvingProofForRecovery": 0
+                    },
+                    {
+                        "setUpGas": "8378821",
+                        "recoverGas": 0,
+                        "commitGas": ["747720", "766526", "799341"],
+                        "revealGas": ["2967805", "2805986", "2804667"],
+                        "calculateOmegaGas": "8399941",
+                        "verifyRecursiveHalvingProofForSetup": "7277648",
+                        "verifyRecursiveHalvingProofForRecovery": 0
+                    }
+                ]
+            },
+            {
+                "λ3072T2^22": [
+                    {
+                        "setUpGas": "8780541",
+                        "recoverGas": 0,
+                        "commitGas": ["747672", "766502", "799329"],
+                        "revealGas": ["2968525", "2805254", "2804667"],
+                        "calculateOmegaGas": "8399273",
+                        "verifyRecursiveHalvingProofForSetup": "7662077",
+                        "verifyRecursiveHalvingProofForRecovery": 0
+                    },
+                    {
+                        "setUpGas": "8768307",
+                        "recoverGas": 0,
+                        "commitGas": ["747720", "766526", "799365"],
+                        "revealGas": ["2967757", "2806034", "2803899"],
+                        "calculateOmegaGas": "8401593",
+                        "verifyRecursiveHalvingProofForSetup": "7666957",
+                        "verifyRecursiveHalvingProofForRecovery": 0
+                    },
+                    {
+                        "setUpGas": "8740363",
+                        "recoverGas": 0,
+                        "commitGas": ["747732", "766538", "799341"],
+                        "revealGas": ["2967781", "2805242", "2803923"],
+                        "calculateOmegaGas": "8401368",
+                        "verifyRecursiveHalvingProofForSetup": "7639014",
+                        "verifyRecursiveHalvingProofForRecovery": 0
+                    },
+                    {
+                        "setUpGas": "8769373",
+                        "recoverGas": 0,
+                        "commitGas": ["747720", "766526", "799353"],
+                        "revealGas": ["2966257", "2806034", "2804691"],
+                        "calculateOmegaGas": "8401768",
+                        "verifyRecursiveHalvingProofForSetup": "7668020",
+                        "verifyRecursiveHalvingProofForRecovery": 0
+                    },
+                    {
+                        "setUpGas": "8763226",
+                        "recoverGas": 0,
+                        "commitGas": ["747696", "766526", "799329"],
+                        "revealGas": ["2967013", "2804462", "2802375"],
+                        "calculateOmegaGas": "8396966",
+                        "verifyRecursiveHalvingProofForSetup": "7661871",
+                        "verifyRecursiveHalvingProofForRecovery": 0
+                    }
+                ]
+            },
+            {
+                "λ3072T2^23": [
+                    {
+                        "setUpGas": "9176323",
+                        "recoverGas": 0,
+                        "commitGas": ["747684", "766514", "799329"],
+                        "revealGas": ["2967793", "2806010", "2802351"],
+                        "calculateOmegaGas": "8400069",
+                        "verifyRecursiveHalvingProofForSetup": "8057663",
+                        "verifyRecursiveHalvingProofForRecovery": 0
+                    },
+                    {
+                        "setUpGas": "9157221",
+                        "recoverGas": 0,
+                        "commitGas": ["747720", "766514", "799353"],
+                        "revealGas": ["2967793", "2803694", "2804679"],
+                        "calculateOmegaGas": "8396083",
+                        "verifyRecursiveHalvingProofForSetup": "8055670",
+                        "verifyRecursiveHalvingProofForRecovery": 0
+                    },
+                    {
+                        "setUpGas": "9162386",
+                        "recoverGas": 0,
+                        "commitGas": ["747720", "766526", "799341"],
+                        "revealGas": ["2967769", "2804474", "2805435"],
+                        "calculateOmegaGas": "8401837",
+                        "verifyRecursiveHalvingProofForSetup": "8060820",
+                        "verifyRecursiveHalvingProofForRecovery": 0
+                    },
+                    {
+                        "setUpGas": "9144425",
+                        "recoverGas": 0,
+                        "commitGas": ["747708", "766526", "799353"],
+                        "revealGas": ["2967769", "2805254", "2803911"],
+                        "calculateOmegaGas": "8399671",
+                        "verifyRecursiveHalvingProofForSetup": "8042880",
+                        "verifyRecursiveHalvingProofForRecovery": 0
+                    },
+                    {
+                        "setUpGas": "9139241",
+                        "recoverGas": 0,
+                        "commitGas": ["747720", "766514", "799341"],
+                        "revealGas": ["2966269", "2805974", "2803131"],
+                        "calculateOmegaGas": "8398091",
+                        "verifyRecursiveHalvingProofForSetup": "8037689",
+                        "verifyRecursiveHalvingProofForRecovery": 0
+                    }
+                ]
+            },
+            {
+                "λ3072T2^24": [
+                    {
+                        "setUpGas": "9511300",
+                        "recoverGas": 0,
+                        "commitGas": ["747672", "766502", "799305"],
+                        "revealGas": ["2967025", "2805254", "2804679"],
+                        "calculateOmegaGas": "8397638",
+                        "verifyRecursiveHalvingProofForSetup": "8392457",
+                        "verifyRecursiveHalvingProofForRecovery": 0
+                    },
+                    {
+                        "setUpGas": "9507329",
+                        "recoverGas": 0,
+                        "commitGas": ["747720", "766502", "799341"],
+                        "revealGas": ["2967793", "2805218", "2802363"],
+                        "calculateOmegaGas": "8396045",
+                        "verifyRecursiveHalvingProofForSetup": "8405593",
+                        "verifyRecursiveHalvingProofForRecovery": 0
+                    },
+                    {
+                        "setUpGas": "9516483",
+                        "recoverGas": 0,
+                        "commitGas": ["747732", "766538", "799353"],
+                        "revealGas": ["2967769", "2805266", "2803155"],
+                        "calculateOmegaGas": "8400270",
+                        "verifyRecursiveHalvingProofForSetup": "8414743",
+                        "verifyRecursiveHalvingProofForRecovery": 0
+                    },
+                    {
+                        "setUpGas": "9499308",
+                        "recoverGas": 0,
+                        "commitGas": ["747696", "766514", "799341"],
+                        "revealGas": ["2964697", "2805266", "2801595"],
+                        "calculateOmegaGas": "8395427",
+                        "verifyRecursiveHalvingProofForSetup": "8397578",
+                        "verifyRecursiveHalvingProofForRecovery": 0
+                    },
+                    {
+                        "setUpGas": "9522222",
+                        "recoverGas": 0,
+                        "commitGas": ["747720", "766502", "799365"],
+                        "revealGas": ["2967757", "2806778", "2804679"],
+                        "calculateOmegaGas": "8403163",
+                        "verifyRecursiveHalvingProofForSetup": "8420475",
+                        "verifyRecursiveHalvingProofForRecovery": 0
+                    }
+                ]
+            },
+            {
+                "λ3072T2^25": [
+                    {
+                        "setUpGas": "9916652",
+                        "recoverGas": 0,
+                        "commitGas": ["747708", "766502", "799329"],
+                        "revealGas": ["2966221", "2805242", "2802339"],
+                        "calculateOmegaGas": "8396055",
+                        "verifyRecursiveHalvingProofForSetup": "8797612",
+                        "verifyRecursiveHalvingProofForRecovery": 0
+                    },
+                    {
+                        "setUpGas": "9905155",
+                        "recoverGas": 0,
+                        "commitGas": ["747708", "766514", "799317"],
+                        "revealGas": ["2967013", "2801402", "2803887"],
+                        "calculateOmegaGas": "8395762",
+                        "verifyRecursiveHalvingProofForSetup": "8803205",
+                        "verifyRecursiveHalvingProofForRecovery": 0
+                    },
+                    {
+                        "setUpGas": "9910867",
+                        "recoverGas": 0,
+                        "commitGas": ["747720", "766526", "799365"],
+                        "revealGas": ["2967793", "2806034", "2802375"],
+                        "calculateOmegaGas": "8399892",
+                        "verifyRecursiveHalvingProofForSetup": "8808919",
+                        "verifyRecursiveHalvingProofForRecovery": 0
+                    },
+                    {
+                        "setUpGas": "9914864",
+                        "recoverGas": 0,
+                        "commitGas": ["747720", "766514", "799365"],
+                        "revealGas": ["2968525", "2804474", "2803143"],
+                        "calculateOmegaGas": "8401007",
+                        "verifyRecursiveHalvingProofForSetup": "8812912",
+                        "verifyRecursiveHalvingProofForRecovery": 0
+                    },
+                    {
+                        "setUpGas": "9902847",
+                        "recoverGas": 0,
+                        "commitGas": ["747732", "766538", "799329"],
+                        "revealGas": ["2965501", "2804486", "2803899"],
+                        "calculateOmegaGas": "8396798",
+                        "verifyRecursiveHalvingProofForSetup": "8800908",
+                        "verifyRecursiveHalvingProofForRecovery": 0
+                    }
+                ]
+            }
+        ]
+    ],
+    "gasCostsCommitRecover": [
+        [
+            {
+                "λ1024T2^20": [
+                    {
+                        "setUpGas": "2627774",
+                        "recoverGas": "2544150",
+                        "commitGas": ["382820", "379743", "390682"],
+                        "revealGas": [],
+                        "calculateOmegaGas": 0,
+                        "verifyRecursiveHalvingProofForSetup": "2050690",
+                        "verifyRecursiveHalvingProofForRecovery": "2051001"
+                    },
+                    {
+                        "setUpGas": "2609273",
+                        "recoverGas": "2542870",
+                        "commitGas": ["382820", "379743", "390694"],
+                        "revealGas": [],
+                        "calculateOmegaGas": 0,
+                        "verifyRecursiveHalvingProofForSetup": "2049285",
+                        "verifyRecursiveHalvingProofForRecovery": "2048613"
+                    },
+                    {
+                        "setUpGas": "2601661",
+                        "recoverGas": "2528700",
+                        "commitGas": ["382832", "379731", "390694"],
+                        "revealGas": [],
+                        "calculateOmegaGas": 0,
+                        "verifyRecursiveHalvingProofForSetup": "2041681",
+                        "verifyRecursiveHalvingProofForRecovery": "2035822"
+                    },
+                    {
+                        "setUpGas": "2606791",
+                        "recoverGas": "2539662",
+                        "commitGas": ["382832", "379743", "390694"],
+                        "revealGas": [],
+                        "calculateOmegaGas": 0,
+                        "verifyRecursiveHalvingProofForSetup": "2046809",
+                        "verifyRecursiveHalvingProofForRecovery": "2045980"
+                    },
+                    {
+                        "setUpGas": "2607894",
+                        "recoverGas": "2535843",
+                        "commitGas": ["382832", "379755", "390670"],
+                        "revealGas": [],
+                        "calculateOmegaGas": 0,
+                        "verifyRecursiveHalvingProofForSetup": "2047912",
+                        "verifyRecursiveHalvingProofForRecovery": "2041305"
+                    }
+                ]
+            },
+            {
+                "λ1024T2^21": [
+                    {
+                        "setUpGas": "2744853",
+                        "recoverGas": "2653245",
+                        "commitGas": ["382820", "379743", "390682"],
+                        "revealGas": [],
+                        "calculateOmegaGas": 0,
+                        "verifyRecursiveHalvingProofForSetup": "2167676",
+                        "verifyRecursiveHalvingProofForRecovery": "2156663"
+                    },
+                    {
+                        "setUpGas": "2718110",
+                        "recoverGas": "2654653",
+                        "commitGas": ["382832", "379755", "390682"],
+                        "revealGas": [],
+                        "calculateOmegaGas": 0,
+                        "verifyRecursiveHalvingProofForSetup": "2158034",
+                        "verifyRecursiveHalvingProofForRecovery": "2158919"
+                    },
+                    {
+                        "setUpGas": "2718346",
+                        "recoverGas": "2659425",
+                        "commitGas": ["382808", "379743", "390694"],
+                        "revealGas": [],
+                        "calculateOmegaGas": 0,
+                        "verifyRecursiveHalvingProofForSetup": "2158268",
+                        "verifyRecursiveHalvingProofForRecovery": "2163239"
+                    },
+                    {
+                        "setUpGas": "2718515",
+                        "recoverGas": "2655647",
+                        "commitGas": ["382820", "379731", "390694"],
+                        "revealGas": [],
+                        "calculateOmegaGas": 0,
+                        "verifyRecursiveHalvingProofForSetup": "2158439",
+                        "verifyRecursiveHalvingProofForRecovery": "2160263"
+                    },
+                    {
+                        "setUpGas": "2727374",
+                        "recoverGas": "2657890",
+                        "commitGas": ["382796", "379755", "390670"],
+                        "revealGas": [],
+                        "calculateOmegaGas": 0,
+                        "verifyRecursiveHalvingProofForSetup": "2167294",
+                        "verifyRecursiveHalvingProofForRecovery": "2161581"
+                    }
+                ]
+            },
+            {
+                "λ1024T2^22": [
+                    {
+                        "setUpGas": "2848477",
+                        "recoverGas": "2760893",
+                        "commitGas": ["382808", "379743", "390682"],
+                        "revealGas": [],
+                        "calculateOmegaGas": 0,
+                        "verifyRecursiveHalvingProofForSetup": "2271234",
+                        "verifyRecursiveHalvingProofForRecovery": "2265074"
+                    },
+                    {
+                        "setUpGas": "2830083",
+                        "recoverGas": "2761908",
+                        "commitGas": ["382832", "379755", "390694"],
+                        "revealGas": [],
+                        "calculateOmegaGas": 0,
+                        "verifyRecursiveHalvingProofForSetup": "2269939",
+                        "verifyRecursiveHalvingProofForRecovery": "2265101"
+                    },
+                    {
+                        "setUpGas": "2831256",
+                        "recoverGas": "2767356",
+                        "commitGas": ["382832", "379743", "390694"],
+                        "revealGas": [],
+                        "calculateOmegaGas": 0,
+                        "verifyRecursiveHalvingProofForSetup": "2271109",
+                        "verifyRecursiveHalvingProofForRecovery": "2270363"
+                    },
+                    {
+                        "setUpGas": "2831687",
+                        "recoverGas": "2770119",
+                        "commitGas": ["382832", "379755", "390670"],
+                        "revealGas": [],
+                        "calculateOmegaGas": 0,
+                        "verifyRecursiveHalvingProofForSetup": "2271540",
+                        "verifyRecursiveHalvingProofForRecovery": "2273206"
+                    },
+                    {
+                        "setUpGas": "2840906",
+                        "recoverGas": "2777837",
+                        "commitGas": ["382820", "379755", "390682"],
+                        "revealGas": [],
+                        "calculateOmegaGas": 0,
+                        "verifyRecursiveHalvingProofForSetup": "2280753",
+                        "verifyRecursiveHalvingProofForRecovery": "2279563"
+                    }
+                ]
+            },
+            {
+                "λ1024T2^23": [
+                    {
+                        "setUpGas": "2951925",
+                        "recoverGas": "2877104",
+                        "commitGas": ["382820", "379731", "390682"],
+                        "revealGas": [],
+                        "calculateOmegaGas": 0,
+                        "verifyRecursiveHalvingProofForSetup": "2374603",
+                        "verifyRecursiveHalvingProofForRecovery": "2379328"
+                    },
+                    {
+                        "setUpGas": "2942844",
+                        "recoverGas": "2883662",
+                        "commitGas": ["382808", "379755", "390694"],
+                        "revealGas": [],
+                        "calculateOmegaGas": 0,
+                        "verifyRecursiveHalvingProofForSetup": "2382615",
+                        "verifyRecursiveHalvingProofForRecovery": "2385738"
+                    },
+                    {
+                        "setUpGas": "2940213",
+                        "recoverGas": "2880288",
+                        "commitGas": ["382796", "379755", "390682"],
+                        "revealGas": [],
+                        "calculateOmegaGas": 0,
+                        "verifyRecursiveHalvingProofForSetup": "2379988",
+                        "verifyRecursiveHalvingProofForRecovery": "2382085"
+                    },
+                    {
+                        "setUpGas": "2948550",
+                        "recoverGas": "2887100",
+                        "commitGas": ["382832", "379755", "390694"],
+                        "revealGas": [],
+                        "calculateOmegaGas": 0,
+                        "verifyRecursiveHalvingProofForSetup": "2388317",
+                        "verifyRecursiveHalvingProofForRecovery": "2387353"
+                    },
+                    {
+                        "setUpGas": "2943751",
+                        "recoverGas": "2886676",
+                        "commitGas": ["382832", "379755", "390694"],
+                        "revealGas": [],
+                        "calculateOmegaGas": 0,
+                        "verifyRecursiveHalvingProofForSetup": "2383524",
+                        "verifyRecursiveHalvingProofForRecovery": "2388178"
+                    }
+                ]
+            },
+            {
+                "λ1024T2^24": [
+                    {
+                        "setUpGas": "3080087",
+                        "recoverGas": "3008520",
+                        "commitGas": ["382820", "379731", "390670"],
+                        "revealGas": [],
+                        "calculateOmegaGas": 0,
+                        "verifyRecursiveHalvingProofForSetup": "2502673",
+                        "verifyRecursiveHalvingProofForRecovery": "2508048"
+                    },
+                    {
+                        "setUpGas": "3070078",
+                        "recoverGas": "3003814",
+                        "commitGas": ["382808", "379743", "390682"],
+                        "revealGas": [],
+                        "calculateOmegaGas": 0,
+                        "verifyRecursiveHalvingProofForSetup": "2509761",
+                        "verifyRecursiveHalvingProofForRecovery": "2502163"
+                    },
+                    {
+                        "setUpGas": "3050462",
+                        "recoverGas": "2987760",
+                        "commitGas": ["382832", "379755", "390694"],
+                        "revealGas": [],
+                        "calculateOmegaGas": 0,
+                        "verifyRecursiveHalvingProofForSetup": "2490157",
+                        "verifyRecursiveHalvingProofForRecovery": "2488744"
+                    },
+                    {
+                        "setUpGas": "3057297",
+                        "recoverGas": "2995473",
+                        "commitGas": ["382820", "379719", "390694"],
+                        "revealGas": [],
+                        "calculateOmegaGas": 0,
+                        "verifyRecursiveHalvingProofForSetup": "2496989",
+                        "verifyRecursiveHalvingProofForRecovery": "2495393"
+                    },
+                    {
+                        "setUpGas": "3059503",
+                        "recoverGas": "2995872",
+                        "commitGas": ["382820", "379731", "390694"],
+                        "revealGas": [],
+                        "calculateOmegaGas": 0,
+                        "verifyRecursiveHalvingProofForSetup": "2499191",
+                        "verifyRecursiveHalvingProofForRecovery": "2494976"
+                    }
+                ]
+            },
+            {
+                "λ1024T2^25": [
+                    {
+                        "setUpGas": "3196851",
+                        "recoverGas": "3117347",
+                        "commitGas": ["382808", "379731", "390658"],
+                        "revealGas": [],
+                        "calculateOmegaGas": 0,
+                        "verifyRecursiveHalvingProofForSetup": "2619346",
+                        "verifyRecursiveHalvingProofForRecovery": "2615278"
+                    },
+                    {
+                        "setUpGas": "3178470",
+                        "recoverGas": "3120865",
+                        "commitGas": ["382820", "379755", "390682"],
+                        "revealGas": [],
+                        "calculateOmegaGas": 0,
+                        "verifyRecursiveHalvingProofForSetup": "2618060",
+                        "verifyRecursiveHalvingProofForRecovery": "2617826"
+                    },
+                    {
+                        "setUpGas": "3169736",
+                        "recoverGas": "3104765",
+                        "commitGas": ["382832", "379755", "390694"],
+                        "revealGas": [],
+                        "calculateOmegaGas": 0,
+                        "verifyRecursiveHalvingProofForSetup": "2609335",
+                        "verifyRecursiveHalvingProofForRecovery": "2604334"
+                    },
+                    {
+                        "setUpGas": "3167952",
+                        "recoverGas": "3113315",
+                        "commitGas": ["382832", "379743", "390694"],
+                        "revealGas": [],
+                        "calculateOmegaGas": 0,
+                        "verifyRecursiveHalvingProofForSetup": "2607551",
+                        "verifyRecursiveHalvingProofForRecovery": "2612269"
+                    },
+                    {
+                        "setUpGas": "3170402",
+                        "recoverGas": "3106653",
+                        "commitGas": ["382832", "379755", "390694"],
+                        "revealGas": [],
+                        "calculateOmegaGas": 0,
+                        "verifyRecursiveHalvingProofForSetup": "2610003",
+                        "verifyRecursiveHalvingProofForRecovery": "2605941"
+                    }
+                ]
+            }
+        ],
+        [
+            {
+                "λ2048T2^20": [
+                    {
+                        "setUpGas": "4840330",
+                        "recoverGas": "4881827",
+                        "commitGas": ["565263", "573115", "594997"],
+                        "revealGas": [],
+                        "calculateOmegaGas": 0,
+                        "verifyRecursiveHalvingProofForSetup": "3992905",
+                        "verifyRecursiveHalvingProofForRecovery": "3992818"
+                    },
+                    {
+                        "setUpGas": "4832120",
+                        "recoverGas": "4897159",
+                        "commitGas": ["565227", "573127", "594961"],
+                        "revealGas": [],
+                        "calculateOmegaGas": 0,
+                        "verifyRecursiveHalvingProofForSetup": "4001786",
+                        "verifyRecursiveHalvingProofForRecovery": "4007679"
+                    },
+                    {
+                        "setUpGas": "4818283",
+                        "recoverGas": "4885896",
+                        "commitGas": ["565263", "573127", "595009"],
+                        "revealGas": [],
+                        "calculateOmegaGas": 0,
+                        "verifyRecursiveHalvingProofForSetup": "3987959",
+                        "verifyRecursiveHalvingProofForRecovery": "3997519"
+                    },
+                    {
+                        "setUpGas": "4821826",
+                        "recoverGas": "4877861",
+                        "commitGas": ["565263", "573127", "595021"],
+                        "revealGas": [],
+                        "calculateOmegaGas": 0,
+                        "verifyRecursiveHalvingProofForSetup": "3991500",
+                        "verifyRecursiveHalvingProofForRecovery": "3987502"
+                    },
+                    {
+                        "setUpGas": "4820629",
+                        "recoverGas": "4883909",
+                        "commitGas": ["565275", "573139", "595009"],
+                        "revealGas": [],
+                        "calculateOmegaGas": 0,
+                        "verifyRecursiveHalvingProofForSetup": "3990306",
+                        "verifyRecursiveHalvingProofForRecovery": "3995696"
+                    }
+                ]
+            },
+            {
+                "λ2048T2^21": [
+                    {
+                        "setUpGas": "5043987",
+                        "recoverGas": "5089111",
+                        "commitGas": ["565263", "573103", "595009"],
+                        "revealGas": [],
+                        "calculateOmegaGas": 0,
+                        "verifyRecursiveHalvingProofForSetup": "4196428",
+                        "verifyRecursiveHalvingProofForRecovery": "4196689"
+                    },
+                    {
+                        "setUpGas": "5029049",
+                        "recoverGas": "5091648",
+                        "commitGas": ["565263", "573139", "595021"],
+                        "revealGas": [],
+                        "calculateOmegaGas": 0,
+                        "verifyRecursiveHalvingProofForSetup": "4198588",
+                        "verifyRecursiveHalvingProofForRecovery": "4199763"
+                    },
+                    {
+                        "setUpGas": "5034461",
+                        "recoverGas": "5097706",
+                        "commitGas": ["565275", "573139", "594985"],
+                        "revealGas": [],
+                        "calculateOmegaGas": 0,
+                        "verifyRecursiveHalvingProofForSetup": "4203995",
+                        "verifyRecursiveHalvingProofForRecovery": "4207255"
+                    },
+                    {
+                        "setUpGas": "5043465",
+                        "recoverGas": "5095478",
+                        "commitGas": ["565263", "573139", "594985"],
+                        "revealGas": [],
+                        "calculateOmegaGas": 0,
+                        "verifyRecursiveHalvingProofForSetup": "4212996",
+                        "verifyRecursiveHalvingProofForRecovery": "4203567"
+                    },
+                    {
+                        "setUpGas": "5038036",
+                        "recoverGas": "5101846",
+                        "commitGas": ["565263", "573115", "595009"],
+                        "revealGas": [],
+                        "calculateOmegaGas": 0,
+                        "verifyRecursiveHalvingProofForSetup": "4207569",
+                        "verifyRecursiveHalvingProofForRecovery": "4211028"
+                    }
+                ]
+            },
+            {
+                "λ2048T2^22": [
+                    {
+                        "setUpGas": "5275502",
+                        "recoverGas": "5321216",
+                        "commitGas": ["565263", "573103", "595009"],
+                        "revealGas": [],
+                        "calculateOmegaGas": 0,
+                        "verifyRecursiveHalvingProofForSetup": "4427812",
+                        "verifyRecursiveHalvingProofForRecovery": "4426658"
+                    },
+                    {
+                        "setUpGas": "5249309",
+                        "recoverGas": "5312638",
+                        "commitGas": ["565263", "573127", "595009"],
+                        "revealGas": [],
+                        "calculateOmegaGas": 0,
+                        "verifyRecursiveHalvingProofForSetup": "4418726",
+                        "verifyRecursiveHalvingProofForRecovery": "4417941"
+                    },
+                    {
+                        "setUpGas": "5253387",
+                        "recoverGas": "5308645",
+                        "commitGas": ["565251", "573115", "594997"],
+                        "revealGas": [],
+                        "calculateOmegaGas": 0,
+                        "verifyRecursiveHalvingProofForSetup": "4422807",
+                        "verifyRecursiveHalvingProofForRecovery": "4413786"
+                    },
+                    {
+                        "setUpGas": "5252306",
+                        "recoverGas": "5326065",
+                        "commitGas": ["565239", "573115", "595009"],
+                        "revealGas": [],
+                        "calculateOmegaGas": 0,
+                        "verifyRecursiveHalvingProofForSetup": "4421720",
+                        "verifyRecursiveHalvingProofForRecovery": "4430540"
+                    },
+                    {
+                        "setUpGas": "5252144",
+                        "recoverGas": "5325264",
+                        "commitGas": ["565263", "573127", "595009"],
+                        "revealGas": [],
+                        "calculateOmegaGas": 0,
+                        "verifyRecursiveHalvingProofForSetup": "4421555",
+                        "verifyRecursiveHalvingProofForRecovery": "4429189"
+                    }
+                ]
+            },
+            {
+                "λ2048T2^23": [
+                    {
+                        "setUpGas": "5491803",
+                        "recoverGas": "5534354",
+                        "commitGas": ["565263", "573115", "594997"],
+                        "revealGas": [],
+                        "calculateOmegaGas": 0,
+                        "verifyRecursiveHalvingProofForSetup": "4643989",
+                        "verifyRecursiveHalvingProofForRecovery": "4635773"
+                    },
+                    {
+                        "setUpGas": "5468810",
+                        "recoverGas": "5540696",
+                        "commitGas": ["565263", "573115", "594997"],
+                        "revealGas": [],
+                        "calculateOmegaGas": 0,
+                        "verifyRecursiveHalvingProofForSetup": "4638096",
+                        "verifyRecursiveHalvingProofForRecovery": "4641768"
+                    },
+                    {
+                        "setUpGas": "5472425",
+                        "recoverGas": "5536897",
+                        "commitGas": ["565263", "573139", "595021"],
+                        "revealGas": [],
+                        "calculateOmegaGas": 0,
+                        "verifyRecursiveHalvingProofForSetup": "4641711",
+                        "verifyRecursiveHalvingProofForRecovery": "4640582"
+                    },
+                    {
+                        "setUpGas": "5471203",
+                        "recoverGas": "5530028",
+                        "commitGas": ["565263", "573139", "594997"],
+                        "revealGas": [],
+                        "calculateOmegaGas": 0,
+                        "verifyRecursiveHalvingProofForSetup": "4640492",
+                        "verifyRecursiveHalvingProofForRecovery": "4634508"
+                    },
+                    {
+                        "setUpGas": "5464359",
+                        "recoverGas": "5534333",
+                        "commitGas": ["565263", "573115", "595009"],
+                        "revealGas": [],
+                        "calculateOmegaGas": 0,
+                        "verifyRecursiveHalvingProofForSetup": "4633645",
+                        "verifyRecursiveHalvingProofForRecovery": "4636599"
+                    }
+                ]
+            },
+            {
+                "λ2048T2^24": [
+                    {
+                        "setUpGas": "5716064",
+                        "recoverGas": "5777719",
+                        "commitGas": ["565239", "573115", "594997"],
+                        "revealGas": [],
+                        "calculateOmegaGas": 0,
+                        "verifyRecursiveHalvingProofForSetup": "4868110",
+                        "verifyRecursiveHalvingProofForRecovery": "4874139"
+                    },
+                    {
+                        "setUpGas": "5674673",
+                        "recoverGas": "5749158",
+                        "commitGas": ["565275", "573127", "595021"],
+                        "revealGas": [],
+                        "calculateOmegaGas": 0,
+                        "verifyRecursiveHalvingProofForSetup": "4843838",
+                        "verifyRecursiveHalvingProofForRecovery": "4848995"
+                    },
+                    {
+                        "setUpGas": "5689152",
+                        "recoverGas": "5752834",
+                        "commitGas": ["565227", "573127", "595009"],
+                        "revealGas": [],
+                        "calculateOmegaGas": 0,
+                        "verifyRecursiveHalvingProofForSetup": "4858310",
+                        "verifyRecursiveHalvingProofForRecovery": "4854404"
+                    },
+                    {
+                        "setUpGas": "5687955",
+                        "recoverGas": "5764671",
+                        "commitGas": ["565263", "573127", "594997"],
+                        "revealGas": [],
+                        "calculateOmegaGas": 0,
+                        "verifyRecursiveHalvingProofForSetup": "4857108",
+                        "verifyRecursiveHalvingProofForRecovery": "4865984"
+                    },
+                    {
+                        "setUpGas": "5670615",
+                        "recoverGas": "5743952",
+                        "commitGas": ["565275", "573115", "595009"],
+                        "revealGas": [],
+                        "calculateOmegaGas": 0,
+                        "verifyRecursiveHalvingProofForSetup": "4839781",
+                        "verifyRecursiveHalvingProofForRecovery": "4845657"
+                    }
+                ]
+            },
+            {
+                "λ2048T2^25": [
+                    {
+                        "setUpGas": "5914880",
+                        "recoverGas": "5975302",
+                        "commitGas": ["565227", "573127", "594997"],
+                        "revealGas": [],
+                        "calculateOmegaGas": 0,
+                        "verifyRecursiveHalvingProofForSetup": "5066798",
+                        "verifyRecursiveHalvingProofForRecovery": "5073537"
+                    },
+                    {
+                        "setUpGas": "5910632",
+                        "recoverGas": "5985309",
+                        "commitGas": ["565275", "573127", "595021"],
+                        "revealGas": [],
+                        "calculateOmegaGas": 0,
+                        "verifyRecursiveHalvingProofForSetup": "5079647",
+                        "verifyRecursiveHalvingProofForRecovery": "5082615"
+                    },
+                    {
+                        "setUpGas": "5917264",
+                        "recoverGas": "5989288",
+                        "commitGas": ["565263", "573127", "594985"],
+                        "revealGas": [],
+                        "calculateOmegaGas": 0,
+                        "verifyRecursiveHalvingProofForSetup": "5086273",
+                        "verifyRecursiveHalvingProofForRecovery": "5086803"
+                    },
+                    {
+                        "setUpGas": "5909370",
+                        "recoverGas": "5992501",
+                        "commitGas": ["565263", "573127", "594973"],
+                        "revealGas": [],
+                        "calculateOmegaGas": 0,
+                        "verifyRecursiveHalvingProofForSetup": "5078380",
+                        "verifyRecursiveHalvingProofForRecovery": "5089602"
+                    },
+                    {
+                        "setUpGas": "5918952",
+                        "recoverGas": "5985333",
+                        "commitGas": ["565275", "573127", "594997"],
+                        "revealGas": [],
+                        "calculateOmegaGas": 0,
+                        "verifyRecursiveHalvingProofForSetup": "5087960",
+                        "verifyRecursiveHalvingProofForRecovery": "5081193"
+                    }
+                ]
+            }
+        ],
+        [
+            {
+                "λ3072T2^20": [
+                    {
+                        "setUpGas": "8037957",
+                        "recoverGas": "8336909",
+                        "commitGas": ["747696", "766514", "799305"],
+                        "revealGas": [],
+                        "calculateOmegaGas": 0,
+                        "verifyRecursiveHalvingProofForSetup": "6919891",
+                        "verifyRecursiveHalvingProofForRecovery": "6906370"
+                    },
+                    {
+                        "setUpGas": "8025742",
+                        "recoverGas": "8357350",
+                        "commitGas": ["747684", "766538", "799341"],
+                        "revealGas": [],
+                        "calculateOmegaGas": 0,
+                        "verifyRecursiveHalvingProofForSetup": "6924766",
+                        "verifyRecursiveHalvingProofForRecovery": "6926643"
+                    },
+                    {
+                        "setUpGas": "8023139",
+                        "recoverGas": "8344996",
+                        "commitGas": ["747708", "766514", "799365"],
+                        "revealGas": [],
+                        "calculateOmegaGas": 0,
+                        "verifyRecursiveHalvingProofForSetup": "6922171",
+                        "verifyRecursiveHalvingProofForRecovery": "6914069"
+                    },
+                    {
+                        "setUpGas": "8011163",
+                        "recoverGas": "8343530",
+                        "commitGas": ["747720", "766526", "799329"],
+                        "revealGas": [],
+                        "calculateOmegaGas": 0,
+                        "verifyRecursiveHalvingProofForSetup": "6910201",
+                        "verifyRecursiveHalvingProofForRecovery": "6912613"
+                    },
+                    {
+                        "setUpGas": "8018388",
+                        "recoverGas": "8368535",
+                        "commitGas": ["747708", "766514", "799365"],
+                        "revealGas": [],
+                        "calculateOmegaGas": 0,
+                        "verifyRecursiveHalvingProofForSetup": "6917413",
+                        "verifyRecursiveHalvingProofForRecovery": "6937545"
+                    }
+                ]
+            },
+            {
+                "λ3072T2^21": [
+                    {
+                        "setUpGas": "8405431",
+                        "recoverGas": "8712658",
+                        "commitGas": ["747684", "766526", "799353"],
+                        "revealGas": [],
+                        "calculateOmegaGas": 0,
+                        "verifyRecursiveHalvingProofForSetup": "7287153",
+                        "verifyRecursiveHalvingProofForRecovery": "7279804"
+                    },
+                    {
+                        "setUpGas": "8387059",
+                        "recoverGas": "8717841",
+                        "commitGas": ["747708", "766502", "799341"],
+                        "revealGas": [],
+                        "calculateOmegaGas": 0,
+                        "verifyRecursiveHalvingProofForSetup": "7285890",
+                        "verifyRecursiveHalvingProofForRecovery": "7285970"
+                    },
+                    {
+                        "setUpGas": "8385783",
+                        "recoverGas": "8735951",
+                        "commitGas": ["747720", "766514", "799365"],
+                        "revealGas": [],
+                        "calculateOmegaGas": 0,
+                        "verifyRecursiveHalvingProofForSetup": "7284609",
+                        "verifyRecursiveHalvingProofForRecovery": "7298874"
+                    },
+                    {
+                        "setUpGas": "8383807",
+                        "recoverGas": "8742569",
+                        "commitGas": ["747708", "766526", "799341"],
+                        "revealGas": [],
+                        "calculateOmegaGas": 0,
+                        "verifyRecursiveHalvingProofForSetup": "7282626",
+                        "verifyRecursiveHalvingProofForRecovery": "7307611"
+                    },
+                    {
+                        "setUpGas": "8378821",
+                        "recoverGas": "8732619",
+                        "commitGas": ["747720", "766526", "799341"],
+                        "revealGas": [],
+                        "calculateOmegaGas": 0,
+                        "verifyRecursiveHalvingProofForSetup": "7277648",
+                        "verifyRecursiveHalvingProofForRecovery": "7300604"
+                    }
+                ]
+            },
+            {
+                "λ3072T2^22": [
+                    {
+                        "setUpGas": "8780541",
+                        "recoverGas": "9099840",
+                        "commitGas": ["747672", "766502", "799329"],
+                        "revealGas": [],
+                        "calculateOmegaGas": 0,
+                        "verifyRecursiveHalvingProofForSetup": "7662077",
+                        "verifyRecursiveHalvingProofForRecovery": "7663128"
+                    },
+                    {
+                        "setUpGas": "8768307",
+                        "recoverGas": "9063945",
+                        "commitGas": ["747720", "766526", "799365"],
+                        "revealGas": [],
+                        "calculateOmegaGas": 0,
+                        "verifyRecursiveHalvingProofForSetup": "7666957",
+                        "verifyRecursiveHalvingProofForRecovery": "7626917"
+                    },
+                    {
+                        "setUpGas": "8740363",
+                        "recoverGas": "9102195",
+                        "commitGas": ["747732", "766538", "799341"],
+                        "revealGas": [],
+                        "calculateOmegaGas": 0,
+                        "verifyRecursiveHalvingProofForSetup": "7639014",
+                        "verifyRecursiveHalvingProofForRecovery": "7664637"
+                    },
+                    {
+                        "setUpGas": "8769373",
+                        "recoverGas": "9100182",
+                        "commitGas": ["747720", "766526", "799353"],
+                        "revealGas": [],
+                        "calculateOmegaGas": 0,
+                        "verifyRecursiveHalvingProofForSetup": "7668020",
+                        "verifyRecursiveHalvingProofForRecovery": "7661429"
+                    },
+                    {
+                        "setUpGas": "8763226",
+                        "recoverGas": "9104536",
+                        "commitGas": ["747696", "766526", "799329"],
+                        "revealGas": [],
+                        "calculateOmegaGas": 0,
+                        "verifyRecursiveHalvingProofForSetup": "7661871",
+                        "verifyRecursiveHalvingProofForRecovery": "7664745"
+                    }
+                ]
+            },
+            {
+                "λ3072T2^23": [
+                    {
+                        "setUpGas": "9176323",
+                        "recoverGas": "9500180",
+                        "commitGas": ["747684", "766514", "799329"],
+                        "revealGas": [],
+                        "calculateOmegaGas": 0,
+                        "verifyRecursiveHalvingProofForSetup": "8057663",
+                        "verifyRecursiveHalvingProofForRecovery": "8061737"
+                    },
+                    {
+                        "setUpGas": "9157221",
+                        "recoverGas": "9479179",
+                        "commitGas": ["747720", "766514", "799353"],
+                        "revealGas": [],
+                        "calculateOmegaGas": 0,
+                        "verifyRecursiveHalvingProofForSetup": "8055670",
+                        "verifyRecursiveHalvingProofForRecovery": "8042692"
+                    },
+                    {
+                        "setUpGas": "9162386",
+                        "recoverGas": "9490955",
+                        "commitGas": ["747720", "766526", "799341"],
+                        "revealGas": [],
+                        "calculateOmegaGas": 0,
+                        "verifyRecursiveHalvingProofForSetup": "8060820",
+                        "verifyRecursiveHalvingProofForRecovery": "8047659"
+                    },
+                    {
+                        "setUpGas": "9144425",
+                        "recoverGas": "9479054",
+                        "commitGas": ["747708", "766526", "799353"],
+                        "revealGas": [],
+                        "calculateOmegaGas": 0,
+                        "verifyRecursiveHalvingProofForSetup": "8042880",
+                        "verifyRecursiveHalvingProofForRecovery": "8038152"
+                    },
+                    {
+                        "setUpGas": "9139241",
+                        "recoverGas": "9475013",
+                        "commitGas": ["747720", "766514", "799341"],
+                        "revealGas": [],
+                        "calculateOmegaGas": 0,
+                        "verifyRecursiveHalvingProofForSetup": "8037689",
+                        "verifyRecursiveHalvingProofForRecovery": "8034111"
+                    }
+                ]
+            },
+            {
+                "λ3072T2^24": [
+                    {
+                        "setUpGas": "9511300",
+                        "recoverGas": "9862985",
+                        "commitGas": ["747672", "766502", "799305"],
+                        "revealGas": [],
+                        "calculateOmegaGas": 0,
+                        "verifyRecursiveHalvingProofForSetup": "8392457",
+                        "verifyRecursiveHalvingProofForRecovery": "8419498"
+                    },
+                    {
+                        "setUpGas": "9507329",
+                        "recoverGas": "9854843",
+                        "commitGas": ["747720", "766502", "799341"],
+                        "revealGas": [],
+                        "calculateOmegaGas": 0,
+                        "verifyRecursiveHalvingProofForSetup": "8405593",
+                        "verifyRecursiveHalvingProofForRecovery": "8412461"
+                    },
+                    {
+                        "setUpGas": "9516483",
+                        "recoverGas": "9852431",
+                        "commitGas": ["747732", "766538", "799353"],
+                        "revealGas": [],
+                        "calculateOmegaGas": 0,
+                        "verifyRecursiveHalvingProofForSetup": "8414743",
+                        "verifyRecursiveHalvingProofForRecovery": "8407947"
+                    },
+                    {
+                        "setUpGas": "9499308",
+                        "recoverGas": "9851631",
+                        "commitGas": ["747696", "766514", "799341"],
+                        "revealGas": [],
+                        "calculateOmegaGas": 0,
+                        "verifyRecursiveHalvingProofForSetup": "8397578",
+                        "verifyRecursiveHalvingProofForRecovery": "8404987"
+                    },
+                    {
+                        "setUpGas": "9522222",
+                        "recoverGas": "9861384",
+                        "commitGas": ["747720", "766502", "799365"],
+                        "revealGas": [],
+                        "calculateOmegaGas": 0,
+                        "verifyRecursiveHalvingProofForSetup": "8420475",
+                        "verifyRecursiveHalvingProofForRecovery": "8415853"
+                    }
+                ]
+            },
+            {
+                "λ3072T2^25": [
+                    {
+                        "setUpGas": "9916652",
+                        "recoverGas": "10236683",
+                        "commitGas": ["747708", "766502", "799329"],
+                        "revealGas": [],
+                        "calculateOmegaGas": 0,
+                        "verifyRecursiveHalvingProofForSetup": "8797612",
+                        "verifyRecursiveHalvingProofForRecovery": "8787580"
+                    },
+                    {
+                        "setUpGas": "9905155",
+                        "recoverGas": "10244180",
+                        "commitGas": ["747708", "766514", "799317"],
+                        "revealGas": [],
+                        "calculateOmegaGas": 0,
+                        "verifyRecursiveHalvingProofForSetup": "8803205",
+                        "verifyRecursiveHalvingProofForRecovery": "8793075"
+                    },
+                    {
+                        "setUpGas": "9910867",
+                        "recoverGas": "10248162",
+                        "commitGas": ["747720", "766526", "799365"],
+                        "revealGas": [],
+                        "calculateOmegaGas": 0,
+                        "verifyRecursiveHalvingProofForSetup": "8808919",
+                        "verifyRecursiveHalvingProofForRecovery": "8798655"
+                    },
+                    {
+                        "setUpGas": "9914864",
+                        "recoverGas": "10242988",
+                        "commitGas": ["747720", "766514", "799365"],
+                        "revealGas": [],
+                        "calculateOmegaGas": 0,
+                        "verifyRecursiveHalvingProofForSetup": "8812912",
+                        "verifyRecursiveHalvingProofForRecovery": "8791675"
+                    },
+                    {
+                        "setUpGas": "9902847",
+                        "recoverGas": "10248628",
+                        "commitGas": ["747732", "766538", "799329"],
+                        "revealGas": [],
+                        "calculateOmegaGas": 0,
+                        "verifyRecursiveHalvingProofForSetup": "8800908",
+                        "verifyRecursiveHalvingProofForRecovery": "8799178"
+                    }
+                ]
+            }
+        ]
+    ]
+}
