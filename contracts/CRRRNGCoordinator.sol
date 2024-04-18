@@ -70,7 +70,7 @@ contract CRRRNGCoordinator is ICRRRNGCoordinator {
         Stages _stage = s_valuesAtRound[round].stage;
         if (_stage == Stages.Commit && block.timestamp >= _startTime + COMMITDURATION) {
             uint256 _count = s_valuesAtRound[round].count;
-            if (_count > BigNumbers.UINTONE) {
+            if (_count > BigNumbers.UINTZERO) {
                 _stage = Stages.Reveal;
                 s_valuesAtRound[round].numOfPariticipants = _count;
                 s_valuesAtRound[round].bStar = _hash(s_valuesAtRound[round].commitsString).val;
