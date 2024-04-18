@@ -26,7 +26,7 @@ const FRONT_END_ABI_FILE_CONSUMER =
     __dirname + "/../../demo-front/constants/cryptoDiceConsumerAbi.json"
 const FRONT_END_ABI_FILE_COORDINATOR = __dirname + "/../../demo-front/constants/crrngAbi.json"
 const updateFrontEnd: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
-    if (process.env.UPDATE_ABI_ADDRESS_FRONTEND_VDFPROVER) {
+    if (process.env.UPDATE_ABI_ADDRESS_FRONTEND_VDFPROVER === "true") {
         console.log("Updating frontend with VDFProver contract address and ABI...")
         await updateContractAddress()
         await updateAbi()
