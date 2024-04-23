@@ -20,7 +20,7 @@ const VDF_PROVER_ADDRESS_FILE_CONSUMER =
 const VDF_PROVER_ADDRESS_FILE_COORDINATOR =
     __dirname + "/../../VDF-prover/coordinatorContractAddress.json"
 export default async function updateVDFProver() {
-    if (process.env.UPDATE_ABI_ADDRESS_FRONTEND_VDFPROVER) {
+    if (process.env.UPDATE_ABI_ADDRESS_FRONTEND_VDFPROVER === "true") {
         console.log("Updating vdf-prover...")
         await updateContractAddress()
         await updateAbi()
