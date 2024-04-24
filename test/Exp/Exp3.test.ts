@@ -14,9 +14,9 @@
 import { loadFixture } from "@nomicfoundation/hardhat-network-helpers"
 import { assert } from "chai"
 import { dataLength, toBeHex } from "ethers"
+import fs from "fs"
 import { ethers, network } from "hardhat"
 import { developmentChains } from "../../helper-hardhat-config"
-import { Exp } from "../../typechain-types"
 interface BigNumber {
     val: string
     bitlen: number
@@ -33,7 +33,18 @@ function getLength(value: number): number {
 !developmentChains.includes(network.name)
     ? describe.skip
     : describe("Exp Test3", () => {
-          let expContract: Exp
+          const MODEXP_FILENAME = __dirname + "/../../data/modexp.json"
+          const MODEXP_DIMITROVE_FILENAME = __dirname + "/../../data/modexp_dimitrov.json"
+          const modExpJsonData = {
+              format: "[x^2^t, exp_by_square_iterative, exp_by_square_and_multiply, precompileModExpGas",
+              "2048": [] as any,
+              "3072": [] as any,
+          }
+          const DimitrovJsonData = {
+              format: "[x^2^t * y^(2^1), dimitrov, precompile]",
+              "2048": [] as any,
+              "3072": [] as any,
+          }
           const base2048: BigNumber = {
               val: "0x3237a29cc9a41fbbb03e6c326d001516c5c8eca55584981b3005141d277f6ece1859841a5029e02319cd860167e52fbe61d66a1e09d8c858b14dadaf3a8f270cfbe2625398ad141d7f34cfde7c8ab4788a938dc6a641af81afa402debb20ac7b5c3d655ee3db11f535d3f75de5fcd93c293e304592439239704c4890807210aa64b422dd162c43cb6f89b71236a4e44caeee475925fab5fee8a82e3515441d43dcfa276db2263ae761024dee07c113cac079f4d709390ada0e0c7919c6f06b30ce3ba7a17d7d61ed979571d82bff342c72938c20d8d555b00c2efe40ee5d8306dc8ed6ed49421259266612b9adf9e37902914acae00b973552231f8715f188a0",
               bitlen: 2046,
@@ -145,12 +156,14 @@ function getLength(value: number): number {
                   //   console.log("precompileModExpGasEstimate", precompileModExpGasEstimate)
                   data.push([
                       `x^(${expsString[i]})`,
-                      exp_by_square_iterative_gasestimate,
-                      exp_by_square_and_multiply_gasestimate,
-                      precompileModExpGasEstimate,
+                      exp_by_square_iterative_gasestimate.toString(),
+                      exp_by_square_and_multiply_gasestimate.toString(),
+                      precompileModExpGasEstimate.toString(),
                   ])
               }
               console.log(data)
+              modExpJsonData["2048"] = data
+              fs.writeFileSync(MODEXP_FILENAME, JSON.stringify(modExpJsonData))
           })
           it("Exponentiation 3072", async () => {
               const expContract = await loadFixture(deployEXPContract)
@@ -180,6 +193,7 @@ function getLength(value: number): number {
                   "2^1024",
                   "2^2048",
               ]
+              let data = []
               for (let i = 0; i < exps.length; i++) {
                   const _a: bigint = exps[i]
                   const a: BigNumber = {
@@ -218,17 +232,26 @@ function getLength(value: number): number {
                       a.val,
                       n3072.val,
                   )
-                  console.log("x^(", expsString[i], ")")
-                  console.log(
-                      "exp_by_square_iterative_gasestimate",
-                      exp_by_square_iterative_gasestimate,
-                  )
-                  console.log(
-                      "exp_by_square_and_multiply_gasestimate",
-                      exp_by_square_and_multiply_gasestimate,
-                  )
-                  console.log("precompileModExpGasEstimate", precompileModExpGasEstimate)
+                  //   console.log("x^(", expsString[i], ")")
+                  //   console.log(
+                  //       "exp_by_square_iterative_gasestimate",
+                  //       exp_by_square_iterative_gasestimate,
+                  //   )
+                  //   console.log(
+                  //       "exp_by_square_and_multiply_gasestimate",
+                  //       exp_by_square_and_multiply_gasestimate,
+                  //   )
+                  //   console.log("precompileModExpGasEstimate", precompileModExpGasEstimate)
+                  data.push([
+                      `x^(${expsString[i]})`,
+                      exp_by_square_iterative_gasestimate.toString(),
+                      exp_by_square_and_multiply_gasestimate.toString(),
+                      precompileModExpGasEstimate.toString(),
+                  ])
               }
+              console.log(data)
+              modExpJsonData["3072"] = data
+              fs.writeFileSync(MODEXP_FILENAME, JSON.stringify(modExpJsonData))
           })
           it("MultiExponentiation 2048", async () => {
               const expContract = await loadFixture(deployEXPContract)
@@ -258,6 +281,7 @@ function getLength(value: number): number {
                   "2^1024",
                   "2^2048",
               ]
+              let data = []
               for (let i = 0; i < exps.length; i++) {
                   const _a: bigint = exps[i]
                   const a: BigNumber = {
@@ -291,10 +315,18 @@ function getLength(value: number): number {
                       )
                   assert.equal(result[0], resultPrecompile[0])
                   assert.equal(result[1], resultPrecompile[1])
-                  console.log("x^(", expsString[i], ") * y^(2^1)")
-                  console.log("dimitrov estimateGasResult", estimateGasResult)
-                  console.log("precompile estimateGasResult", estimateGasResultPrecompile)
+                  //   console.log("x^(", expsString[i], ") * y^(2^1)")
+                  //   console.log("dimitrov estimateGasResult", estimateGasResult)
+                  //   console.log("precompile estimateGasResult", estimateGasResultPrecompile)
+                  data.push([
+                      `x^(${expsString[i]}) * y^(2^1)`,
+                      estimateGasResult.toString(),
+                      estimateGasResultPrecompile.toString(),
+                  ])
               }
+              console.log(data)
+              DimitrovJsonData["2048"] = data
+              fs.writeFileSync(MODEXP_DIMITROVE_FILENAME, JSON.stringify(DimitrovJsonData))
           })
           it("MultiExponentiation 3072", async () => {
               const expContract = await loadFixture(deployEXPContract)
@@ -324,6 +356,7 @@ function getLength(value: number): number {
                   "2^1024",
                   "2^2048",
               ]
+              let data = []
               for (let i = 0; i < exps.length; i++) {
                   const _a: bigint = exps[i]
                   const a: BigNumber = {
@@ -357,9 +390,17 @@ function getLength(value: number): number {
                       )
                   assert.equal(result[0], resultPrecompile[0])
                   assert.equal(result[1], resultPrecompile[1])
-                  console.log("x^(", expsString[i], ") * y^(2^1)")
-                  console.log("dimitrov estimateGasResult", estimateGasResult)
-                  console.log("precompile estimateGasResult", estimateGasResultPrecompile)
+                  //   console.log("x^(", expsString[i], ") * y^(2^1)")
+                  //   console.log("dimitrov estimateGasResult", estimateGasResult)
+                  //   console.log("precompile estimateGasResult", estimateGasResultPrecompile)
+                  data.push([
+                      `x^(${expsString[i]}) * y^(2^1)`,
+                      estimateGasResult.toString(),
+                      estimateGasResultPrecompile.toString(),
+                  ])
               }
+              console.log(data)
+              DimitrovJsonData["3072"] = data
+              fs.writeFileSync(MODEXP_DIMITROVE_FILENAME, JSON.stringify(DimitrovJsonData))
           })
       })
