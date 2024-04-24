@@ -21,11 +21,6 @@ interface ICRRRNGCoordinator {
         Commit,
         Reveal
     }
-    struct VDFClaim {
-        BigNumber x;
-        BigNumber y;
-        BigNumber v;
-    }
     struct ValueAtRound {
         uint256 startTime;
         uint256 numOfPariticipants;
@@ -76,6 +71,11 @@ interface ICRRRNGCoordinator {
     error NotStartedRound();
     error NotVerified();
     error StillInCommitStage();
+    error InsufficientDepositAmount();
+    error NotOperator();
+    error OmegaNotCompleted();
+    error NotLeader();
+    error DisputePeriodEnded();
     error XPrimeNotEqualAtIndex(uint256 index);
     error YPrimeNotEqualAtIndex(uint256 index);
 
@@ -122,16 +122,6 @@ interface ICRRRNGCoordinator {
         bytes memory bigNumTwoPowerOfDelta,
         uint256 delta
     ) external;
-
-    /**
-     * @notice SetUp function
-     * @notice The contract must be in the Finished stage
-     * @notice The commit period must be less than the commit + reveal period
-     * @notice The g value must be less than the modulor
-     * @notice reset count, commitsString, isHAndBStarSet, stage, setUpTime, commitDuration, commitRevealDuration, n, g, omega
-     * @notice increase round
-     */
-    function requestRandomWord() external returns (uint256);
 
     // getter functions
 

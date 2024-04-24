@@ -2,7 +2,7 @@
 pragma solidity ^0.8.23;
 
 import {RNGConsumerBase} from "./RNGConsumerBase.sol";
-import {ICRRRNGCoordinator} from "./interfaces/ICRRRNGCoordinator.sol";
+import {ICRRRNGServiceWrapper} from "./interfaces/ICRRRNGServiceWrapper.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
@@ -19,6 +19,7 @@ contract CryptoDice is RNGConsumerBase, Ownable {
         bool randNumfulfilled;
     }
 
+    uint32 private constant CALLBACK_GAS_LIMIT = 100000;
     /* Immutable state variables */
     IERC20 private immutable i_airdropToken;
 
@@ -134,7 +135,7 @@ contract CryptoDice is RNGConsumerBase, Ownable {
         }
     }
 
-    function requestRandomWord(uint256 round) external onlyOwner {
+    function requestRandomWord(uint256 round) external payable onlyOwner {
         //check
         if (i_airdropToken.balanceOf(address(this)) < s_roundStatus[round].totalPrizeAmount)
             revert InsufficientBalance();
@@ -146,7 +147,7 @@ contract CryptoDice is RNGConsumerBase, Ownable {
         //effect
         s_roundStatus[round].randNumRequested = true;
         // interaction
-        uint256 _requestId = ICRRRNGCoordinator(i_rngCoordinator).requestRandomWord();
+        (uint256 _requestId, ) = requestRandomness(CALLBACK_GAS_LIMIT);
         s_requestIdToRound[_requestId] = round;
         s_roundStatus[round].requestId = _requestId;
     }
@@ -190,7 +191,7 @@ contract CryptoDice is RNGConsumerBase, Ownable {
     }
 
     function getRNGCoordinator() external view returns (address) {
-        return i_rngCoordinator;
+        return address(i_rngCoordinator);
     }
 
     function getAirdropTokenAddress() external view returns (address) {
