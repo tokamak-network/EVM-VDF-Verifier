@@ -1,18 +1,16 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.23;
 
-import "./libraries/BigNumbers.sol";
-import {ICRRRNGCoordinator} from "./interfaces/ICRRRNGCoordinator.sol";
 import {RNGConsumerBase} from "./RNGConsumerBase.sol";
+import "./CRRRNGServiceWrapper.sol";
 
-contract CRRRNGCoordinator is ICRRRNGCoordinator {
+contract CRRRNGCoordinator is CRRRNGServiceWrapper {
     /* Type declaration */
 
     /* Constant variables */
     // uint256
     uint256 private constant T = 4194304; // 2^22
-    uint256 private constant COMMITDURATION = 120;
-    uint256 private constant COMMITREVEALDURATION = 240;
+
     uint256 private constant DEFAULTPROOFLASTINDEX = 22;
     uint256 private constant NBITLEN = 2047;
     uint256 private constant GBITLEN = 2046;
@@ -28,53 +26,7 @@ contract CRRRNGCoordinator is ICRRRNGCoordinator {
         hex"08d72e28d1cef1b56bc3047d29624445ce203a0c6de5343a5f4873b4017f479e93fc4c3179d4db28dc7e4a6c859469868e50f3347b8736da84cd0995c661b99df90afa21267a8d7588704b9fc249bac3a3087ff1372f8fbfe1f8625c1a42113ebda7fc364a27d8a0c85dab8802f1b3983e867c3b11fedab831b5d6c1d49a906dd5366dd30816c174d6d384295e0229ddb1685eb5c57b9cde512ff50d82bf659eff8b9f3c8d2f0c2737c83eb44463ca23d93e29fa9630c06809b8a6327a29468e19042a7eac025c234be9fe349a19d7b3e5e4acca63f0b4a592b1749a15a1f054689b1809a4b95b27b8513fa1639c98ca9e18113bf36d631944c37459b5575a17";
 
     /* State variables */
-    uint256 private s_nextRound;
-    mapping(uint256 round => ValueAtRound) private s_valuesAtRound;
-    mapping(uint256 round => mapping(uint256 index => CommitRevealValue))
-        private s_commitRevealValues;
-    mapping(uint256 round => mapping(address owner => UserAtRound)) private s_userInfosAtRound;
-    mapping(address operators => bool) private s_operators;
-    mapping(address operator => uint256 depositAmount) private s_depositAmount;
-    mapping(address operator => uint256 index) private s_operatorIndex;
-    mapping(uint256 round => uint256 disputeEndTime) private s_disputeEndTime;
-    address[] private s_operatorsList;
-    bool private s_reentrancyLock;
-    bool private s_verified;
-    uint256 private s_minimumDepositAmount;
-    uint256 private s_disputePeriod;
 
-    receive() external payable {
-        deposit();
-    }
-
-    /* Modifiers */
-    modifier nonReentrant() {
-        if (s_reentrancyLock) {
-            revert ReentrancyGuard();
-        }
-        _;
-    }
-    modifier checkStage(uint256 round, Stages stage) {
-        if (round >= s_nextRound) revert NotStartedRound();
-        uint256 _startTime = s_valuesAtRound[round].startTime;
-        Stages _stage = s_valuesAtRound[round].stage;
-        if (_stage == Stages.Commit && block.timestamp >= _startTime + COMMITDURATION) {
-            uint256 _count = s_valuesAtRound[round].count;
-            if (_count > BigNumbers.UINTONE) {
-                _stage = Stages.Reveal;
-                s_valuesAtRound[round].numOfPariticipants = _count;
-                s_valuesAtRound[round].bStar = _hash(s_valuesAtRound[round].commitsString).val;
-            } else {
-                _stage = Stages.Finished;
-            }
-        }
-        if (_stage == Stages.Reveal && block.timestamp >= _startTime + COMMITREVEALDURATION) {
-            _stage = Stages.Finished;
-        }
-        if (_stage != stage) revert FunctionInvalidAtThisStage();
-        s_valuesAtRound[round].stage = _stage;
-        _;
-    }
     modifier checkRecoverStage(uint256 round) {
         if (round >= s_nextRound) revert NotStartedRound();
         uint256 _startTime = s_valuesAtRound[round].startTime;
@@ -97,58 +49,21 @@ contract CRRRNGCoordinator is ICRRRNGCoordinator {
         _;
     }
 
-    function deposit() public payable {
-        if (s_depositAmount[msg.sender] + msg.value < s_minimumDepositAmount)
-            revert InsufficientDepositAmount();
-        s_operators[msg.sender] = true;
-        unchecked {
-            s_depositAmount[msg.sender] += msg.value;
-        }
-        s_operatorIndex[msg.sender] = s_operatorsList.length;
-        s_operatorsList.push(msg.sender);
-    }
-
-    function withdraw(uint256 amount) external {
-        //uint256 _depositAmount = s_depositAmount[msg.sender];
-        if (!s_operators[msg.sender]) revert NotOperator();
-        if (s_depositAmount[msg.sender] < amount) revert InsufficientDepositAmount();
-        if (s_depositAmount[msg.sender] - amount < s_minimumDepositAmount) {
-            s_operators[msg.sender] = false;
-            s_depositAmount[msg.sender] = BigNumbers.UINTZERO;
-            uint256 _index = s_operatorIndex[msg.sender];
-            uint256 _lastIndex = s_operatorsList.length - BigNumbers.UINTONE;
-            if (_index != _lastIndex) {
-                address _lastOperator = s_operatorsList[_lastIndex];
-                s_operatorsList[_index] = _lastOperator;
-                s_operatorIndex[_lastOperator] = _index;
-            } else {
-                s_operatorsList.pop();
-            }
-        }
-        s_operatorIndex[msg.sender] = BigNumbers.UINTZERO;
-        payable(msg.sender).transfer(amount);
-    }
-
-    function disputeLeadershipAtRound(uint256 round) external {
-        //  s_valuesAtRound[round].isCompleted = true;
-        // s_valuesAtRound[round].omega = y;
-        if (s_disputeEndTime[round] < block.timestamp) revert DisputePeriodEnded();
-        if (!s_valuesAtRound[round].isCompleted) revert OmegaNotCompleted();
-        if (!s_operators[msg.sender]) revert NotOperator();
-        bytes memory _omega = s_valuesAtRound[round].omega.val;
-        uint256 _numOfOperators = s_operatorsList.length;
-        // find the operator with the lowest hash(_omega|operator address) through iteration
-        address _leader = s_operatorsList[0];
-        bytes32 _hashVal = keccak256(abi.encodePacked(_omega, _leader));
-        bytes32 _temp;
-        for (uint256 i = 1; i < _numOfOperators; i = _unchecked_inc(i)) {
-            if (_temp < _hashVal) {
-                _hashVal = _temp;
-                _leader = s_operatorsList[i];
-            }
-        }
-        if (_leader != msg.sender) revert NotLeader();
-    }
+    constructor(
+        uint256 disputePeriod,
+        uint256 minimumDepositAmount,
+        uint256 avgRecoveOverhead,
+        uint256 premiumPercentage,
+        uint256 flatFee
+    )
+        CRRRNGServiceWrapper(
+            disputePeriod,
+            minimumDepositAmount,
+            avgRecoveOverhead,
+            premiumPercentage,
+            flatFee
+        )
+    {}
 
     function initialize(
         BigNumber[] memory v,
@@ -215,28 +130,6 @@ contract CRRRNGCoordinator is ICRRRNGCoordinator {
         emit RevealA(_count, a.val);
     }
 
-    function requestRandomWord() external returns (uint256) {
-        if (!s_verified) revert NotVerified();
-        uint256 _round = s_nextRound++;
-        s_valuesAtRound[_round].startTime = block.timestamp;
-        s_valuesAtRound[_round].stage = Stages.Commit;
-        s_valuesAtRound[_round].consumer = msg.sender;
-        emit RandomWordsRequested(_round, msg.sender);
-        return _round;
-    }
-
-    function reRequestRandomWordAtRound(uint256 round) external checkStage(round, Stages.Finished) {
-        // check
-        if (block.timestamp < s_valuesAtRound[round].startTime + COMMITDURATION)
-            revert StillInCommitStage();
-        if (s_valuesAtRound[round].isCompleted) revert OmegaAlreadyCompleted();
-        if (s_valuesAtRound[round].numOfPariticipants > BigNumbers.UINTONE)
-            revert TwoOrMoreCommittedPleaseRecover();
-        s_valuesAtRound[round].stage = Stages.Commit;
-        s_valuesAtRound[round].startTime = block.timestamp;
-        emit RandomWordsRequested(round, msg.sender);
-    }
-
     function calculateOmega(
         uint256 round
     ) external nonReentrant checkStage(round, Stages.Finished) {
@@ -272,6 +165,7 @@ contract CRRRNGCoordinator is ICRRRNGCoordinator {
         uint256 delta
     ) external checkRecoverStage(round) nonReentrant {
         // check
+        if (!s_userInfosAtRound[round][msg.sender].committed) revert NotCommittedParticipant();
         uint256 _numOfPariticipants = s_valuesAtRound[round].numOfPariticipants;
         if (s_operators[msg.sender]) revert NotOperator();
         if (_numOfPariticipants == BigNumbers.UINTZERO) revert NoneParticipated();
@@ -293,7 +187,10 @@ contract CRRRNGCoordinator is ICRRRNGCoordinator {
         s_valuesAtRound[round].isCompleted = true;
         s_valuesAtRound[round].omega = y;
         s_valuesAtRound[round].stage = Stages.Finished;
-        s_disputeEndTime[round] = block.timestamp + s_disputePeriod;
+        s_disputeEndTimeAtRound[round] = block.timestamp + s_disputePeriod;
+        s_disputeEndTimeForOperator[msg.sender] = block.timestamp + s_disputePeriod;
+        s_incentiveForOperator[msg.sender] += s_cost[round];
+        s_leaderAtRound[round] = msg.sender;
         // interaction
         // Do not allow any non-view/non-pure coordinator functions to be called during the consumers callback code via reentrancyLock.
         s_reentrancyLock = true;
@@ -347,18 +244,8 @@ contract CRRRNGCoordinator is ICRRRNGCoordinator {
         return BigNumbers.init(abi.encodePacked(keccak256(bytes.concat(a, b, c)) >> 128));
     }
 
-    function _hash(bytes memory strings) private view returns (BigNumber memory) {
-        return BigNumbers.init(abi.encodePacked(keccak256(strings)));
-    }
-
     function _hash(bytes memory a, bytes memory b) private view returns (BigNumber memory) {
         return BigNumbers.init(abi.encodePacked(keccak256(bytes.concat(a, b))));
-    }
-
-    function _unchecked_inc(uint256 i) private pure returns (uint256) {
-        unchecked {
-            return i + BigNumbers.UINTONE;
-        }
     }
 
     function _verifyRecursiveHalvingProof(

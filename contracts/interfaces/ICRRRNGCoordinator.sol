@@ -123,16 +123,6 @@ interface ICRRRNGCoordinator {
         uint256 delta
     ) external;
 
-    /**
-     * @notice SetUp function
-     * @notice The contract must be in the Finished stage
-     * @notice The commit period must be less than the commit + reveal period
-     * @notice The g value must be less than the modulor
-     * @notice reset count, commitsString, isHAndBStarSet, stage, setUpTime, commitDuration, commitRevealDuration, n, g, omega
-     * @notice increase round
-     */
-    function requestRandomWord() external returns (uint256);
-
     // getter functions
 
     function getSetUpValues()
