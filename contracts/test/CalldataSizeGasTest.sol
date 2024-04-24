@@ -7,6 +7,15 @@ contract A {
         uint256 bitlen;
     }
 
+    // Function Dispatching 2^22, 2048 bit delta 9일때, 11000
+    // 700
+
+    // *** Intrinsic Gas = 21000 + calldataGasCost
+
+    // *** execution cost = ( Function Dispatching(= function selection + parameter memory loading) + 반복문 + 비교문)
+
+    // *** 3072 데이터 보충
+
     function verifyRecursiveHalvingProof(
         BigNumber[] memory v,
         BigNumber memory x,
@@ -15,7 +24,10 @@ contract A {
         bytes memory twoPowerOfDeltaBytes,
         uint256 twoPowerOfDelta,
         uint256 T
-    ) external {}
+    ) external {
+        //반복문
+        //비교문
+    }
 }
 
 contract AA {
@@ -24,6 +36,7 @@ contract AA {
         uint256 bitlen;
     }
 
+    // 550
     function verifyRecursiveHalvingProof(
         BigNumber[] calldata v,
         BigNumber calldata x,
