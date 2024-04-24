@@ -19,6 +19,18 @@ import { ethers } from "hardhat"
 import { TestCase } from "../shared/interfacesV2"
 
 describe("Optimized Pietrzak Verification2", async () => {
+    const DELTA_FILENAME = __dirname + "/../../data/delta4.json"
+    const DELTA_8_FILENAME = __dirname + "/../../data/delta8.json"
+    const deltaJsonData = {
+        format: "delta, gasUsed, lambda, T",
+        "2048": [] as any,
+        "3072": [] as any,
+    }
+    const delta8JsonData = {
+        format: "delta, gasUsed, lambda, T",
+        "2048": [] as any,
+        "3072": [] as any,
+    }
     async function deployMinimal() {
         const minimalApplication = await ethers.deployContract("MinimalApplication")
         return minimalApplication
@@ -57,11 +69,13 @@ describe("Optimized Pietrzak Verification2", async () => {
                             2 ** delta,
                         )
                     assert(trueOrFalse)
-                    data.push([delta, Number(gasUsedYesDelta), lambdas[i], Ts[j]])
+                    data.push([delta.toString(), gasUsedYesDelta.toString(), lambdas[i], Ts[j]])
                 }
             }
         }
         console.log(data)
+        deltaJsonData["2048"] = data
+        fs.writeFileSync(DELTA_FILENAME, JSON.stringify(deltaJsonData))
     })
     it("only delta, 3072", async () => {
         const minimalApplication = await loadFixture(deployMinimal)
@@ -97,11 +111,13 @@ describe("Optimized Pietrzak Verification2", async () => {
                             2 ** delta,
                         )
                     assert(trueOrFalse)
-                    data.push([delta, Number(gasUsedYesDelta), lambdas[i], Ts[j]])
+                    data.push([delta.toString(), gasUsedYesDelta.toString(), lambdas[i], Ts[j]])
                 }
             }
         }
         console.log(data)
+        deltaJsonData["3072"] = data
+        fs.writeFileSync(DELTA_FILENAME, JSON.stringify(deltaJsonData))
     })
     it("delta, every technique, T=20~25, 2048", async () => {
         const minimalApplication = await loadFixture(deployMinimal)
@@ -160,11 +176,13 @@ describe("Optimized Pietrzak Verification2", async () => {
                             shift128TestCase.T,
                         )
                     assert(trueOrFalse)
-                    data.push([delta, Number(gasUsedYesDelta), lambdas[i], Ts[j]])
+                    data.push([delta.toString(), gasUsedYesDelta.toString(), lambdas[i], Ts[j]])
                 }
             }
         }
         console.log(data)
+        delta8JsonData["2048"] = data
+        fs.writeFileSync(DELTA_8_FILENAME, JSON.stringify(delta8JsonData))
     })
     it("delta, every technique, T=20~25, 3072", async () => {
         const minimalApplication = await loadFixture(deployMinimal)
@@ -223,11 +241,13 @@ describe("Optimized Pietrzak Verification2", async () => {
                             shift128TestCase.T,
                         )
                     assert(trueOrFalse)
-                    data.push([delta, Number(gasUsedYesDelta), lambdas[i], Ts[j]])
+                    data.push([delta.toString(), gasUsedYesDelta.toString(), lambdas[i], Ts[j]])
                 }
             }
         }
         console.log(data)
+        delta8JsonData["3072"] = data
+        fs.writeFileSync(DELTA_8_FILENAME, JSON.stringify(delta8JsonData))
     })
 })
 
