@@ -30,6 +30,10 @@ const DEFAULT_COMPILER_SETTINGS = {
     version: "0.8.23",
     settings: optimizerSettings,
 }
+const NEW_COMPILER_SETTINGS = {
+    version: "0.8.24",
+    settings: optimizerSettings,
+}
 const LOW_OPTIMIZER_COMPILER_SETTINGS = {
     version: "0.8.23",
     settings: optimizerEnabledFalse,
@@ -160,7 +164,7 @@ const config: HardhatUserConfig = {
         },
     },
     solidity: {
-        compilers: [DEFAULT_COMPILER_SETTINGS],
+        compilers: [DEFAULT_COMPILER_SETTINGS, NEW_COMPILER_SETTINGS],
         overrides: {
             "contracts/strategies/CRRWithNTInProofVerifyAndProcessSeparateFileSeparateWithoutOptimizer.sol":
                 LOW_OPTIMIZER_COMPILER_SETTINGS,
