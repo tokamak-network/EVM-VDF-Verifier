@@ -1,7 +1,6 @@
-# Bicorn-RX
+# Pietrzak-VDF-Verifier
 
-Commit Reveal Recover Solidity PoC<br>
-Random number generation in Titan (Layer 2)<br>
+Pietrzak VDF verifier implementation for EVM
 
 ## INSTALL
 ```shell
