@@ -8,7 +8,7 @@ def model(x, a, b):
     return a * x + b
 
 # Load data from JSON file
-with open('halving_data.json', 'r') as file:
+with open('../halving_data.json', 'r') as file:
     data = json.load(file)
 
 # Extract values and corresponding exponents (x-axis)
@@ -27,15 +27,14 @@ print(params_2048)
 print(params_3072)
 
 # Adjusting bar width and position for clarity
-bar_width = 0.4  # Set bar width
 indices_2048 = np.arange(len(length_data_2048))  # Locations for the groups
 quality = 1000
 
 # Plotting for 2048-bit key
 fig, ax1 = plt.subplots()
-ax1.bar(indices_2048 - bar_width/2, gas_data_2048, width=bar_width, color='darkgreen', label='Gas Data')
-ax1.set_xlabel('Number of Proofs')
-ax1.set_ylabel('Gas used ($10^6$)')
+ax1.bar(indices_2048, gas_data_2048, color='darkgreen', label='Gas Used')
+ax1.set_xlabel('Number of Proofs', fontsize=15)
+ax1.set_ylabel('Gas used ($10^6$)', fontsize=15)
 # ax1.set_title('2048-bit Key Regression')
 ax1.grid(True)
 fig.legend(loc='upper left', bbox_to_anchor=(0.13, 0.97))
@@ -49,9 +48,9 @@ indices_3072 = np.arange(len(length_data_3072))
 
 # Plotting for 3072-bit key
 fig, ax1 = plt.subplots()
-ax1.bar(indices_3072 - bar_width/2, gas_data_3072, width=bar_width, color='darkgreen', label='Gas Data')
-ax1.set_xlabel('Number of Proofs')
-ax1.set_ylabel('Gas used ($10^6$)')
+ax1.bar(indices_3072, gas_data_3072, color='darkgreen', label='Gas Used')
+ax1.set_xlabel('Number of Proofs', fontsize=15)
+ax1.set_ylabel('Gas used ($10^6$)', fontsize=15)
 # ax1.set_title('3072-bit Key Regression')
 ax1.grid(True)
 fig.legend(loc='upper left', bbox_to_anchor=(0.13, 0.97))
