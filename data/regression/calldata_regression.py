@@ -9,7 +9,7 @@ def model(x, a, b):
     return a * x + b
 
 # Load data from JSON file
-with open('intrinsic+dispatching.json', 'r') as file:
+with open('../intrinsic+dispatching.json', 'r') as file:
     data = json.load(file)
 
 # Extract values and corresponding exponents (x-axis)
