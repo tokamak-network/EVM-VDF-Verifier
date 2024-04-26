@@ -42,7 +42,7 @@ ax2.set_ylabel('Calldata (KB)', fontsize=15)
 ax1.grid(True)
 fig.legend(loc='upper left', bbox_to_anchor=(0.16, 0.97))
 plt.tight_layout()
-plt.savefig('2048_regression.png', dpi=quality)
+plt.savefig('2048_size_gas.png', dpi=quality)
 plt.show()
 plt.close()
 
