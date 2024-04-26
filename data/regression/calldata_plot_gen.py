@@ -12,13 +12,13 @@ with open('../intrinsic+dispatching.json', 'r') as file:
     data = json.load(file)
 
 # Extract values and corresponding exponents (x-axis)
-length_data_2048 = np.array(data['2048']['length'])
+length_data_2048 = np.array(data['2048']['length'])  
 size_data_2048 = np.array(data['2048']['size']) / 1024  # Convert to KB
-gas_data_2048 = data['2048']['gas']
+gas_data_2048 = np.array(data['2048']['gas']) / 10000
 
-length_data_3072 = np.array(data['3072']['length'])
+length_data_3072 = np.array(data['3072']['length']) 
 size_data_3072 = np.array(data['3072']['size']) / 1024  # Convert to KB
-gas_data_3072 = data['3072']['gas']
+gas_data_3072 = np.array(data['3072']['gas']) / 10000
 
 # Curve fitting
 initial_guess = [1, 1]
@@ -33,10 +33,10 @@ quality = 1000
 # Plotting for 2048-bit key
 fig, ax1 = plt.subplots()
 ax2 = ax1.twinx()  # Create a second y-axis for the size data
-ax1.bar(indices_2048 - bar_width/2, gas_data_2048, width=bar_width, color='green', label='Gas Data')
-ax2.bar(indices_2048 + bar_width/2, size_data_2048, width=bar_width, color='darkred', label='Size Data (KB)')
+ax1.bar(indices_2048 - bar_width/2, gas_data_2048, width=bar_width, color='green', label='Gas Used')
+ax2.bar(indices_2048 + bar_width/2, size_data_2048, width=bar_width, color='darkred', label='Calldata (KB)')
 ax1.set_xlabel('Number of Proofs', fontsize=15)
-ax1.set_ylabel('Gas Used', fontsize=15)
+ax1.set_ylabel('Gas Used ($10^4$) ', fontsize=15)
 ax2.set_ylabel('Calldata (KB)', fontsize=15)
 # ax1.set_title('2048-bit Key Regression')
 ax1.grid(True)
@@ -55,7 +55,7 @@ ax2 = ax1.twinx()  # Create a second y-axis for the size data
 ax1.bar(indices_3072 - bar_width/2, gas_data_3072, width=bar_width, color='green', label='Gas Used')
 ax2.bar(indices_3072 + bar_width/2, size_data_3072, width=bar_width, color='darkred', label='Calldata (KB)')
 ax1.set_xlabel('Number of Proofs', fontsize=15)
-ax1.set_ylabel('Gas used', fontsize=15)
+ax1.set_ylabel('Gas Used ($10^4$)', fontsize=15)
 ax2.set_ylabel('Size (KB)', fontsize=15)
 # ax1.set_title('3072-bit Key Regression')
 ax1.grid(True)
