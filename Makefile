@@ -12,20 +12,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 -include .env
-.PHONY: all
+.PHONY: all settingsForAnvil
 
-
+settingsForAnvil:; npx hardhat deploy --network anvil --reset
 
 randomWordsRequestedEvent: startRegistration transferTon participantsRegister requestRandomWord
 
-startRegistration:; npx hardhat run scripts/3-startRegistration.ts --network localhost
-transferTon:; npx hardhat run scripts/4-transferTokenToAirdropConsumer.ts --network localhost
-participantsRegister:; npx hardhat run scripts/5-participantsRegister.ts --network localhost
-requestRandomWord:; npx hardhat run scripts/6-requestRandomWord.ts --network localhost
+startRegistration:; npx hardhat run scripts/3-startRegistration.ts --network anvil
+transferTon:; npx hardhat run scripts/4-transferTokenToAirdropConsumer.ts --network anvil
+participantsRegister:; npx hardhat run scripts/5-participantsRegister.ts --network anvil
+requestRandomWord:; npx hardhat run scripts/6-requestRandomWord.ts --network anvil
 
-oneCommit:; npx hardhat run scripts/7-operatorCommits.ts --network localhost
+oneCommit:; npx hardhat run scripts/7-operatorCommits.ts --network anvil
 
-threeCommit:; npx hardhat run scripts/7-operatorCommits.ts --network localhost; npx hardhat run scripts/7-operatorCommits.ts --network localhost; npx hardhat run scripts/7-operatorCommits.ts --network localhost
+threeCommit:; npx hardhat run scripts/7-operatorCommits.ts --network anvil; npx hardhat run scripts/7-operatorCommits.ts --network anvil; npx hardhat run scripts/7-operatorCommits.ts --network anvil
 
-recover:; npx hardhat run scripts/8-recoverNewData.ts --network localhost
+recover:; npx hardhat run scripts/8-recoverNewData.ts --network anvil
 

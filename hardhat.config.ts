@@ -53,6 +53,11 @@ const config: HardhatUserConfig = {
             chainId: 31337,
             allowUnlimitedContractSize: true,
         },
+        anvil: {
+            chainId: 31337,
+            allowUnlimitedContractSize: true,
+            url: "http://127.0.0.1:8545",
+        },
         titangoerli: {
             url: "https://rpc.titan-goerli.tokamak.network",
             //accounts: [`${process.env.PRIVATE_KEY}`],
