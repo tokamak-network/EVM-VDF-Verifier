@@ -82,6 +82,31 @@ library BigNumbers {
       return modexp(a,BigNumber(BYTESONE, UINTONE),n);
     }
 
+    /** @notice modular inverse verification: Verifies that (a*r) % n == 1.
+      * @dev modinvVerify: Takes BigNumbers for base, modulus, and result, verifies (base*result)%modulus==1, and returns result.
+      *              Similar to division, it's far cheaper to verify an inverse operation on-chain than it is to calculate it, so we allow the user to pass their own result.
+      *
+      * @param a base BigNumber
+      * @param n modulus BigNumber
+      * @param r result BigNumber
+      * @return boolean result
+      */
+    function modinvVerify(
+        BigNumber memory a, 
+        BigNumber memory n, 
+        BigNumber memory r
+    ) internal view returns(bool) {
+        /*
+         * the following proves:
+         * - user result passed is correct for values base and modulus
+         * - modular inverse exists for values base and modulus.
+         * otherwise it fails.
+         */        
+        require(cmp(modmul(a, r, n),BigNumber(BYTESONE, UINTONE))==0);
+        
+        return true;
+    }
+
     /** @notice BigNumber modular exponentiation: a^e mod n.
       * @dev modexp: takes base, exponent, and modulus, internally computes base^exponent % modulus using the precompile at address 0x5, and creates new BigNumber.
       *              this function is overloaded: it assumes the exponent is positive. if not, the other method is used, whereby the inverse of the base is also passed.
@@ -192,6 +217,21 @@ library BigNumbers {
             r = _shr(fst, UINTTWO); // a==b ? (((a + b)**2 / 4
         }
     }
+
+    /** @notice BigNumber odd number check
+      * @dev isOdd: returns 1 if BigNumber value is an odd number and 0 otherwise.
+      *              
+      * @param a BigNumber
+      * @return r Boolean result
+      */  
+    function isOdd(
+        BigNumber memory a
+    ) internal pure returns(bool r){
+        assembly{
+            let a_ptr := add(mload(a), mload(mload(a))) // go to least significant word
+            r := mod(mload(a_ptr),2)                      // mod it with 2 (returns 0 or 1) 
+        }
+    }
     
     /** @notice BigNumber comparison
       * @dev cmp: Compares BigNumbers a and b. 'signed' parameter indiciates whether to consider the sign of the inputs.
@@ -278,7 +318,7 @@ library BigNumbers {
       * @param bits amount of bits to shift by
       * @return r result
       */
-    function _shr(BigNumber memory bn, uint256 bits) private view returns(BigNumber memory){
+    function _shr(BigNumber memory bn, uint256 bits) internal view returns(BigNumber memory){
         uint256 length;
         assembly ("memory-safe") { length := mload(mload(bn)) }
 
@@ -791,5 +831,91 @@ library BigNumbers {
             //assuming mod length is multiple of 32, return value is already in the right format.
             mstore(0x40, add(add(96, freemem),ml)) //deallocate freemem pointer
         }        
+    }
+
+    function _shl(
+        BigNumber memory bn, 
+        uint bits
+    ) internal view returns(BigNumber memory r) {
+        if(bits==0 || bn.bitlen==0) return bn;
+        
+        // we start by creating an empty bytes array of the size of the output, based on 'bits'.
+        // for that we must get the amount of extra words needed for the output.
+        uint length = bn.val.length;
+        // position of bitlen in most significnat word
+        uint bit_position = ((bn.bitlen-1) % 256) + 1;
+        // total extra words. we check if the bits remainder will add one more word.
+        uint extra_words = (bits / 256) + ( (bits % 256) >= (256 - bit_position) ? 1 : 0);
+        // length of output
+        uint total_length = length + (extra_words * 0x20);
+
+        r.bitlen = bn.bitlen+(bits);
+        bits %= 256;
+
+        
+        bytes memory bn_shift;
+        uint bn_shift_ptr;
+        // the following efficiently creates an empty byte array of size 'total_length'
+        assembly ("memory-safe") {
+            let freemem_ptr := mload(0x40)                // get pointer to free memory
+            mstore(freemem_ptr, total_length)             // store bytes length
+            let mem_end := add(freemem_ptr, total_length) // end of memory
+            mstore(mem_end, 0)                            // store 0 at memory end
+            bn_shift := freemem_ptr                       // set pointer to bytes
+            bn_shift_ptr := add(bn_shift, 0x20)           // get bn_shift pointer
+            mstore(0x40, add(mem_end, 0x20))              // update freemem pointer
+        }
+
+        // use identity for cheap copy if bits is multiple of 8.
+        if(bits % 8 == 0) {
+            // calculate the position of the first byte in the result.
+            uint bytes_pos = ((256-(((bn.bitlen-1)+bits) % 256))-1) / 8;
+            uint insize = (bn.bitlen / 8) + ((bn.bitlen % 8 != 0) ? 1 : 0);
+            assembly {
+              let in          := add(add(mload(bn), 0x20), div(sub(256, bit_position), 8))
+              let out         := add(bn_shift_ptr, bytes_pos)
+              let success     := staticcall(450, 0x4, in, insize, out, length)
+            }
+            r.val = bn_shift;
+            return r;
+        }
+
+
+        uint mask;
+        uint mask_shift = 0x100-bits;
+        uint msw;
+        uint msw_ptr;
+
+       assembly {
+           msw_ptr := add(mload(bn), 0x20)   
+       }
+        
+       // handle first word before loop if the shift adds any extra words.
+       // the loop would handle it if the bit shift doesn't wrap into the next word, 
+       // so we check only for that condition.
+       if((bit_position+bits) > 256){
+           assembly {
+              msw := mload(msw_ptr)
+              mstore(bn_shift_ptr, shr(mask_shift, msw))
+              bn_shift_ptr := add(bn_shift_ptr, 0x20)
+           }
+       }
+        
+       // as a result of creating the empty array we just have to operate on the words in the original bn.
+       for(uint i=bn.val.length; i!=0; i-=0x20){                  // for each word:
+           assembly {
+               msw := mload(msw_ptr)                              // get most significant word
+               switch eq(i,0x20)                                  // if i==32:
+                   case 1 { mask := 0 }                           // handles msword: no mask needed.
+                   default { mask := mload(add(msw_ptr,0x20)) }   // else get mask (next word)
+               msw := shl(bits, msw)                              // left shift current msw by 'bits'
+               mask := shr(mask_shift, mask)                      // right shift next significant word by mask_shift
+               mstore(bn_shift_ptr, or(msw,mask))                 // store OR'd mask and shifted bits in-place
+               msw_ptr := add(msw_ptr, 0x20)
+               bn_shift_ptr := add(bn_shift_ptr, 0x20)
+           }
+       }
+
+       r.val = bn_shift;
     }
 }
