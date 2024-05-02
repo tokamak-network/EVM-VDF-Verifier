@@ -9,6 +9,6 @@
         // optional:
         // "suppressImplicitAnyIndexErrors": true
     },
-    "include": ["./scripts", "./test", "./deploy", "./deploy-helpers", "./typechain-types"],
+    "include": ["./scripts", "./test", "deploy", "./deploy-helpers", "./typechain-types"],
     "files": ["./hardhat.config.ts", "./helper-hardhat-config.ts"]
 }

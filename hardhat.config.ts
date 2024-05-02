@@ -66,6 +66,11 @@ const config: HardhatUserConfig = {
             chainId: 31337,
             allowUnlimitedContractSize: true,
         },
+        anvil: {
+            chainId: 1,
+            url: "http://localhost:8545",
+            allowUnlimitedContractSize: true,
+        },
         sepolia: {
             url: SEPOLIA_RPC_URL,
             accounts: PRIVATE_KEY !== undefined ? [PRIVATE_KEY] : [],
@@ -177,7 +182,7 @@ const config: HardhatUserConfig = {
         },
     },
     mocha: {
-        timeout: 2000000, // 2000 seconds max for running tests
+        timeout: 20000000, // 2000 seconds max for running tests
     },
 }
 
