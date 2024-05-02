@@ -3,7 +3,177 @@ pragma solidity ^0.8.23;
 import "./PietrzakVDF.sol";
 
 //verifyRecursiveHalvingProofAppliedDelta
-//verifyRecursiveHalvingProofNotAppliedDelta
+//verifyRecursiveHalvingProofNotApp liedDelta
+
+contract VerifyRecursiveHalvingProofAlgorithm {
+    // function verifyRecursiveHalvingProof(
+    //     BigNumber[] memory v,
+    //     BigNumber memory x,
+    //     BigNumber memory y,
+    //     BigNumber memory n,
+    //     uint256 delta,
+    //     uint256 T
+    // ) external view returns (bool) {
+    //     return PietrzakVDF.verifyRecursiveHalvingProofAlgorithm(v, x, y, n, delta, T);
+    // }
+}
+
+contract VerifyRecursiveHalvingProofAlgorithm2 {
+    function verifyRecursiveHalvingProof(
+        BigNumber[] memory v,
+        BigNumber memory x,
+        BigNumber memory y,
+        BigNumber memory n,
+        uint256 delta,
+        uint256 T
+    ) external view returns (bool) {
+        return PietrzakVDF1.verifyRecursiveHalvingProofAlgorithm2(v, x, y, n, delta, T);
+    }
+}
+
+contract VerifyRecursiveHalvingProofAlgorithm2Halving {
+    function verifyRecursiveHalvingProof(
+        BigNumber[] memory v,
+        BigNumber memory x,
+        BigNumber memory y,
+        BigNumber memory n,
+        uint256 delta,
+        uint256 T
+    ) external returns (bool) {
+        return PietrzakVDF1Halving.verifyRecursiveHalvingProofAlgorithm2(v, x, y, n, delta, T);
+    }
+}
+
+contract VerifyRecursiveHalvingProofAlgorithm2ModExp {
+    function verifyRecursiveHalvingProof(
+        BigNumber[] memory v,
+        BigNumber memory x,
+        BigNumber memory y,
+        BigNumber memory n,
+        uint256 delta,
+        uint256 T
+    ) external returns (bool) {
+        return PietrzakVDF1ModExp.verifyRecursiveHalvingProofAlgorithm2(v, x, y, n, delta, T);
+    }
+}
+
+contract VerifyRecursiveHalvingProofDeltaBigNumber {
+    function verifyRecursiveHalvingProofExternal(
+        BigNumber[] memory v,
+        BigNumber memory x,
+        BigNumber memory y,
+        BigNumber memory n,
+        BigNumber memory expDelta,
+        uint256 T
+    ) external view returns (bool) {
+        return PietrzakVDF.verifyRecursiveHalvingProofDeltaBigNumber(v, x, y, n, expDelta, T);
+    }
+}
+
+contract VerifyRecursiveHalvingProofDeltaBigNumberHalvingEvent {
+    function verifyRecursiveHalvingProofDeltaBigNumberHalvingExternal(
+        BigNumber[] memory v,
+        BigNumber memory x,
+        BigNumber memory y,
+        BigNumber memory n,
+        BigNumber memory expDelta,
+        uint256 T
+    ) external returns (bool) {
+        return
+            PietrzakVDF.verifyRecursiveHalvingProofDeltaBigNumberHalving(v, x, y, n, expDelta, T);
+    }
+}
+
+contract VerifyRecursiveHalvingProofDeltaBigNumberModExpEvent {
+    function verifyRecursiveHalvingProofDeltaBigNumberModExpCompareExternal(
+        BigNumber[] memory v,
+        BigNumber memory x,
+        BigNumber memory y,
+        BigNumber memory n,
+        BigNumber memory expDelta,
+        uint256 T
+    ) external returns (bool) {
+        return
+            PietrzakVDF.verifyRecursiveHalvingProofDeltaBigNumberModExpCompare(
+                v,
+                x,
+                y,
+                n,
+                expDelta,
+                T
+            );
+    }
+}
+
+contract VerifyRecursiveHalvingProofExternalContract {
+    function verifyRecursiveHalvingProofExternal(
+        BigNumber[] memory v,
+        BigNumber memory x,
+        BigNumber memory y,
+        BigNumber memory n,
+        bytes memory bigNumTwoPowerOfDelta,
+        uint256 twoPowerOfDelta,
+        uint256 T
+    ) external view returns (bool) {
+        return
+            PietrzakVDF.verifyRecursiveHalvingProof(
+                v,
+                x,
+                y,
+                n,
+                bigNumTwoPowerOfDelta,
+                twoPowerOfDelta,
+                T
+            );
+    }
+}
+
+contract VerifyRecursiveHalvingProofExternalGasConsoleHalvingContract {
+    function verifyRecursiveHalvingProofExternal(
+        BigNumber[] memory v,
+        BigNumber memory x,
+        BigNumber memory y,
+        BigNumber memory n,
+        bytes memory bigNumTwoPowerOfDelta,
+        uint256 twoPowerOfDelta,
+        uint256 T
+    ) external returns (bool) {
+        return
+            PietrzakVDF.verifyRecursiveHalvingProofGasConsoleHalving(
+                v,
+                x,
+                y,
+                n,
+                bigNumTwoPowerOfDelta,
+                twoPowerOfDelta,
+                T
+            );
+    }
+}
+
+contract VerifyRecursiveHalvingProofExternalGasConsoleMoDExpContract {
+    function verifyRecursiveHalvingProofExternal(
+        BigNumber[] memory v,
+        BigNumber memory x,
+        BigNumber memory y,
+        BigNumber memory n,
+        bytes memory bigNumTwoPowerOfDelta,
+        uint256 twoPowerOfDelta,
+        uint256 T
+    ) external returns (bool) {
+        return
+            PietrzakVDF.verifyRecursiveHalvingProofGasConsoleModExp(
+                v,
+                x,
+                y,
+                n,
+                bigNumTwoPowerOfDelta,
+                twoPowerOfDelta,
+                T
+            );
+    }
+}
+
 contract MinimalApplication {
     function verifyRecursiveHalvingProofExternal(
         BigNumber[] memory v,
@@ -16,6 +186,69 @@ contract MinimalApplication {
     ) external view returns (bool) {
         return
             PietrzakVDF.verifyRecursiveHalvingProof(
+                v,
+                x,
+                y,
+                n,
+                bigNumTwoPowerOfDelta,
+                twoPowerOfDelta,
+                T
+            );
+    }
+
+    function verifyRecursiveHalvingProofExternal3(
+        BigNumber[] memory v,
+        BigNumber memory x,
+        BigNumber memory y,
+        BigNumber memory n,
+        bytes memory bigNumTwoPowerOfDelta,
+        uint256 twoPowerOfDelta,
+        uint256 T
+    ) external view returns (bool) {
+        return
+            PietrzakVDF.verifyRecursiveHalvingProof(
+                v,
+                x,
+                y,
+                n,
+                bigNumTwoPowerOfDelta,
+                twoPowerOfDelta,
+                T
+            );
+    }
+
+    function verifyRecursiveHalvingProofExternalGasConsoleHalving1(
+        BigNumber[] memory v,
+        BigNumber memory x,
+        BigNumber memory y,
+        BigNumber memory n,
+        bytes memory bigNumTwoPowerOfDelta,
+        uint256 twoPowerOfDelta,
+        uint256 T
+    ) external returns (bool) {
+        return
+            PietrzakVDF.verifyRecursiveHalvingProofGasConsoleHalving(
+                v,
+                x,
+                y,
+                n,
+                bigNumTwoPowerOfDelta,
+                twoPowerOfDelta,
+                T
+            );
+    }
+
+    function verifyRecursiveHalvingProofExternalGasConsoleModExp(
+        BigNumber[] memory v,
+        BigNumber memory x,
+        BigNumber memory y,
+        BigNumber memory n,
+        bytes memory bigNumTwoPowerOfDelta,
+        uint256 twoPowerOfDelta,
+        uint256 T
+    ) external returns (bool) {
+        return
+            PietrzakVDF.verifyRecursiveHalvingProofGasConsoleModExp(
                 v,
                 x,
                 y,
@@ -99,4 +332,96 @@ contract MinimalApplication {
                 T
             );
     }
+}
+
+contract ManyMany {
+    function a(
+        BigNumber[] memory v,
+        BigNumber memory x,
+        BigNumber memory y,
+        BigNumber memory n,
+        bytes memory bigNumTwoPowerOfDelta,
+        uint256 twoPowerOfDelta,
+        uint256 T
+    ) external {}
+
+    function b(
+        BigNumber[] memory v,
+        BigNumber memory x,
+        BigNumber memory y,
+        BigNumber memory n,
+        bytes memory bigNumTwoPowerOfDelta,
+        uint256 twoPowerOfDelta,
+        uint256 T
+    ) external {}
+
+    function c(
+        BigNumber[] memory v,
+        BigNumber memory x,
+        BigNumber memory y,
+        BigNumber memory n,
+        bytes memory bigNumTwoPowerOfDelta,
+        uint256 twoPowerOfDelta,
+        uint256 T
+    ) external {}
+
+    function d(
+        BigNumber[] memory v,
+        BigNumber memory x,
+        BigNumber memory y,
+        BigNumber memory n,
+        bytes memory bigNumTwoPowerOfDelta,
+        uint256 twoPowerOfDelta,
+        uint256 T
+    ) external {}
+
+    function e(
+        BigNumber[] memory v,
+        BigNumber memory x,
+        BigNumber memory y,
+        BigNumber memory n,
+        bytes memory bigNumTwoPowerOfDelta,
+        uint256 twoPowerOfDelta,
+        uint256 T
+    ) external {}
+
+    function f(
+        BigNumber[] memory v,
+        BigNumber memory x,
+        BigNumber memory y,
+        BigNumber memory n,
+        bytes memory bigNumTwoPowerOfDelta,
+        uint256 twoPowerOfDelta,
+        uint256 T
+    ) external {}
+
+    function g(
+        BigNumber[] memory v,
+        BigNumber memory x,
+        BigNumber memory y,
+        BigNumber memory n,
+        bytes memory bigNumTwoPowerOfDelta,
+        uint256 twoPowerOfDelta,
+        uint256 T
+    ) external {}
+
+    function h(
+        BigNumber[] memory v,
+        BigNumber memory x,
+        BigNumber memory y,
+        BigNumber memory n,
+        bytes memory bigNumTwoPowerOfDelta,
+        uint256 twoPowerOfDelta,
+        uint256 T
+    ) external {}
+
+    function i(
+        BigNumber[] memory v,
+        BigNumber memory x,
+        BigNumber memory y,
+        BigNumber memory n,
+        bytes memory bigNumTwoPowerOfDelta,
+        uint256 twoPowerOfDelta,
+        uint256 T
+    ) external {}
 }
