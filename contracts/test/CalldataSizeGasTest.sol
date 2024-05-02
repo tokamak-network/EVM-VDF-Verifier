@@ -1,6 +1,38 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.23;
 
+contract Calldata {
+    struct BigNumber {
+        bytes val;
+        uint256 bitlen;
+    }
+
+    function verifyRecursiveHalvingProof(
+        BigNumber[] memory v,
+        BigNumber memory x,
+        BigNumber memory y,
+        BigNumber memory n,
+        BigNumber memory expDelta,
+        uint256 T
+    ) external {}
+}
+
+contract Calldata2 {
+    struct BigNumber {
+        bytes val;
+        uint256 bitlen;
+    }
+
+    function verifyRecursiveHalvingProof(
+        BigNumber[] memory v,
+        BigNumber memory x,
+        BigNumber memory y,
+        BigNumber memory n,
+        uint256 delta,
+        uint256 T
+    ) external {}
+}
+
 contract A {
     struct BigNumber {
         bytes val;
