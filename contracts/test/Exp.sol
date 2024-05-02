@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.23;
-import "hardhat/console.sol";
 
 contract Exp {
     struct BigNumber {
