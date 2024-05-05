@@ -19,7 +19,7 @@ length_data_3072 = np.array(data['3072']['length'])
 gas_data_3072 = np.array(data['3072']['halving_cost']) / 10**6
 
 # Curve fitting
-initial_guess = [1, 1]
+initial_guess = [100, -100]
 params_2048, _ = curve_fit(model, length_data_2048, gas_data_2048, p0=initial_guess)
 params_3072, _ = curve_fit(model, length_data_3072, gas_data_3072, p0=initial_guess)
 

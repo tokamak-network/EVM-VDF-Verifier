@@ -25,6 +25,8 @@ gas_data_3072 = data['3072']['gas']
 initial_guess = [1, 1]
 params_2048, _ = curve_fit(model, length_data_2048, gas_data_2048, p0=initial_guess)
 params_3072, _ = curve_fit(model, length_data_3072, gas_data_3072, p0=initial_guess)
+print("2048 regression result", params_2048)
+print("3072 regression result", params_3072)
 
 # Plotting for 2048-bit key
 fig, ax1 = plt.subplots()
