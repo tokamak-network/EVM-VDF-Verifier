@@ -1,0 +1,284 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <title>Code coverage report for contracts/RNGConsumerBase.sol</title>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="../prettify.css" />
+    <link rel="stylesheet" href="../base.css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style type='text/css'>
+        .coverage-summary .sorter {
+            background-image: url(../sort-arrow-sprite.png);
+        }
+    </style>
+</head>
+<body>
+<div class='wrapper'>
+  <div class='pad1'>
+    <h1>
+      <a href="../index.html">all files</a> / <a href="index.html">contracts/</a> RNGConsumerBase.sol
+    </h1>
+    <div class='clearfix'>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">83.33% </span>
+        <span class="quiet">Statements</span>
+        <span class='fraction'>5/6</span>
+      </div>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">50% </span>
+        <span class="quiet">Branches</span>
+        <span class='fraction'>1/2</span>
+      </div>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">75% </span>
+        <span class="quiet">Functions</span>
+        <span class='fraction'>3/4</span>
+      </div>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">75% </span>
+        <span class="quiet">Lines</span>
+        <span class='fraction'>6/8</span>
+      </div>
+    </div>
+  </div>
+  <div class='status-line high'></div>
+<pre><table class="coverage">
+<tr><td class="line-count quiet">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+49
+50
+51
+52
+53
+54
+55
+56
+57
+58
+59
+60
+61
+62
+63
+64
+65
+66
+67
+68
+69
+70
+71
+72
+73
+74</td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.24;
+import {ICRRRNGCoordinator} from "./interfaces/ICRRRNGCoordinator.sol";
+&nbsp;
+/**
+ * @notice Interface for contracts using VRF randomness
+ * @dev USAGE
+ *
+ * @dev Consumer contracts must inherit from VRFConsumerBase, and can
+ * @dev initialize Coordinator address in their constructor as
+ */
+abstract contract RNGConsumerBase {
+    error OnlyCoordinatorCanFulfill(address have, address want);
+&nbsp;
+    /// @dev The RNGCoordinator contract
+    ICRRRNGCoordinator internal immutable i_rngCoordinator;
+&nbsp;
+    /**
+     * @param rngCoordinator The address of the RNGCoordinator contract
+     */
+    constructor(address rngCoordinator) {
+        i_rngCoordinator = ICRRRNGCoordinator(rngCoordinator);
+    }
+&nbsp;
+    /// @dev receive() external payable is required for contract to receive ETH when getting refunds from Coordinator when consumer overpays the calculatedDirectFundingPrice when requesting randomness
+    receive() external payable {}
+&nbsp;
+    /**
+     * @param _callbackGasLimit The amount of gas for processing of the callback request in your fulfillRandomWords()
+     * @return requestId The ID of the request
+     * @return requestPrice The calculated price of the request
+     * @dev Request Randomness to the Coordinator
+     * 1. Calculate the price of the request
+     * 2. Request randomness from the Coordinator with sending the calculated price
+     * 3. Return the requestId and requestPrice
+     */
+    function requestRandomness(uint32 _callbackGasLimit) internal returns (uint256, uint256) {
+        uint256 requestPrice = i_rngCoordinator.calculateDirectFundingPrice(_callbackGasLimit);
+        uint256 requestId = i_rngCoordinator.requestRandomWordDirectFunding{value: requestPrice}(
+            _callbackGasLimit
+        );
+        return (requestId, requestPrice);
+    }
+&nbsp;
+    /**
+     * @param _callbackGasLimit The amount of gas for processing of the callback request in your fulfillRandomWords()
+     * @return The calculated price of the request
+     */
+<span class="fstat-no" title="function not covered" >    function getCalculatedDirectFundingPrice(</span>
+        uint32 _callbackGasLimit
+    ) external view returns (uint256) {
+<span class="cstat-no" title="statement not covered" >        return i_rngCoordinator.calculateDirectFundingPrice(_callbackGasLimit);</span>
+    }
+&nbsp;
+    /**
+     * @param round The round of the randomness
+     * @param hashedOmegaVal The hashed value of the random number
+     * @dev Callback function for the Coordinator to call after the request is fulfilled.  Override this function in your contract
+     */
+    function fulfillRandomWords(uint256 round, uint256 hashedOmegaVal) internal virtual;
+&nbsp;
+    /**
+     * @param round The round of the randomness
+     * @param hashedOmegaVal The hashed value of the random number
+     * @dev Callback function for the Coordinator to call after the request is fulfilled. This function is called by the Coordinator
+     */
+    function rawFulfillRandomWords(uint256 round, uint256 hashedOmegaVal) external {
+        <span class="missing-if-branch" title="if path not taken" >I</span>if (msg.sender != address(i_rngCoordinator)) {
+            revert OnlyCoordinatorCanFulfill(msg.sender, address(i_rngCoordinator));
+        }
+        fulfillRandomWords(round, hashedOmegaVal);
+    }
+}
+&nbsp;</pre></td></tr>
+</table></pre>
+<div class='push'></div><!-- for sticky footer -->
+</div><!-- /wrapper -->
+<div class='footer quiet pad2 space-top1 center small'>
+  Code coverage
+  generated by <a href="http://istanbul-js.org/" target="_blank">istanbul</a> at Fri May 10 2024 14:04:37 GMT+0900 (Korean Standard Time)
+</div>
+</div>
+<script src="../prettify.js"></script>
+<script>
+window.onload = function () {
+        if (typeof prettyPrint === 'function') {
+            prettyPrint();
+        }
+};
+</script>
+<script src="../sorter.js"></script>
+</body>
+</html>

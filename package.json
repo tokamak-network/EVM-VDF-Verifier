@@ -1,7 +1,7 @@
 {
-  "name": "@tokamak-network/crrrngcontracts",
-  "version": "0.0.3",
-  "description": "CommitRevealRecover Random Number Generator Contracts",
+  "name": "@tokamak-network/rngcontracts",
+  "version": "0.0.1",
+  "description": "CommitRecover Random Number Generator Contracts",
   "author": "Justin(EuiSin) Gee",
   "license": "MIT",
   "private": false,
@@ -11,10 +11,14 @@
     "artifacts/contracts/RNGConsumerBase.sol",
     "artifacts/contracts/interfaces",
     "artifacts/contracts/libraries",
+    "artifacts/contracts/VDFCRRNG.sol",
     "contracts/interfaces",
     "contracts/CRRNGCoordinator.sol",
+    "contracts/VDFCRRNG.sol",
     "contracts/RNGConsumerBase.sol",
-    "contracts/libraries/BigNumbers.sol"
+    "contracts/libraries/BigNumbers.sol",
+    "contracts/utils",
+    "contracts/interfaces"
   ],
   "devDependencies": {
     "@nomicfoundation/hardhat-chai-matchers": "^2.0.3",
@@ -39,7 +43,7 @@
     "prettier": "^3.0.3",
     "prettier-plugin-solidity": "^1.1.3",
     "solhint": "^3.6.2",
-    "solidity-coverage": "^0.8.5",
+    "solidity-coverage": "^0.8.12",
     "solidity-docgen": "^0.6.0-beta.36",
     "ts-node": "^10.9.1",
     "typechain": "^8.3.1",

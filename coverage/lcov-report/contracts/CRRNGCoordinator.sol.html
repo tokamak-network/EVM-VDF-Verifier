@@ -1,0 +1,1229 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <title>Code coverage report for contracts/CRRNGCoordinator.sol</title>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="../prettify.css" />
+    <link rel="stylesheet" href="../base.css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style type='text/css'>
+        .coverage-summary .sorter {
+            background-image: url(../sort-arrow-sprite.png);
+        }
+    </style>
+</head>
+<body>
+<div class='wrapper'>
+  <div class='pad1'>
+    <h1>
+      <a href="../index.html">all files</a> / <a href="index.html">contracts/</a> CRRNGCoordinator.sol
+    </h1>
+    <div class='clearfix'>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">79.07% </span>
+        <span class="quiet">Statements</span>
+        <span class='fraction'>34/43</span>
+      </div>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">27.08% </span>
+        <span class="quiet">Branches</span>
+        <span class='fraction'>13/48</span>
+      </div>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">85% </span>
+        <span class="quiet">Functions</span>
+        <span class='fraction'>17/20</span>
+      </div>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">69.33% </span>
+        <span class="quiet">Lines</span>
+        <span class='fraction'>52/75</span>
+      </div>
+    </div>
+  </div>
+  <div class='status-line medium'></div>
+<pre><table class="coverage">
+<tr><td class="line-count quiet">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+49
+50
+51
+52
+53
+54
+55
+56
+57
+58
+59
+60
+61
+62
+63
+64
+65
+66
+67
+68
+69
+70
+71
+72
+73
+74
+75
+76
+77
+78
+79
+80
+81
+82
+83
+84
+85
+86
+87
+88
+89
+90
+91
+92
+93
+94
+95
+96
+97
+98
+99
+100
+101
+102
+103
+104
+105
+106
+107
+108
+109
+110
+111
+112
+113
+114
+115
+116
+117
+118
+119
+120
+121
+122
+123
+124
+125
+126
+127
+128
+129
+130
+131
+132
+133
+134
+135
+136
+137
+138
+139
+140
+141
+142
+143
+144
+145
+146
+147
+148
+149
+150
+151
+152
+153
+154
+155
+156
+157
+158
+159
+160
+161
+162
+163
+164
+165
+166
+167
+168
+169
+170
+171
+172
+173
+174
+175
+176
+177
+178
+179
+180
+181
+182
+183
+184
+185
+186
+187
+188
+189
+190
+191
+192
+193
+194
+195
+196
+197
+198
+199
+200
+201
+202
+203
+204
+205
+206
+207
+208
+209
+210
+211
+212
+213
+214
+215
+216
+217
+218
+219
+220
+221
+222
+223
+224
+225
+226
+227
+228
+229
+230
+231
+232
+233
+234
+235
+236
+237
+238
+239
+240
+241
+242
+243
+244
+245
+246
+247
+248
+249
+250
+251
+252
+253
+254
+255
+256
+257
+258
+259
+260
+261
+262
+263
+264
+265
+266
+267
+268
+269
+270
+271
+272
+273
+274
+275
+276
+277
+278
+279
+280
+281
+282
+283
+284
+285
+286
+287
+288
+289
+290
+291
+292
+293
+294
+295
+296
+297
+298
+299
+300
+301
+302
+303
+304
+305
+306
+307
+308
+309
+310
+311
+312
+313
+314
+315
+316
+317
+318
+319
+320
+321
+322
+323
+324
+325
+326
+327
+328
+329
+330
+331
+332
+333
+334
+335
+336
+337
+338
+339
+340
+341
+342
+343
+344
+345
+346
+347
+348
+349
+350
+351
+352
+353
+354
+355
+356
+357
+358
+359
+360
+361
+362
+363
+364
+365
+366
+367
+368
+369
+370
+371
+372
+373
+374
+375
+376
+377
+378
+379
+380
+381
+382
+383
+384
+385
+386
+387
+388
+389</td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">5×</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">5×</span>
+<span class="cline-any cline-yes">5×</span>
+<span class="cline-any cline-yes">5×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">5×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">5×</span>
+<span class="cline-any cline-yes">5×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2×</span>
+<span class="cline-any cline-yes">2×</span>
+<span class="cline-any cline-yes">2×</span>
+<span class="cline-any cline-yes">2×</span>
+<span class="cline-any cline-yes">2×</span>
+<span class="cline-any cline-yes">2×</span>
+<span class="cline-any cline-yes">2×</span>
+<span class="cline-any cline-yes">2×</span>
+<span class="cline-any cline-yes">2×</span>
+<span class="cline-any cline-yes">2×</span>
+<span class="cline-any cline-yes">2×</span>
+<span class="cline-any cline-yes">2×</span>
+<span class="cline-any cline-yes">2×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">3×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">7×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">6×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">10×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">5×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">6×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">4×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">3×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">3×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.24;
+&nbsp;
+import {ICRRRNGCoordinator} from "./interfaces/ICRRRNGCoordinator.sol";
+import {VDFCRRNG} from "./VDFCRRNG.sol";
+import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
+&nbsp;
+/// @title Commit-Recover Random Number Generator Coordinator
+/// @author Justin G
+/// @notice This contract is not audited
+/// @notice  This contract is for generating random number
+contract CRRNGCoordinator is ICRRRNGCoordinator, Ownable, VDFCRRNG {
+    // *** State variables
+    // * private
+    uint256 private s_operatorCount;
+    uint256 private s_avgRecoveOverhead;
+    uint256 private s_minimumDepositAmount;
+    uint256 private s_premiumPercentage;
+    uint256 private s_flatFee;
+    mapping(address operator =&gt; uint256 depositAmount) private s_depositAmount;
+&nbsp;
+    /// @notice The deployer becomes the owner of the contract
+    /// @dev no zero checks
+    /// @param disputePeriod The dispute period after recovery
+    /// @param minimumDepositAmount The minimum deposit amount to become operators
+    /// @param avgRecoveOverhead The average gas cost for recovery of the random number
+    /// @param premiumPercentage The percentage of the premium, will be set to 0
+    /// @param flatFee The flat fee for the direct funding
+    constructor(
+        uint256 disputePeriod,
+        uint256 minimumDepositAmount,
+        uint256 avgRecoveOverhead,
+        uint256 premiumPercentage,
+        uint256 flatFee
+    ) VDFCRRNG(disputePeriod) Ownable(msg.sender) {
+        s_avgRecoveOverhead = avgRecoveOverhead;
+        s_minimumDepositAmount = minimumDepositAmount;
+        s_premiumPercentage = premiumPercentage;
+        s_flatFee = flatFee;
+    }
+&nbsp;
+    /** @notice Sets the settings for the contract. The owner will be transfer to mini DAO contract in the future.
+     *  1. only owner can set the settings&lt;br&gt;
+     *  2. no safety checks for values since it is only owner
+     * @param disputePeriod The dispute period after recovery
+     * @param minimumDepositAmount The minimum deposit amount to become operators
+     * @param avgRecoveOverhead The average gas cost for recovery of the random number
+     * @param premiumPercentage The percentage of the premium, will be set to 0
+     * @param flatFee The flat fee for the direct funding
+     */
+<span class="fstat-no" title="function not covered" >    function setSettings(</span>
+        uint256 disputePeriod,
+        uint256 minimumDepositAmount,
+        uint256 avgRecoveOverhead,
+        uint256 premiumPercentage,
+        uint256 flatFee
+    ) external onlyOwner {
+        s_disputePeriod = disputePeriod;
+        s_minimumDepositAmount = minimumDepositAmount;
+        s_avgRecoveOverhead = avgRecoveOverhead;
+        s_premiumPercentage = premiumPercentage;
+        s_flatFee = flatFee;
+    }
+&nbsp;
+    /**  @param callbackGasLimit  Test and adjust this limit based on the processing of the callback request in your fulfillRandomWords() function.
+     * @return requestId The round ID of the request
+     * @notice Consumer requests a random number, the consumer must send the cost of the request. There is refund logic in the contract to refund the excess amount sent by the consumer, so nonReentrant modifier is used to prevent reentrancy attacks.
+     * - checks
+     * 1. Reverts when reentrancy is detected
+     * 2. Reverts when the VDF values are not verified
+     * 3. Reverts when the number of operators is less than 2
+     * 4. Reverts when the value sent from consumer is less than the _calculateDirectFundingPrice function result
+     * - effects
+     * 1. Increments the round number
+     * 2. Sets the start time of the round
+     * 3. Sets the stage of the round to Commit, commit starts
+     * 4. Sets the msg.sender as the consumer of the round, doesn't check if the consumer is EOA or CA
+     * 5. Sets the cost of the round, derived from the _calculateDirectFundingPrice function
+     * 6. Emits a RandomWordsRequested(round, msg.sender) event
+     * - interactions
+     * 1. Refunds the excess amount sent over the result of the _calculateDirectFundingPrice function, reverts if the refund fails
+     */
+    function requestRandomWordDirectFunding(
+        uint32 callbackGasLimit
+    ) external payable <span class="missing-if-branch" title="else path not taken" >E</span>nonReentrant returns (uint256) {
+        <span class="missing-if-branch" title="if path not taken" >I</span>if (!s_initialized) revert NotVerified();
+        <span class="missing-if-branch" title="if path not taken" >I</span>if (s_operatorCount &lt; 2) revert NotEnoughOperators();
+        uint256 cost = _calculateDirectFundingPrice(callbackGasLimit, tx.gasprice);
+        <span class="missing-if-branch" title="if path not taken" >I</span>if (msg.value &lt; cost) revert InsufficientAmount();
+        uint256 _round = s_nextRound++;
+        s_valuesAtRound[_round].startTime = block.timestamp;
+        s_valuesAtRound[_round].stage = Stages.Commit;
+        s_valuesAtRound[_round].consumer = msg.sender;
+        s_cost[_round] = cost;
+        emit RandomWordsRequested(_round, msg.sender);
+        bool success = _send(msg.sender, gasleft(), msg.value - cost);
+        <span class="missing-if-branch" title="if path not taken" >I</span>if (!success) revert SendFailed();
+        return _round;
+    }
+&nbsp;
+    /**
+     * @param round The round ID of the request
+     * @notice This function can be called by anyone to restart the commit stage of the round when commits are less than 2 after the commit stage ends
+     * - checks
+     * 1. Reverts when the current block timestamp is less than the start time of the round plus the commit duration, meaning the commit stage is still ongoing
+     * 2. Reverts when the number of commits is more than 1, because the recovery stage is already started
+     * - effects
+     * 1. Resets the stage of the round to Commit
+     * 2. Resets the start time of the round
+     * 3. ReEmits a RandomWordsRequested(round, msg.sender) event
+     */
+<span class="fstat-no" title="function not covered" >    function reRequestRandomWordAtRound(</span>
+        uint256 round
+    ) external nonReentrant checkStage(round, Stages.Finished) {
+        // check
+<span class="cstat-no" title="statement not covered" >        if (block.timestamp &lt; s_valuesAtRound[round].startTime + COMMITDURATION)</span>
+            revert StillInCommitStage();
+<span class="cstat-no" title="statement not covered" >        if (s_valuesAtRound[round].numOfPariticipants &gt; 1) revert TwoOrMoreCommittedPleaseRecover();</span>
+        s_valuesAtRound[round].stage = Stages.Commit;
+        s_valuesAtRound[round].startTime = block.timestamp;
+<span class="cstat-no" title="statement not covered" >        emit RandomWordsRequested(round, msg.sender);</span>
+    }
+&nbsp;
+    /**
+     * @notice This function is for anyone to become an operator by depositing the minimum deposit amount, also for operators to increase their deposit amount
+     * - checks
+     * 1. Reverts when the deposit amount of the msg.sender plus the value sent is less than the minimum deposit amount
+     * - effects
+     * 1. Increments the operator count when the msg.sender was not an operator before
+     * 2. Sets the operator status of the msg.sender to true
+     * 3. Increments the deposit amount of the msg.sender
+     */
+    function operatorDeposit() external payable {
+        <span class="missing-if-branch" title="if path not taken" >I</span>if (s_depositAmount[msg.sender] + msg.value &lt; s_minimumDepositAmount)
+            revert CRRNGCoordinator_InsufficientDepositAmount();
+        <span class="missing-if-branch" title="else path not taken" >E</span>if (!s_operators[msg.sender]) {
+            unchecked {
+                ++s_operatorCount;
+            }
+            s_operators[msg.sender] = true;
+        }
+        unchecked {
+            s_depositAmount[msg.sender] += msg.value;
+        }
+    }
+&nbsp;
+    /**
+     * @param amount The amount to withdraw
+     * @notice This function is for operators to withdraw their deposit amount, also for operators to decrease their deposit amount
+     * - checks
+     * 1. Reverts when the dispute end time of the operator is more than the current block timestamp, meaning the operator could be in a dispute
+     * 2. Reverts when the parameter amount is more than the deposit amount of the operator
+     * - effects
+     * 1. If the deposit amount of the operator minus the amount is less than the minimum deposit amount
+     * &lt;br&gt;&amp;nbsp;- Sets the operator status of the operator to false
+     * &lt;br&gt;&amp;nbsp;- Decrements the operator count
+     * 2. Decrements the deposit amount of the operator
+     * - interactions
+     * 1. Sends the amount to the operator, reverts if the send fails
+     */
+<span class="fstat-no" title="function not covered" >    function operatorWithdraw(uint256 amount) external onlyOperator nonReentrant {</span>
+<span class="cstat-no" title="statement not covered" >        uint256 depositAmount = s_depositAmount[msg.sender];</span>
+<span class="cstat-no" title="statement not covered" >        if (s_disputeEndTimeForOperator[msg.sender] &gt; block.timestamp)</span>
+            revert DisputePeriodNotEnded();
+<span class="cstat-no" title="statement not covered" >        if (depositAmount &lt; amount) revert CRRNGCoordinator_InsufficientDepositAmount();</span>
+<span class="cstat-no" title="statement not covered" >        if (depositAmount - amount &lt; s_minimumDepositAmount) {</span>
+            s_operators[msg.sender] = false;
+            unchecked {
+                s_operatorCount--;
+            }
+        }
+        s_depositAmount[msg.sender] -= amount;
+<span class="cstat-no" title="statement not covered" >        bool success = _send(msg.sender, gasleft(), amount);</span>
+<span class="cstat-no" title="statement not covered" >        if (!success) revert SendFailed();</span>
+    }
+&nbsp;
+    /**
+     * @param round The round ID of the request
+     * @notice This function is for operators who have committed to the round to dispute the leadership of the round
+     * - checks
+     * 1. Reverts when the operator has not committed to the round
+     * 2. Reverts when the dispute end time of the round is less than the current block timestamp, meaning the dispute period has ended
+     * 3. Reverts when the round is not completed, meaning the recovery stage is not ended
+     * 4. Reverts when the msg.sender is already the leader
+     * 5. Reverts when the keccak256(omega, msg.sender) is greater than the keccak256(omega, previousLeader)
+     * - effects
+     * 1. Resets the leader of the round to the msg.sender
+     * 2. Sets the dispute end time of the operator to the dispute end time of the round, meaning the operator can't withdraw the deposit amount until the dispute period ends
+     * 3. Increments the incentive of the msg.sender by the cost of the round
+     * 4. Decrements the incentive of the previous leader by the cost of the round
+     */
+    function disputeLeadershipAtRound(uint256 round) external <span class="missing-if-branch" title="else path not taken" >E</span>onlyOperator {
+        // check if committed
+        <span class="missing-if-branch" title="if path not taken" >I</span>if (!s_userInfosAtRound[round][msg.sender].committed) revert NotCommittedParticipant();
+        <span class="missing-if-branch" title="if path not taken" >I</span>if (s_disputeEndTimeAtRound[round] &lt; block.timestamp) revert DisputePeriodEnded();
+        <span class="missing-if-branch" title="if path not taken" >I</span>if (!s_valuesAtRound[round].isCompleted) revert OmegaNotCompleted();
+        bytes memory _omega = s_valuesAtRound[round].omega.val;
+        address _leader = s_leaderAtRound[round];
+        <span class="missing-if-branch" title="if path not taken" >I</span>if (_leader == msg.sender) revert AlreadyLeader();
+        bytes32 _leaderHash = keccak256(abi.encodePacked(_omega, _leader));
+        bytes32 _myHash = keccak256(abi.encodePacked(_omega, msg.sender));
+        <span class="missing-if-branch" title="else path not taken" >E</span>if (_myHash &lt; _leaderHash) {
+            s_leaderAtRound[round] = msg.sender;
+            s_disputeEndTimeForOperator[msg.sender] = s_disputeEndTimeAtRound[round];
+            s_incentiveForOperator[msg.sender] += s_cost[round];
+            s_incentiveForOperator[_leader] -= s_cost[round];
+        } else revert NotLeader();
+    }
+&nbsp;
+    /**
+     * @param _callbackGasLimit The gas limit for the processing of the callback request in consumer's fulfillRandomWords() function.
+     * @param gasPrice The expected gas price for the callback transaction.
+     * @return calculatedDirectFundingPrice The cost of the direct funding
+     * @notice This function is for the consumer to estimate the cost of the direct funding
+     * 1. returns cost =  (((gasPrice * (_callbackGasLimit + s_avgRecoveOverhead)) * (s_premiumPercentage + 100)) / 100) + s_flatFee;
+     */
+    function estimateDirectFundingPrice(
+        uint32 _callbackGasLimit,
+        uint256 gasPrice
+    ) external view returns (uint256) {
+        return _calculateDirectFundingPrice(_callbackGasLimit, gasPrice);
+    }
+&nbsp;
+    /**
+     * @param _callbackGasLimit The gas limit for the processing of the callback request in consumer's fulfillRandomWords() function.
+     * @return calculatedDirectFundingPrice The cost of the direct funding
+     * @notice This function is for the consumer to calculate the cost of the direct funding with the current gas price on-chain
+     * 1. returns cost =  (((tx.gasprice * (_callbackGasLimit + s_avgRecoveOverhead)) * (s_premiumPercentage + 100)) / 100) + s_flatFee;
+     */
+    function calculateDirectFundingPrice(
+        uint32 _callbackGasLimit
+    ) external view override returns (uint256) {
+        return _calculateDirectFundingPrice(_callbackGasLimit, tx.gasprice);
+    }
+&nbsp;
+    // *** getter functions
+    /**
+     * @param round The round ID of the request
+     * @return disputeEndTimeAtRound The dispute end time of the round
+     * @return leaderAtRound The leader of the round
+     * @notice This getter function is for anyone to get the dispute end time and the leader of the round
+     * - return order
+     * 0. dispute end time
+     * 1. leader
+     */
+    function getDisputeEndTimeAndLeaderAtRound(
+        uint256 round
+    ) external view returns (uint256, address) {
+        return (s_disputeEndTimeAtRound[round], s_leaderAtRound[round]);
+    }
+&nbsp;
+    /**
+     * @param operator The operator address
+     * @return s_disputeEndTimeForOperator The dispute end time of the operator
+     * @return s_incentiveForOperator The all incentive of the operator
+     * @notice This getter function is for anyone to get the dispute end time and all the incentive of the operator
+     * - return order
+     * 0. dispute end time
+     * 1. incentive
+     */
+    function getDisputeEndTimeAndIncentiveOfOperator(
+        address operator
+    ) external view returns (uint256, uint256) {
+        return (s_disputeEndTimeForOperator[operator], s_incentiveForOperator[operator]);
+    }
+&nbsp;
+    /**
+     * @param round The round ID of the request
+     * @return costOfRound The cost of the round. The cost includes the _callbackGasLimit, recovery gas cost, premium, and flat fee. premium is set to 0.
+     * @notice This getter function is for anyone to get the cost of the round
+     */
+    function getCostAtRound(uint256 round) external view returns (uint256) {
+        return s_cost[round];
+    }
+&nbsp;
+    /**
+     * @param operator The operator address
+     * @return depositAmount The deposit amount of the operator
+     * @notice This getter function is for anyone to get the deposit amount of the operator
+     */
+    function getDepositAmount(address operator) external view returns (uint256) {
+        return s_depositAmount[operator];
+    }
+&nbsp;
+    /**
+     * @return minimumDepositAmount The minimum deposit amount to become operators
+     * @notice This getter function is for anyone to get the minimum deposit amount to become operators
+     */
+    function getMinimumDepositAmount() external view returns (uint256) {
+        return s_minimumDepositAmount;
+    }
+&nbsp;
+    /**
+     * @return nextRound The next round ID
+     * @notice This getter function is for anyone to get the next round ID
+     */
+    function getNextRound() external view returns (uint256) {
+        return s_nextRound;
+    }
+&nbsp;
+    /**
+     * @param _round The round ID of the request
+     * @return The values of the round that are used for commit and recovery stages. The return value is struct ValueAtRound
+     * @notice This getter function is for anyone to get the values of the round that are used for commit and recovery stages
+     * - [0]: startTime -&gt; The start time of the round
+     * - [1]:numOfPariticipants -&gt; This is the number of operators who have committed to the round. And this is updated on the recovery stage.
+     * - [2]: count -&gt; The number of operators who have committed to the round. And this is updated real-time.
+     * - [3]: consumer -&gt; The address of the consumer of the round
+     * - [4]: bStar -&gt; The bStar value of the round. This is updated on recovery stage.
+     * - [5]: commitsString -&gt; The concatenated string of the commits of the operators. This is updated when commit
+     * - [6]: omega -&gt; The omega value of the round. This is updated after recovery.
+     * - [7]: stage -&gt; The stage of the round. 0 is Recovered or NotStarted, 1 is Commit, 2 is Reveal which is not used in this contract.
+     * - [8]: isCompleted -&gt; The flag to check if the round is completed. This is updated after recovery.
+     * - [9]: isAllRevealed -&gt; The flag to check if all the operators have revealed their commits. We don't use this flag in this contract.
+     */
+    function getValuesAtRound(uint256 _round) external view returns (ValueAtRound memory) {
+        return s_valuesAtRound[_round];
+    }
+&nbsp;
+    /**
+     * @param _operator The operator address
+     * @param _round The round ID of the request
+     * @return The status of the operator at the round. The return value is struct UserStatusAtRound
+     * @notice This getter function is for anyone to get the status of the operator at the round
+     *
+     * - [0]: index -&gt; The index of the commitRevealValue array of the operator
+     * - [1]: committed -&gt; The flag to check if the operator has committed to the round
+     * - [2]: revealed -&gt; The flag to check if the operator has revealed the commit
+     */
+    function getUserStatusAtRound(
+        address _operator,
+        uint256 _round
+    ) external view returns (UserStatusAtRound memory) {
+        return s_userInfosAtRound[_round][_operator];
+    }
+&nbsp;
+    /**
+     * @param _round The round ID of the request
+     * @return The commit, reveal value and the operator address of the round. The return value is struct CommitRevealValue
+     * @notice This getter function is for anyone to get the commit, reveal value and the operator address of the round
+     * - [0]: commit -&gt; The commit value of the operator
+     * - [1]: reveal -&gt; The reveal value of the operator
+     * - [2]: operator -&gt; The operator address
+     */
+    function getCommitRevealValues(
+        uint256 _round,
+        uint256 _index
+    ) external view returns (CommitRevealValue memory) {
+        return s_commitRevealValues[_round][_index];
+    }
+&nbsp;
+    /**
+     * @param _callbackGasLimit The gas limit for the processing of the callback request in consumer's fulfillRandomWords() function.
+     * @param gasPrice The gas price for the callback transaction.
+     * @return calculatedDirectFundingPrice The cost of the direct funding
+     * @notice This function is for the contract to calculate the cost of the direct funding
+     * - returns cost =  (((gasPrice * (_callbackGasLimit + s_avgRecoveOverhead)) * (s_premiumPercentage + 100)) / 100) + s_flatFee;
+     */
+    function _calculateDirectFundingPrice(
+        uint32 _callbackGasLimit,
+        uint256 gasPrice
+    ) internal view returns (uint256) {
+        return
+            (((gasPrice * (_callbackGasLimit + s_avgRecoveOverhead)) *
+                (s_premiumPercentage + 100)) / 100) + s_flatFee;
+    }
+&nbsp;
+    /// @notice Performs a low level call without copying any returndata.
+    /// @notice Passes no calldata to the call context.
+    /// @param _target   Address to call
+    /// @param _gas      Amount of gas to pass to the call
+    /// @param _value    Amount of value to pass to the call
+    function _send(address _target, uint256 _gas, uint256 _value) private returns (bool) {
+        bool _success;
+        assembly {
+            _success := call(
+                _gas, // gas
+                _target, // recipient
+                _value, // ether value
+                0, // inloc
+                0, // inlen
+                0, // outloc
+                0 // outlen
+            )
+        }
+        return _success;
+    }
+}
+&nbsp;</pre></td></tr>
+</table></pre>
+<div class='push'></div><!-- for sticky footer -->
+</div><!-- /wrapper -->
+<div class='footer quiet pad2 space-top1 center small'>
+  Code coverage
+  generated by <a href="http://istanbul-js.org/" target="_blank">istanbul</a> at Fri May 10 2024 14:04:37 GMT+0900 (Korean Standard Time)
+</div>
+</div>
+<script src="../prettify.js"></script>
+<script>
+window.onload = function () {
+        if (typeof prettyPrint === 'function') {
+            prettyPrint();
+        }
+};
+</script>
+<script src="../sorter.js"></script>
+</body>
+</html>
