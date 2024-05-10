@@ -9,9 +9,11 @@ import "hardhat-deploy"
 import "hardhat-gas-reporter"
 import { HardhatUserConfig } from "hardhat/config"
 import "solidity-coverage"
+import "solidity-docgen"
 /** @type import('hardhat/config').HardhatUserConfig */
 
 const optimizerSettings = {
+    evmVersion: "cancun",
     viaIR: true,
     optimizer: {
         enabled: true,
@@ -21,22 +23,10 @@ const optimizerSettings = {
         },
     },
 }
-const optimizerEnabledFalse = {
-    optimizer: {
-        enabled: false,
-    },
-}
-const DEFAULT_COMPILER_SETTINGS = {
-    version: "0.8.23",
-    settings: optimizerSettings,
-}
+
 const NEW_COMPILER_SETTINGS = {
     version: "0.8.24",
     settings: optimizerSettings,
-}
-const LOW_OPTIMIZER_COMPILER_SETTINGS = {
-    version: "0.8.23",
-    settings: optimizerEnabledFalse,
 }
 const MAINNET_RPC_URL = process.env.MAINNET_RPC_URL
 const SEPOLIA_RPC_URL = process.env.SEPOLIA_RPC_URL
@@ -45,7 +35,6 @@ const PRIVATE_KEY = process.env.PRIVATE_KEY
 
 // Your API key for Etherscan, obtain one at https://etherscan.io/
 const ETHERSCAN_API_KEY = process.env.ETHERSCAN_API_KEY || "Your etherscan API key"
-const POLYGONSCAN_API_KEY = process.env.POLYGONSCAN_API_KEY || "Your polygonscan API key"
 const REPORT_GAS = process.env.REPORT_GAS || false
 
 const config: HardhatUserConfig = {
@@ -169,17 +158,7 @@ const config: HardhatUserConfig = {
         },
     },
     solidity: {
-        compilers: [DEFAULT_COMPILER_SETTINGS, NEW_COMPILER_SETTINGS],
-        overrides: {
-            "contracts/strategies/CRRWithNTInProofVerifyAndProcessSeparateFileSeparateWithoutOptimizer.sol":
-                LOW_OPTIMIZER_COMPILER_SETTINGS,
-            "contracts/strategies/interfaces/ICRRWithNTInProofVerifyAndProcessSeparateFileSeparateWithoutOptimizer.sol":
-                LOW_OPTIMIZER_COMPILER_SETTINGS,
-            "contracts/strategies/libraries/Pietrzak_VDFWithoutOptimizer.sol":
-                LOW_OPTIMIZER_COMPILER_SETTINGS,
-            "contracts/strategies/libraries/BigNumbersWithoutOptimizer.sol":
-                LOW_OPTIMIZER_COMPILER_SETTINGS,
-        },
+        compilers: [NEW_COMPILER_SETTINGS],
     },
     mocha: {
         timeout: 20000000, // 2000 seconds max for running tests
