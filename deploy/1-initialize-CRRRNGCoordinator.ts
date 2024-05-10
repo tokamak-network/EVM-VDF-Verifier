@@ -71,9 +71,9 @@ const deployCRRRNGCoordinator: DeployFunction = async (hre: HardhatRuntimeEnviro
     initializeParams.bigNumTwoPowerOfDelta = twoPowerOfDeltaBytes
     initializeParams.delta = delta
 
-    const crrrngCoordinatorAddress = (await deployments.get("CRRRNGCoordinator")).address
+    const crrrngCoordinatorAddress = (await deployments.get("CRRNGCoordinator")).address
     const crrngCoordinatorContract = await ethers.getContractAt(
-        "CRRRNGCoordinator",
+        "CRRNGCoordinator",
         crrrngCoordinatorAddress,
     )
     const tx = await crrngCoordinatorContract.initialize(

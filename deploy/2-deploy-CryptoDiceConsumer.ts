@@ -27,7 +27,7 @@ const deployCryptoDice: DeployFunction = async (hre: HardhatRuntimeEnvironment) 
             : VERIFICATION_BLOCK_CONFIRMATIONS
     log("----------------------------------------------------")
     // get crrRngCoordinatorAddress
-    const crrRngCoordinatorAddress = (await deployments.get("CRRRNGCoordinator")).address
+    const crrRngCoordinatorAddress = (await deployments.get("CRRNGCoordinator")).address
     let tonTokenAddress: string
     if (chainId == 31337) {
         tonTokenAddress = (await deployments.get("TonToken")).address

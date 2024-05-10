@@ -36,7 +36,7 @@ async function updateAbi() {
     const chainId = network.config.chainId?.toString()
     const cryptoDice = await ethers.getContract("CryptoDice")
     fs.writeFileSync(FRONT_END_ABI_FILE_CONSUMER, cryptoDice.interface.formatJson())
-    const crrngCoordinator = await ethers.getContract("CRRRNGCoordinator")
+    const crrngCoordinator = await ethers.getContract("CRRNGCoordinator")
     fs.writeFileSync(FRONT_END_ABI_FILE_COORDINATOR, crrngCoordinator.interface.formatJson())
     if (chainId == "31337") {
         const tonToken = await ethers.getContract("TonToken")
@@ -57,7 +57,7 @@ async function updateContractAddress() {
     }
     fs.writeFileSync(FRONT_END_ADDRESS_FILE_CONSUMER, JSON.stringify(currentAddress))
     // crrngCoordinator
-    const crrngCoordinator = await ethers.getContract("CRRRNGCoordinator")
+    const crrngCoordinator = await ethers.getContract("CRRNGCoordinator")
     const currentAddressCoordinator = JSON.parse(
         fs.readFileSync(FRONT_END_ADDRESS_FILE_COORDINATOR, "utf8"),
     )

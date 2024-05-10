@@ -30,14 +30,14 @@ const deployCRRRNGCoordinator: DeployFunction = async (hre: HardhatRuntimeEnviro
             : VERIFICATION_BLOCK_CONFIRMATIONS
     log("----------------------------------------------------")
     const testcases: TestCase = createTestCaseV2()
-    const crrRngCoordinator = await deploy("CRRRNGCoordinator", {
+    const crrRngCoordinator = await deploy("CRRNGCoordinator", {
         from: deployer,
         log: true,
         args: [],
         waitConfirmations: waitBlockConfirmations,
     })
     // deploy result
-    log("CRRRNGCoordinator deployed at:", crrRngCoordinator.address)
+    log("CRRNGCoordinator deployed at:", crrRngCoordinator.address)
     if (chainId !== 31337 && process.env.ETHERSCAN_API_KEY) {
         log("Verifying...")
         await verify(crrRngCoordinator.address, [])
@@ -45,4 +45,4 @@ const deployCRRRNGCoordinator: DeployFunction = async (hre: HardhatRuntimeEnviro
     log("----------------------------------------------------")
 }
 export default deployCRRRNGCoordinator
-deployCRRRNGCoordinator.tags = ["all", "CRRRNGCoordinator"]
+deployCRRRNGCoordinator.tags = ["all", "CRRNGCoordinator"]

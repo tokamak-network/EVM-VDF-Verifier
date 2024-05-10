@@ -16,7 +16,7 @@ import { ContractFactory } from "ethers"
 import fs from "fs"
 import { ethers } from "hardhat"
 import {
-    CRRRNGCoordinator,
+    CRRNGCoordinator,
     CRRRNGServiceInitialize,
     CRRWithNTInProof,
     CRRWithNTInProofVerifyAndProcessSeparate,
@@ -227,10 +227,10 @@ export const deployCommitRevealRecoverRNGTestFixture = async () => {
 export const deployCommitRevealRecoverRNGSetUpImmutableFixture = async () => {
     const testcase: TestCase = createTestCaseV2()
     const CommitRevealRecoverRNG: ContractFactory =
-        await ethers.getContractFactory("CRRRNGCoordinator")
-    let commitRevealRecoverRNG: CRRRNGCoordinator = (await CommitRevealRecoverRNG.deploy(
+        await ethers.getContractFactory("CRRNGCoordinator")
+    let commitRevealRecoverRNG: CRRNGCoordinator = (await CommitRevealRecoverRNG.deploy(
         testcase.setupProofs,
-    )) as CRRRNGCoordinator
+    )) as CRRNGCoordinator
     commitRevealRecoverRNG = await commitRevealRecoverRNG.waitForDeployment()
     let tx = commitRevealRecoverRNG.deploymentTransaction()
     let receipt = await tx?.wait()

@@ -30,10 +30,10 @@ async function recover() {
     const cryptoDiceConsumerAddress = (await deployments.get("CryptoDice")).address
     console.log("CryptoDice address:", cryptoDiceConsumerAddress)
     const cryptoDiceContract = await ethers.getContractAt("CryptoDice", cryptoDiceConsumerAddress)
-    const crrrngCoordinatorAddress = (await deployments.get("CRRRNGCoordinator")).address
-    console.log("CRRRNGCoordinator address:", crrrngCoordinatorAddress)
+    const crrrngCoordinatorAddress = (await deployments.get("CRRNGCoordinator")).address
+    console.log("CRRNGCoordinator address:", crrrngCoordinatorAddress)
     const crrngCoordinatorContract = await ethers.getContractAt(
-        "CRRRNGCoordinator",
+        "CRRNGCoordinator",
         crrrngCoordinatorAddress,
     )
     const round = (await cryptoDiceContract.getNextCryptoDiceRound()) - 1n

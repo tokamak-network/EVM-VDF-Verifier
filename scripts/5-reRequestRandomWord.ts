@@ -25,10 +25,10 @@ async function requestRandomWord() {
         "CryptoDice",
         cryptoDiceConsumerAddress,
     )
-    const crrrngCoordinatorAddress = (await deployments.get("CRRRNGCoordinator")).address
-    console.log("CRRRNGCoordinator address:", crrrngCoordinatorAddress)
+    const crrrngCoordinatorAddress = (await deployments.get("CRRNGCoordinator")).address
+    console.log("CRRNGCoordinator address:", crrrngCoordinatorAddress)
     const crrngCoordinatorContract = await ethers.getContractAt(
-        "CRRRNGCoordinator",
+        "CRRNGCoordinator",
         crrrngCoordinatorAddress,
     )
     try {
