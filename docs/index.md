@@ -409,6 +409,31 @@ This getter function is for anyone to get the status of the operator at the roun
 | ---- | --------------------------------- | ------------------------------------------------------------------------------------- |
 | [0]  | struct VDFCRRNG.UserStatusAtRound | The status of the operator at the round. The return value is struct UserStatusAtRound |
 
+### getCommitRevealValues
+
+```solidity
+function getCommitRevealValues(uint256 _round, uint256 _index) external view returns (struct VDFCRRNG.CommitRevealValue)
+```
+
+This getter function is for anyone to get the commit, reveal value and the operator address of the round
+
+-   [0]: commit -> The commit value of the operator
+-   [1]: reveal -> The reveal value of the operator
+-   [2]: operator -> The operator address
+
+#### Parameters
+
+| Name    | Type    | Description                 |
+| ------- | ------- | --------------------------- |
+| \_round | uint256 | The round ID of the request |
+| \_index | uint256 |                             |
+
+#### Return Values
+
+| Name | Type                              | Description                                                                                                  |
+| ---- | --------------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| [0]  | struct VDFCRRNG.CommitRevealValue | The commit, reveal value and the operator address of the round. The return value is struct CommitRevealValue |
+
 ### \_calculateDirectFundingPrice
 
 ```solidity
@@ -598,6 +623,14 @@ mapping(uint256 => mapping(address => struct VDFCRRNG.UserStatusAtRound)) s_user
 ```
 
 _The mapping of the user status at the round_
+
+### s_commitRevealValues
+
+```solidity
+mapping(uint256 => mapping(uint256 => struct VDFCRRNG.CommitRevealValue)) s_commitRevealValues
+```
+
+_The mapping of the commit reveal values and the committed address_
 
 ### COMMITDURATION
 
