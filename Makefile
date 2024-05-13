@@ -25,6 +25,8 @@ requestRandomWord:; npx hardhat run scripts/6-requestRandomWord.ts --network anv
 
 oneCommit:; npx hardhat run scripts/7-operatorCommits.ts --network anvil
 
+commit10:; npx hardhat run scripts/7-operatorCommit10.ts --network anvil
+
 threeCommit:; npx hardhat run scripts/7-operatorCommits.ts --network anvil; npx hardhat run scripts/7-operatorCommits.ts --network anvil; npx hardhat run scripts/7-operatorCommits.ts --network anvil
 
 recover:; npx hardhat run scripts/8-recoverNewData.ts --network anvil
