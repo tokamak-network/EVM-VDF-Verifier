@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { BytesLike, dataLength, toBeHex } from "ethers"
+import { BytesLike } from "ethers"
 import fs from "fs"
 import { DeployFunction } from "hardhat-deploy/types"
 import { HardhatRuntimeEnvironment } from "hardhat/types"
@@ -43,22 +43,14 @@ const deployCRRRNGCoordinator: DeployFunction = async (hre: HardhatRuntimeEnviro
     const testCaseJson = createCorrectAlgorithmVersionTestCase()
     //****** initialize params...
     const delta: number = 9
-    const twoPowerOfDeltaBytes: BytesLike = toBeHex(
-        2 ** delta,
-        getLength(dataLength(toBeHex(2 ** delta))),
-    )
     let initializeParams: {
         v: BigNumber[]
         x: BigNumber
         y: BigNumber
-        bigNumTwoPowerOfDelta: BytesLike
-        delta: number
     } = {
         v: [],
         x: { val: "0x0", bitlen: 0 },
         y: { val: "0x0", bitlen: 0 },
-        bigNumTwoPowerOfDelta: twoPowerOfDeltaBytes,
-        delta: delta,
     }
     initializeParams.x = testCaseJson.setupProofs[0].x
     initializeParams.y = testCaseJson.setupProofs[0].y
@@ -68,8 +60,6 @@ const deployCRRRNGCoordinator: DeployFunction = async (hre: HardhatRuntimeEnviro
     for (let i = 0; i < testCaseJson.setupProofs.length; i++) {
         initializeParams.v.push(testCaseJson.setupProofs[i].v)
     }
-    initializeParams.bigNumTwoPowerOfDelta = twoPowerOfDeltaBytes
-    initializeParams.delta = delta
 
     const crrrngCoordinatorAddress = (await deployments.get("CRRNGCoordinator")).address
     const crrngCoordinatorContract = await ethers.getContractAt(
@@ -80,8 +70,6 @@ const deployCRRRNGCoordinator: DeployFunction = async (hre: HardhatRuntimeEnviro
         initializeParams.v,
         initializeParams.x,
         initializeParams.y,
-        initializeParams.bigNumTwoPowerOfDelta,
-        initializeParams.delta,
         { from: deployer, gasLimit: 3000000 },
     )
     const receipt = await tx.wait()
