@@ -12,11 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import { BigNumberish } from "ethers"
+import { ethers } from "hardhat"
 import { DeployFunction } from "hardhat-deploy/types"
 import { HardhatRuntimeEnvironment } from "hardhat/types"
 import { VERIFICATION_BLOCK_CONFIRMATIONS } from "../helper-hardhat-config"
-import { TestCase } from "../test/shared/interfacesV2"
-import { createTestCaseV2 } from "../test/shared/testFunctionsV2"
 import verify from "../utils/verify"
 const deployCRRRNGCoordinator: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
     const { deployments, getNamedAccounts, network } = hre
@@ -24,23 +24,48 @@ const deployCRRRNGCoordinator: DeployFunction = async (hre: HardhatRuntimeEnviro
     const { deployer } = await getNamedAccounts()
     const chainId = network.config.chainId
 
+    const coordinatorConstructorParams: {
+        disputePeriod: BigNumberish
+        minimumDepositAmount: BigNumberish
+        avgRecoveOverhead: BigNumberish
+        premiumPercentage: BigNumberish
+        flatFee: BigNumberish
+    } = {
+        disputePeriod: 180n,
+        minimumDepositAmount: ethers.parseEther("0.01"),
+        avgRecoveOverhead: 2297700n,
+        premiumPercentage: 0n,
+        flatFee: ethers.parseEther("0.0013"),
+    }
+
     const waitBlockConfirmations =
         chainId === 31337 || chainId === 5050 || chainId === 55004 || chainId === 111551115050
             ? 1
             : VERIFICATION_BLOCK_CONFIRMATIONS
     log("----------------------------------------------------")
-    const testcases: TestCase = createTestCaseV2()
     const crrRngCoordinator = await deploy("CRRNGCoordinator", {
         from: deployer,
         log: true,
-        args: [],
+        args: [
+            coordinatorConstructorParams.disputePeriod,
+            coordinatorConstructorParams.minimumDepositAmount,
+            coordinatorConstructorParams.avgRecoveOverhead,
+            coordinatorConstructorParams.premiumPercentage,
+            coordinatorConstructorParams.flatFee,
+        ],
         waitConfirmations: waitBlockConfirmations,
     })
     // deploy result
     log("CRRNGCoordinator deployed at:", crrRngCoordinator.address)
     if (chainId !== 31337 && process.env.ETHERSCAN_API_KEY) {
         log("Verifying...")
-        await verify(crrRngCoordinator.address, [])
+        await verify(crrRngCoordinator.address, [
+            coordinatorConstructorParams.disputePeriod,
+            coordinatorConstructorParams.minimumDepositAmount,
+            coordinatorConstructorParams.avgRecoveOverhead,
+            coordinatorConstructorParams.premiumPercentage,
+            coordinatorConstructorParams.flatFee,
+        ])
     }
     log("----------------------------------------------------")
 }
