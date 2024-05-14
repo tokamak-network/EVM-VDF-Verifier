@@ -56,9 +56,9 @@ const config: HardhatUserConfig = {
             allowUnlimitedContractSize: true,
         },
         anvil: {
-            chainId: 1,
+            chainId: 31337,
             url: "http://localhost:8545",
-            allowUnlimitedContractSize: true,
+            //allowUnlimitedContractSize: true,
         },
         sepolia: {
             url: SEPOLIA_RPC_URL,
