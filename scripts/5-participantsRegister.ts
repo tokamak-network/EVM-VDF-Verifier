@@ -13,31 +13,30 @@
 // limitations under the License.
 import { deployments, ethers, getNamedAccounts, network } from "hardhat"
 
-async function startRegistration() {
+async function participantsRegister() {
+    // **** start Registration
     const chainId: number = network.config.chainId as number
     const { deployer } = await getNamedAccounts()
-    const registrationDuration = 120n
-    const totalPrizeAmount = 1000n * 10n ** 18n
     console.log("EOA address:", deployer)
     const cryptoDiceAddress = (await deployments.get("CryptoDice")).address
     console.log("cryptoDiceAddress address:", cryptoDiceAddress)
     const cryptoDiceConsumerContract = await ethers.getContractAt("CryptoDice", cryptoDiceAddress)
-    try {
-        console.log("Starting registration...")
-        const tx = await cryptoDiceConsumerContract.startRegistration(
-            registrationDuration,
-            totalPrizeAmount,
-        )
-        const receipt = await tx.wait()
-        console.log("Transaction receipt", receipt)
-        console.log("Registration started")
-        console.log("----------------------")
-    } catch (error) {
-        console.error(error)
+
+    // **** register
+    const signers = await ethers.getSigners()
+    const round = (await cryptoDiceConsumerContract.getNextCryptoDiceRound()) - 1n
+    for (let i = 0; i < 10; i++) {
+        const randomNumber = Math.floor(Math.random() * 6) + 1
+        try {
+            const tx = await cryptoDiceConsumerContract.connect(signers[i]).register(randomNumber)
+            await tx.wait()
+        } catch (e) {
+            console.error(e)
+        }
     }
 }
 
-startRegistration()
+participantsRegister()
     .then(() => process.exit(0))
     .catch((error) => {
         console.error(error)
