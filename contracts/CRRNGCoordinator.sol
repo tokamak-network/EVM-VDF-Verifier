@@ -113,6 +113,7 @@ contract CRRNGCoordinator is ICRRRNGCoordinator, Ownable, VDFCRRNG {
         uint256 round
     ) external nonReentrant checkStage(round, Stages.Finished) {
         // check
+        if (s_operatorCount < 2) revert NotEnoughOperators();
         if (block.timestamp < s_valuesAtRound[round].startTime + COMMITDURATION)
             revert StillInCommitStage();
         if (s_valuesAtRound[round].numOfPariticipants > 1) revert TwoOrMoreCommittedPleaseRecover();
@@ -204,6 +205,7 @@ contract CRRNGCoordinator is ICRRRNGCoordinator, Ownable, VDFCRRNG {
             s_disputeEndTimeForOperator[msg.sender] = s_disputeEndTimeAtRound[round];
             s_incentiveForOperator[msg.sender] += s_cost[round];
             s_incentiveForOperator[_leader] -= s_cost[round];
+            s_disputeEndTimeForOperator[_leader] = 0;
         } else revert NotLeader();
     }
 
