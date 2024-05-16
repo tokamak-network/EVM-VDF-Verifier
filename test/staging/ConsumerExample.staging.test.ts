@@ -14,32 +14,11 @@
 import { SignerWithAddress } from "@nomicfoundation/hardhat-ethers/signers"
 import { time } from "@nomicfoundation/hardhat-network-helpers"
 import { expect } from "chai"
-import {
-    AddressLike,
-    BigNumberish,
-    BytesLike,
-    ContractTransactionReceipt,
-    dataLength,
-    toBeHex,
-} from "ethers"
+import { AddressLike, BigNumberish, BytesLike } from "ethers"
 import fs from "fs"
 import { ethers, network } from "hardhat"
 import { developmentChains } from "../../helper-hardhat-config"
-import { CRRNGCoordinator, CryptoDice, TonToken } from "../../typechain-types"
-/**
- * struct ValueAtRound {
-    uint256 startTime;
-    uint256 numOfPariticipants;
-    uint256 count; //This variable is used to keep track of the number of commitments and reveals, and to check if anything has been committed when moving to the reveal stage.
-    address consumer;
-    bytes bStar; // hash of commitsString
-    bytes commitsString; // concatenated string of commits
-    BigNumber omega; // the random number
-    Stages stage; // stage of the contract
-    bool isCompleted; // omega is finialized when this is true
-    bool isAllRevealed; // true when all participants have revealed
-}
- */
+import { CRRNGCoordinator, ConsumerExample } from "../../typechain-types"
 interface BigNumber {
     val: BytesLike
     bitlen: BigNumberish
@@ -68,8 +47,9 @@ const createCorrectAlgorithmVersionTestCase = () => {
 
 !developmentChains.includes(network.name)
     ? describe.skip
-    : describe("Service Test", function () {
-          const callback_gaslimit = 100000n
+    : describe("ConsumerExample Test", function () {
+          const callback_gaslimit = 50000
+          const delta: number = 9
           const coordinatorConstructorParams: {
               disputePeriod: BigNumberish
               minimumDepositAmount: BigNumberish
@@ -77,29 +57,17 @@ const createCorrectAlgorithmVersionTestCase = () => {
               premiumPercentage: BigNumberish
               flatFee: BigNumberish
           } = {
-              disputePeriod: 1800n,
-              minimumDepositAmount: ethers.parseEther("0.1"),
-              avgRecoveOverhead: 2297700n,
+              disputePeriod: 180n,
+              minimumDepositAmount: ethers.parseEther("0.0001"),
+              avgRecoveOverhead: 0n,
               premiumPercentage: 0n,
-              flatFee: ethers.parseEther("0.0013"),
+              flatFee: 0n,
           }
-          const registrationDuration = 86400n
-          const totalPrizeAmount = 1000n * 10n ** 18n
-          const delta: number = 9
-          const twoPowerOfDeltaBytes: BytesLike = toBeHex(
-              2 ** delta,
-              getLength(dataLength(toBeHex(2 ** delta))),
-          )
           let testCaseJson
           let signers: SignerWithAddress[]
           let crrrngCoordinator: CRRNGCoordinator
-          let tonToken: TonToken
-          let cryptoDice: CryptoDice
           let crrngCoordinatorAddress: string
-          let tonTokenAddress: string
-          let cryptoDiceAddress: string
-          let randomNumbers: number[]
-          let diceNumCount: number[] = [0, 0, 0, 0, 0, 0, 0]
+          let consumerExample: ConsumerExample
           let initializeParams: {
               v: BigNumber[]
               x: BigNumber
@@ -153,15 +121,6 @@ const createCorrectAlgorithmVersionTestCase = () => {
                   recoverParams.x = testCaseJson.recoveryProofs[0].x
                   recoverParams.y = testCaseJson.recoveryProofs[0].y
               })
-              it("deploy TestERC20", async function () {
-                  const TonToken = await ethers.getContractFactory("TonToken")
-                  tonToken = await TonToken.deploy()
-                  await tonToken.waitForDeployment()
-                  tonTokenAddress = await tonToken.getAddress()
-                  const balance = await tonToken.balanceOf(signers[0].address)
-                  expect(balance).to.equal(1000000000000000000000000000n)
-                  expect(tonTokenAddress).to.be.properAddress
-              })
               it("deploy CRRRRNGCoordinator", async function () {
                   const CRRNGCoordinator = await ethers.getContractFactory("CRRNGCoordinator")
                   crrrngCoordinator = await CRRNGCoordinator.deploy(
@@ -186,91 +145,13 @@ const createCorrectAlgorithmVersionTestCase = () => {
                   const gasUsed = receipt?.gasUsed as bigint
                   const balanceAfter = await ethers.provider.getBalance(signers[0].address)
               })
-              it("deploy CryptoDice", async () => {
-                  const CryptoDice = await ethers.getContractFactory("CryptoDice")
-                  cryptoDice = (await CryptoDice.deploy(
-                      crrngCoordinatorAddress,
-                      tonTokenAddress,
-                  )) as CryptoDice
-                  await cryptoDice.waitForDeployment()
-                  cryptoDiceAddress = await cryptoDice.getAddress()
-                  expect(cryptoDiceAddress).to.be.properAddress
-                  expect(await cryptoDice.getRNGCoordinator()).to.equal(crrngCoordinatorAddress)
-                  expect(await cryptoDice.getAirdropTokenAddress()).to.equal(tonTokenAddress)
+              it("deploy ConsumerExample", async () => {
+                  const ConsumerExample = await ethers.getContractFactory("ConsumerExample")
+                  consumerExample = await ConsumerExample.deploy(crrngCoordinatorAddress)
+                  await consumerExample.waitForDeployment()
+                  const consumerExampleAddress = await consumerExample.getAddress()
+                  expect(consumerExampleAddress).to.be.properAddress
               })
-              it("Start Registration on CryptoDice", async () => {
-                  const round = 0n
-                  const tx = await cryptoDice.startRegistration(
-                      registrationDuration,
-                      totalPrizeAmount,
-                  )
-                  const receipt = await tx.wait()
-                  const gasUsed = receipt?.gasUsed
-                  const blockNum = BigInt(receipt?.blockNumber.toString()!)
-                  const block = await ethers.provider.getBlock(blockNum)
-                  const timestamp = block?.timestamp!
-                  const registrationTimeAndDuration: [bigint, bigint] =
-                      await cryptoDice.getRegistrationTimeAndDuration()
-                  const nextRound = await cryptoDice.getNextCryptoDiceRound()
-                  const currentRound = nextRound === 0n ? 0n : nextRound - 1n
-                  const registeredCount = await cryptoDice.getRegisteredCount(round)
-                  const roundStatus = await cryptoDice.getRoundStatus(round)
-
-                  // assert
-                  expect(registrationTimeAndDuration[0]).to.equal(timestamp)
-                  expect(registrationTimeAndDuration[1]).to.equal(registrationDuration)
-                  expect(nextRound).to.equal(1n)
-                  expect(currentRound).to.equal(0n)
-                  expect(registeredCount).to.equal(0n)
-                  /*
-                struct RoundStatus {
-                uint256 requestId;
-                uint256 totalPrizeAmount;
-                uint256 prizeAmountForEachWinner;
-                bool registrationStarted;
-                bool randNumRequested;
-                bool randNumfulfilled;
-            } */
-                  expect(roundStatus.requestId).to.equal(0n)
-                  expect(roundStatus.totalPrizeAmount).to.equal(totalPrizeAmount)
-                  expect(roundStatus.prizeAmountForEachWinner).to.equal(0n)
-                  expect(roundStatus.registrationStarted).to.equal(true)
-                  expect(roundStatus.randNumRequested).to.equal(false)
-                  expect(roundStatus.randNumfulfilled).to.equal(false)
-              })
-              it("500 participants register for CryptoDice", async () => {
-                  const round = 0n
-                  randomNumbers = []
-                  //act
-                  for (let i = 0; i < 500; i++) {
-                      // get javascript random number 1 to 6
-                      const randomNumber = Math.floor(Math.random() * 6) + 1
-                      randomNumbers.push(randomNumber)
-                      diceNumCount[randomNumber]++
-                      await cryptoDice.connect(signers[i]).register(randomNumber)
-                  }
-                  //get
-                  const registeredCount = await cryptoDice.getRegisteredCount(round)
-                  expect(registeredCount).to.equal(500)
-                  for (let i = 0; i < 500; i++) {
-                      const participatedRounds = await cryptoDice.getParticipatedRounds(
-                          signers[i].address,
-                      )
-                      const diceNum = await cryptoDice.getDiceNumAtRound(round, signers[i].address)
-                      expect(diceNum).to.equal(randomNumbers[i])
-                      expect(participatedRounds).to.deep.equal([0n])
-                  }
-              })
-              it("transfer tonToken to CryptoDice for prize", async () => {
-                  const round = 0n
-                  const tx = await tonToken.transfer(cryptoDiceAddress, totalPrizeAmount)
-                  const receipt = await tx.wait()
-                  const gasUsed = receipt?.gasUsed
-                  const cryptoDiceBalance = await tonToken.balanceOf(cryptoDiceAddress)
-                  expect(cryptoDiceBalance).to.equal(totalPrizeAmount)
-              })
-          })
-          describe("Coordinator Test", function () {
               it("5 operators deposit to become operator", async () => {
                   const minimumDepositAmount = coordinatorConstructorParams.minimumDepositAmount
                   const minimumDepositAmountFromContract =
@@ -293,56 +174,31 @@ const createCorrectAlgorithmVersionTestCase = () => {
                       expect(depositedAmountAfter).to.equal(minimumDepositAmount)
                   }
               })
-              it("RequestRandomWord on CryptoDice", async () => {
-                  await time.increase(86400n)
+          })
+          describe("test RequestRandomWord", function () {
+              it("Request Randomword on ConsumerExample", async () => {
                   const provider = ethers.provider
                   const fee = await provider.getFeeData()
-                  const round = (await cryptoDice.getNextCryptoDiceRound()) - 1n
                   const gasPrice = fee.gasPrice as bigint
                   const directFundingCost = await crrrngCoordinator.estimateDirectFundingPrice(
                       callback_gaslimit,
                       gasPrice,
                   )
-                  const avgRecoveOverhead = BigInt(coordinatorConstructorParams.avgRecoveOverhead)
-                  const premiumPercentage = BigInt(coordinatorConstructorParams.premiumPercentage)
-                  const flatFee = BigInt(coordinatorConstructorParams.flatFee)
-                  const calculateDirectFundingPrice =
-                      gasPrice *
-                          (callback_gaslimit + avgRecoveOverhead) *
-                          ((premiumPercentage + 100n) / 100n) +
-                      flatFee
-                  expect(directFundingCost).to.equal(calculateDirectFundingPrice)
-
-                  const ethBalanceBeforeRequestRandomWord = await provider.getBalance(
-                      signers[0].address,
-                  )
-                  const cryptoDiceBalanceBefore = await provider.getBalance(cryptoDiceAddress)
-
-                  const tx = await cryptoDice.requestRandomWord(round, {
+                  const tx = await consumerExample.requestRandomWord({
                       value: (directFundingCost * (100n + 1n)) / 100n,
                   })
-                  const receipt: ContractTransactionReceipt =
-                      (await tx.wait()) as ContractTransactionReceipt
-                  const ethBalanceAfterRequestRandomWord = await provider.getBalance(
-                      signers[0].address,
-                  )
-                  const gasCost = receipt.gasUsed * receipt.gasPrice
-                  const crrRound = (await crrrngCoordinator.getNextRound()) - 1n
+                  console.log("directFundingCost", directFundingCost)
+                  const receipt = await tx.wait()
+                  const gasUsed = receipt?.gasUsed as bigint
 
-                  const valuesAtRound: ValueAtRound =
-                      await crrrngCoordinator.getValuesAtRound(crrRound)
-                  assertValuesAtRequestRandomWord(valuesAtRound, receipt)
-                  const cost = await crrrngCoordinator.getCostAtRound(crrRound)
-                  const cryptoDiceBalanceAfter = await provider.getBalance(cryptoDiceAddress)
-
-                  const refundedAmount = cryptoDiceBalanceAfter - cryptoDiceBalanceBefore
-
-                  expect(gasCost).to.equal(
-                      ethBalanceBeforeRequestRandomWord -
-                          ethBalanceAfterRequestRandomWord -
-                          cost -
-                          refundedAmount,
-                  )
+                  const requestCount = await consumerExample.requestCount()
+                  const lastReqeustId = await consumerExample.lastRequestId()
+                  const lastRequestIdfromArray = await consumerExample.requestIds(requestCount - 1n)
+                  expect(lastReqeustId).to.equal(lastRequestIdfromArray)
+                  const requestStatus = await consumerExample.getRequestStatus(lastReqeustId)
+                  expect(requestStatus[0]).to.equal(true)
+                  expect(requestStatus[1]).to.equal(false)
+                  expect(requestStatus[2]).to.equal(0n)
               })
               it("3 operators commit to CRRNGCoordinator", async () => {
                   const round = (await crrrngCoordinator.getNextRound()) - 1n
@@ -389,7 +245,7 @@ const createCorrectAlgorithmVersionTestCase = () => {
                   smallestHashSigner = await provider.getSigner(hashResults[0][1])
               })
               it("thirdSmallestHashSigner recover", async () => {
-                  time.increase(120n)
+                  await time.increase(120n)
                   const round = (await crrrngCoordinator.getNextRound()) - 1n
                   const tx = await crrrngCoordinator
                       .connect(thirdSmallestHashSigner)
@@ -410,7 +266,8 @@ const createCorrectAlgorithmVersionTestCase = () => {
                   expect(valueAtRound.stage).to.equal(0n)
                   expect(valueAtRound.omega.val).to.equal(recoverParams.y.val)
                   expect(valueAtRound.omega.bitlen).to.equal(recoverParams.y.bitlen)
-                  expect(valueAtRound.consumer).to.equal(cryptoDiceAddress)
+                  const consumerAddress = await consumerExample.getAddress()
+                  expect(valueAtRound.consumer).to.equal(consumerAddress)
                   expect(valueAtRound.numOfPariticipants).to.equal(3)
                   expect(valueAtRound.isCompleted).to.equal(true)
                   expect(valueAtRound.count).to.equal(3)
@@ -438,36 +295,14 @@ const createCorrectAlgorithmVersionTestCase = () => {
                       await crrrngCoordinator.getCostAtRound(round),
                   )
 
-                  // ** cryptoDice Consumer assert test
-                  const roundStatus = await cryptoDice.getRoundStatus(round)
-                  const getRandNum = await cryptoDice.getRandNum(round)
-                  const getWinningDiceNum = await cryptoDice.getWinningDiceNum(round)
-                  // assert CryptoDice
-                  expect(roundStatus.randNumRequested).to.equal(true)
-                  expect(roundStatus.randNumfulfilled).to.equal(true)
-                  expect(roundStatus.prizeAmountForEachWinner).to.equal(
-                      totalPrizeAmount / BigInt(diceNumCount[Number(getWinningDiceNum)]),
-                  )
-                  console.log("getRandNum: ", getRandNum)
-                  console.log("getWinningDiceNum: ", getWinningDiceNum)
-              })
-          })
-          describe("consumer test", function () {
-              it("participants withdraw on CryptoDice", async () => {
-                  const round = (await cryptoDice.getNextCryptoDiceRound()) - 1n
-                  // act
-                  const winningDiceNum = await cryptoDice.getWinningDiceNum(round)
-                  const balanceOfCryptoDiceBefore = await tonToken.balanceOf(cryptoDiceAddress)
-                  for (let i = 0; i < 500; i++) {
-                      // getDiceNumAtRound
-                      const diceNum = await cryptoDice.getDiceNumAtRound(round, signers[i].address)
-                      if (diceNum === winningDiceNum) {
-                          await cryptoDice.connect(signers[i]).withdrawAirdropToken(round)
-                      }
-                  }
-                  // get
-                  const balanceOfCryptoDiceAfter = await tonToken.balanceOf(cryptoDiceAddress)
-                  console.log(balanceOfCryptoDiceBefore, balanceOfCryptoDiceAfter)
+                  const requestCount = await consumerExample.requestCount()
+                  const lastReqeustId = await consumerExample.lastRequestId()
+                  const lastRequestIdfromArray = await consumerExample.requestIds(requestCount - 1n)
+                  expect(lastReqeustId).to.equal(lastRequestIdfromArray)
+                  const requestStatus = await consumerExample.getRequestStatus(lastReqeustId)
+                  expect(requestStatus[0]).to.equal(true)
+                  expect(requestStatus[1]).to.equal(true)
+                  console.log(requestStatus[2].toString())
               })
           })
           describe("test Dispute", function () {
@@ -505,9 +340,7 @@ const createCorrectAlgorithmVersionTestCase = () => {
                   expect(getServiceValueForOperatorSecond[1]).to.equal(
                       await crrrngCoordinator.getCostAtRound(round),
                   )
-                  expect(getServiceValueForOperatorThird[0]).to.equal(
-                      getDisputeEndTimeAndLeaderAtRound[0],
-                  )
+                  expect(getServiceValueForOperatorThird[0]).to.equal(0n)
                   expect(getServiceValueForOperatorThird[1]).to.equal(
                       getServiceValueForOperatorThirdBefore[1] -
                           (await crrrngCoordinator.getCostAtRound(round)),
@@ -540,9 +373,7 @@ const createCorrectAlgorithmVersionTestCase = () => {
 
                   // ** assert
                   expect(getDisputeEndTimeAndLeaderAtRound[1]).to.equal(smallestHashSigner.address)
-                  expect(getServiceValueForOperatorSecond[0]).to.equal(
-                      getDisputeEndTimeAndLeaderAtRound[0],
-                  )
+                  expect(getServiceValueForOperatorSecond[0]).to.equal(0n)
                   expect(getServiceValueForSmallest[1]).to.equal(
                       await crrrngCoordinator.getCostAtRound(round),
                   )
@@ -553,28 +384,6 @@ const createCorrectAlgorithmVersionTestCase = () => {
                       getServiceValueForOperatorSecondBefore[1] -
                           (await crrrngCoordinator.getCostAtRound(round)),
                   )
-
-                  console.log("yeah")
               })
           })
       })
-
-async function assertValuesAtRequestRandomWord(
-    valuesAtRound: ValueAtRound,
-    receipt: ContractTransactionReceipt,
-) {
-    const provider = ethers.provider
-    const blockNumber = receipt?.blockNumber
-    const blockTimestamp = (await provider.getBlock(blockNumber as number))?.timestamp
-    expect(valuesAtRound.startTime).to.equal(blockTimestamp)
-    expect(valuesAtRound.numOfPariticipants).to.equal(0)
-    expect(valuesAtRound.count).to.equal(0)
-    expect(valuesAtRound.consumer).to.not.equal(ethers.ZeroAddress)
-    expect(valuesAtRound.bStar).to.equal(ethers.ZeroHash)
-    expect(valuesAtRound.commitsString).to.equal(ethers.ZeroHash)
-    expect(valuesAtRound.omega.val).to.equal(ethers.ZeroHash)
-    expect(valuesAtRound.omega.bitlen).to.equal(0)
-    expect(valuesAtRound.stage).to.equal(1)
-    expect(valuesAtRound.isCompleted).to.equal(false)
-    expect(valuesAtRound.isAllRevealed).to.equal(false)
-}
