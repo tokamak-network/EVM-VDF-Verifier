@@ -11,6 +11,7 @@ import { HardhatUserConfig } from "hardhat/config"
 import "solidity-coverage"
 import "solidity-docgen"
 import "./scripts/tasks/operatorCommit.ts"
+import "./scripts/tasks/operatorRecover.ts"
 /** @type import('hardhat/config').HardhatUserConfig */
 
 const optimizerSettings = {
