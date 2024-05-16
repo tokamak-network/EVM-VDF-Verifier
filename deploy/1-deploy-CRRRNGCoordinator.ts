@@ -70,4 +70,4 @@ const deployCRRRNGCoordinator: DeployFunction = async (hre: HardhatRuntimeEnviro
     log("----------------------------------------------------")
 }
 export default deployCRRRNGCoordinator
-deployCRRRNGCoordinator.tags = ["all", "CRRNGCoordinator"]
+deployCRRRNGCoordinator.tags = ["all", "CRRNGCoordinator", "anvil"]

@@ -17,7 +17,7 @@
 
 settingsForAnvil: deployContracts fiveOperatorDeposits
 
-deployContracts:; npx hardhat deploy --network anvil --reset
+deployContracts:; npx hardhat deploy --network anvil --reset --tags anvil
 
 fiveOperatorDeposits:; npx hardhat run scripts/2-fiveOperatorsDeposit.ts --network anvil
 

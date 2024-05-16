@@ -79,7 +79,7 @@ const deployCRRRNGCoordinator: DeployFunction = async (hre: HardhatRuntimeEnviro
     log("----------------------------------------------------")
 }
 export default deployCRRRNGCoordinator
-deployCRRRNGCoordinator.tags = ["all", "CRRRNGCoordinatorInitialize"]
+deployCRRRNGCoordinator.tags = ["all", "CRRRNGCoordinatorInitialize", "testnet", "anvil"]
 
 const createCorrectAlgorithmVersionTestCase = () => {
     const testCaseJson = JSON.parse(

@@ -38,4 +38,4 @@ const deployTestERC20: DeployFunction = async (hre: HardhatRuntimeEnvironment) =
     }
 }
 export default deployTestERC20
-deployTestERC20.tags = ["all", "TestERC20"]
+deployTestERC20.tags = ["all", "TestERC20", "anvil"]
