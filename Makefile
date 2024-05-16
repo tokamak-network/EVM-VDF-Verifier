@@ -17,12 +17,14 @@
 
 settingsForAnvil: deployContracts fiveOperatorDeposits
 
-deployContracts:; npx hardhat deploy --network anvil --reset --tags anvil
+deployContracts:; npx hardhat deploy --network anvil --reset --tags testnet
 
 fiveOperatorDeposits:; npx hardhat run scripts/2-fiveOperatorsDeposit.ts --network anvil
 
-randomWordsRequestedEvent: startRegistration transferTon participantsRegister requestRandomWord
+# randomWordsRequestedEvent: startRegistration transferTon participantsRegister requestRandomWord
 
+
+randomWordsRequestedEvent:; npx hardhat run scripts/6-requestRandomWordConsumerExample.ts --network anvil
 
 
 startRegistration:; npx hardhat run scripts/3-startRegistration.ts --network anvil

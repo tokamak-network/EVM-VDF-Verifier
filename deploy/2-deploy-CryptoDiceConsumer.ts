@@ -49,4 +49,4 @@ const deployCryptoDice: DeployFunction = async (hre: HardhatRuntimeEnvironment) 
     log("----------------------------------------------------")
 }
 export default deployCryptoDice
-deployCryptoDice.tags = ["all", "cryptoDice", "testnet", "anvil"]
+deployCryptoDice.tags = ["all", "cryptoDice", "anvil"]

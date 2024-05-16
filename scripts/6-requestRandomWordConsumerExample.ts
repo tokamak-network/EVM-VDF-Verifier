@@ -32,22 +32,35 @@ async function requestRandomWordConsumerExample() {
     const provider = ethers.provider
     const fee = await provider.getFeeData()
     const gasPrice = fee.gasPrice as bigint
+    console.log("gasPrice", gasPrice.toString())
     const directFundingCost = await crrngCoordinatorContract.estimateDirectFundingPrice(
         callback_gaslimit,
         gasPrice,
     )
 
     try {
+        const estimateGasUsed = await consumerExampleContract.requestRandomWord.estimateGas({
+            value: (directFundingCost * (100n + 1n)) / 100n,
+        })
+        console.log("estimateGasUsed", estimateGasUsed)
         const tx = await consumerExampleContract.requestRandomWord({
             value: (directFundingCost * (100n + 1n)) / 100n,
+            gasLimit: (estimateGasUsed * (100n + 20n)) / 100n,
         })
         console.log("directFundingCost", directFundingCost)
         const receipt = await tx.wait()
         const requestId = await consumerExampleContract.lastRequestId()
-        console.log("Random word requested, roundId:", requestId.toString())
         console.log("Transaction receipt")
         console.log(receipt)
+        console.log("Random word requested, roundId:", requestId.toString())
     } catch (e) {
         console.error(e)
     }
 }
+
+requestRandomWordConsumerExample()
+    .then(() => process.exit(0))
+    .catch((error) => {
+        console.error(error)
+        process.exit(1)
+    })

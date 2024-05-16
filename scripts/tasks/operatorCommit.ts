@@ -32,12 +32,6 @@ task("commitAtRound", "Operator commits")
     .setAction(async ({ round }, { deployments, ethers, getNamedAccounts }) => {
         const { deployer } = await getNamedAccounts()
         console.log("EOA address:", deployer)
-        const cryptoDiceConsumerAddress = (await deployments.get("CryptoDice")).address
-        console.log("CryptoDice address:", cryptoDiceConsumerAddress)
-        const cryptoDiceContract = await ethers.getContractAt(
-            "CryptoDice",
-            cryptoDiceConsumerAddress,
-        )
         const crrrngCoordinatorAddress = (await deployments.get("CRRNGCoordinator")).address
         console.log("CRRRNGCoordinator address:", crrrngCoordinatorAddress)
         const crrngCoordinatorContract = await ethers.getContractAt(
