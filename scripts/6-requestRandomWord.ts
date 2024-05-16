@@ -70,7 +70,8 @@ async function requestRandomWord() {
             console.log(event)
         })
         console.log("Transaction receipt", receipt)
-        console.log("Random word requested")
+        const requestId = (await cryptoDiceContract.getRoundStatus(round)).requestId
+        console.log("Random word requested, roundId:", requestId.toString())
         console.log("----------------------")
     } catch (error) {
         console.error(error)
