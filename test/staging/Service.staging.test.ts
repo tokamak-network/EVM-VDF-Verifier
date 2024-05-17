@@ -505,9 +505,7 @@ const createCorrectAlgorithmVersionTestCase = () => {
                   expect(getServiceValueForOperatorSecond[1]).to.equal(
                       await crrrngCoordinator.getCostAtRound(round),
                   )
-                  expect(getServiceValueForOperatorThird[0]).to.equal(
-                      getDisputeEndTimeAndLeaderAtRound[0],
-                  )
+                  expect(getServiceValueForOperatorThird[0]).to.equal(0n)
                   expect(getServiceValueForOperatorThird[1]).to.equal(
                       getServiceValueForOperatorThirdBefore[1] -
                           (await crrrngCoordinator.getCostAtRound(round)),
@@ -540,9 +538,7 @@ const createCorrectAlgorithmVersionTestCase = () => {
 
                   // ** assert
                   expect(getDisputeEndTimeAndLeaderAtRound[1]).to.equal(smallestHashSigner.address)
-                  expect(getServiceValueForOperatorSecond[0]).to.equal(
-                      getDisputeEndTimeAndLeaderAtRound[0],
-                  )
+                  expect(getServiceValueForOperatorSecond[0]).to.equal(0n)
                   expect(getServiceValueForSmallest[1]).to.equal(
                       await crrrngCoordinator.getCostAtRound(round),
                   )

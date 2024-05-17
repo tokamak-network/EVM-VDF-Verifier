@@ -131,6 +131,10 @@ const createCorrectAlgorithmVersionTestCase = () => {
                       coordinatorConstructorParams.flatFee,
                   )
                   await crrrngCoordinator.waitForDeployment()
+                  const receipt = await crrrngCoordinator.deploymentTransaction()?.wait()
+                  const gasUsed = receipt?.gasUsed as bigint
+                  const gasPrice = receipt?.gasPrice as bigint
+                  console.log("deploy CRRRRNGCoordinators", gasUsed * gasPrice)
                   crrngCoordinatorAddress = await crrrngCoordinator.getAddress()
                   expect(crrngCoordinatorAddress).to.be.properAddress
               })
@@ -143,12 +147,18 @@ const createCorrectAlgorithmVersionTestCase = () => {
                   )
                   const receipt = await tx.wait()
                   const gasUsed = receipt?.gasUsed as bigint
+                  const gasPrice = receipt?.gasPrice as bigint
+                  console.log("initialize", gasUsed * gasPrice)
                   const balanceAfter = await ethers.provider.getBalance(signers[0].address)
               })
               it("deploy ConsumerExample", async () => {
                   const ConsumerExample = await ethers.getContractFactory("ConsumerExample")
                   consumerExample = await ConsumerExample.deploy(crrngCoordinatorAddress)
                   await consumerExample.waitForDeployment()
+                  const receipt = await consumerExample.deploymentTransaction()?.wait()
+                  const gasUsed = receipt?.gasUsed as bigint
+                  const gasPrice = receipt?.gasPrice as bigint
+                  console.log("deploy ConsumerExample", gasUsed * gasPrice)
                   const consumerExampleAddress = await consumerExample.getAddress()
                   expect(consumerExampleAddress).to.be.properAddress
               })
@@ -190,7 +200,8 @@ const createCorrectAlgorithmVersionTestCase = () => {
                   console.log("directFundingCost", directFundingCost)
                   const receipt = await tx.wait()
                   const gasUsed = receipt?.gasUsed as bigint
-
+                  const gasPrice2 = receipt?.gasPrice as bigint
+                  console.log("requestRandomWord", gasUsed * gasPrice2)
                   const requestCount = await consumerExample.requestCount()
                   const lastReqeustId = await consumerExample.lastRequestId()
                   const lastRequestIdfromArray = await consumerExample.requestIds(requestCount - 1n)
@@ -211,6 +222,9 @@ const createCorrectAlgorithmVersionTestCase = () => {
                       const valuesAtRound: ValueAtRound =
                           await crrrngCoordinator.getValuesAtRound(round)
                       expect(valuesAtRound.count).to.equal(i + 1)
+                      const gasUsed = receipt?.gasUsed as bigint
+                      const gasPrice = receipt?.gasPrice as bigint
+                      console.log("commit", gasUsed * gasPrice)
 
                       const userInfoAtRound = await crrrngCoordinator.getUserStatusAtRound(
                           signers[i].address,
@@ -251,6 +265,9 @@ const createCorrectAlgorithmVersionTestCase = () => {
                       .connect(thirdSmallestHashSigner)
                       .recover(round, recoverParams.v, recoverParams.x, recoverParams.y)
                   const receipt = await tx.wait()
+                  const gasUsed = receipt?.gasUsed as bigint
+                  const gasPrice = receipt?.gasPrice as bigint
+                  console.log("recover", gasUsed * gasPrice)
                   const valuesAtRound: ValueAtRound =
                       await crrrngCoordinator.getValuesAtRound(round)
                   expect(valuesAtRound.count).to.equal(3)
