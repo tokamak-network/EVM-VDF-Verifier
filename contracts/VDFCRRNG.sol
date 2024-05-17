@@ -196,6 +196,8 @@ contract VDFCRRNG is ReentrancyGuardTransient {
                 _stage = Stages.Reveal;
                 s_valuesAtRound[round].numOfPariticipants = _count;
                 s_valuesAtRound[round].bStar = _hash(s_valuesAtRound[round].commitsString).val;
+            } else if (_count == BigNumbers.UINTZERO) {
+                s_valuesAtRound[round].startTime = block.timestamp;
             } else {
                 _stage = Stages.Finished;
             }

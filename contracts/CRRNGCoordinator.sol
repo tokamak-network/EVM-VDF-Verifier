@@ -72,7 +72,7 @@ contract CRRNGCoordinator is ICRRRNGCoordinator, Ownable, VDFCRRNG {
      * 4. Reverts when the value sent from consumer is less than the _calculateDirectFundingPrice function result
      * - effects
      * 1. Increments the round number
-     * 2. Sets the start time of the round
+    //  * 2. Sets the start time of the round
      * 3. Sets the stage of the round to Commit, commit starts
      * 4. Sets the msg.sender as the consumer of the round, doesn't check if the consumer is EOA or CA
      * 5. Sets the cost of the round, derived from the _calculateDirectFundingPrice function
@@ -88,7 +88,7 @@ contract CRRNGCoordinator is ICRRRNGCoordinator, Ownable, VDFCRRNG {
         uint256 cost = _calculateDirectFundingPrice(callbackGasLimit, tx.gasprice);
         if (msg.value < cost) revert InsufficientAmount();
         uint256 _round = s_nextRound++;
-        s_valuesAtRound[_round].startTime = block.timestamp;
+        // s_valuesAtRound[_round].startTime = block.timestamp;
         s_valuesAtRound[_round].stage = Stages.Commit;
         s_valuesAtRound[_round].consumer = msg.sender;
         s_cost[_round] = cost;
