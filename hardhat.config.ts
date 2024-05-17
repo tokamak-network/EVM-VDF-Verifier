@@ -19,7 +19,7 @@ const optimizerSettings = {
     viaIR: true,
     optimizer: {
         enabled: true,
-        runs: 4294967295,
+        runs: 100000000, //4294967295,
         details: {
             yul: true,
         },
@@ -35,6 +35,7 @@ const SEPOLIA_RPC_URL = process.env.SEPOLIA_RPC_URL
 const POLYGON_MAINNET_RPC_URL = process.env.POLYGON_MAINNET_RPC_URL
 const PRIVATE_KEY = process.env.PRIVATE_KEY
 const OP_SEPOLIA_RPC_URL = process.env.OP_SEPOLIA_RPC_URL
+const OP_ETHERSCAN_API_KEY = process.env.OP_ETHERSCAN_API_KEY || "Your etherscan API key"
 
 // Your API key for Etherscan, obtain one at https://etherscan.io/
 const ETHERSCAN_API_KEY = process.env.ETHERSCAN_API_KEY || "Your etherscan API key"
@@ -111,8 +112,15 @@ const config: HardhatUserConfig = {
             url: "https://rpc.titan.tokamak.network",
             accounts: [`${process.env.PRIVATE_KEY}`],
             chainId: 55004,
+            saveDeployments: true,
             //gasPrice: 250000,
             //deploy: ["deploy_titan"],
+        },
+        thanossepolia: {
+            chainId: 111551118080,
+            url: "https://rpc.thanos-sepolia-test.tokamak.network",
+            accounts: [`${process.env.PRIVATE_KEY}`],
+            saveDeployments: true,
         },
     },
     deterministicDeployment: (network: string) => {
@@ -134,7 +142,10 @@ const config: HardhatUserConfig = {
             sepolia: ETHERSCAN_API_KEY,
             goerli: ETHERSCAN_API_KEY,
             titangoerli: ETHERSCAN_API_KEY,
+            titansepolia: ETHERSCAN_API_KEY,
             titan: ETHERSCAN_API_KEY,
+            opSepolia: OP_ETHERSCAN_API_KEY,
+            thanossepolia: ETHERSCAN_API_KEY,
         },
         customChains: [
             {
@@ -146,11 +157,35 @@ const config: HardhatUserConfig = {
                 },
             },
             {
+                network: "titansepolia",
+                chainId: 55007,
+                urls: {
+                    apiURL: "https://explorer.titan-sepolia.tokamak.network/api",
+                    browserURL: "https://explorer.titan-sepolia.tokamak.network/",
+                },
+            },
+            {
                 network: "titan",
                 chainId: 55004,
                 urls: {
                     apiURL: "https://explorer.titan.tokamak.network/api",
                     browserURL: "https://explorer.titan.tokamak.network",
+                },
+            },
+            {
+                network: "opSepolia",
+                chainId: 11155420,
+                urls: {
+                    apiURL: "https://api-sepolia-optimistic.etherscan.io/api",
+                    browserURL: "https://sepolia-optimistic.etherscan.io",
+                },
+            },
+            {
+                network: "thanossepolia",
+                chainId: 111551118080,
+                urls: {
+                    apiURL: "https://explorer.thanos-sepolia-test.tokamak.network/api",
+                    browserURL: "https://explorer.thanos-sepolia-test.tokamak.network/",
                 },
             },
         ],

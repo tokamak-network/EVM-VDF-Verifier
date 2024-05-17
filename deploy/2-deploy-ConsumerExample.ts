@@ -15,7 +15,8 @@
 import { DeployFunction } from "hardhat-deploy/types"
 import { HardhatRuntimeEnvironment } from "hardhat/types"
 import { VERIFICATION_BLOCK_CONFIRMATIONS } from "../helper-hardhat-config"
-const deployTestERC20: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
+import verify from "../utils/verify"
+const deployConsumerExample: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
     const { deployments, getNamedAccounts, network } = hre
     const { deploy, log } = deployments
     const { deployer } = await getNamedAccounts()
@@ -25,17 +26,22 @@ const deployTestERC20: DeployFunction = async (hre: HardhatRuntimeEnvironment) =
         chainId === 31337 || chainId === 5050 || chainId === 55004 || chainId === 111551115050
             ? 1
             : VERIFICATION_BLOCK_CONFIRMATIONS
-    if (chainId == 31337) {
-        log("----------------------------------------------------")
-        const consumerExample = await deploy("ConsumerExample", {
-            from: deployer,
-            log: true,
-            args: [crrRngCoordinatorAddress],
-            waitConfirmations: waitBlockConfirmations,
-        })
-        // deploy result
-        log("consumerExample deployed at:", consumerExample.address)
+
+    log("----------------------------------------------------")
+    const consumerExample = await deploy("ConsumerExample", {
+        from: deployer,
+        log: true,
+        args: [crrRngCoordinatorAddress],
+        waitConfirmations: waitBlockConfirmations,
+    })
+    // deploy result
+    log("consumerExample deployed at:", consumerExample.address)
+
+    if (chainId !== 31337 && process.env.ETHERSCAN_API_KEY) {
+        log("Verifying...")
+        await verify(consumerExample.address, [crrRngCoordinatorAddress])
     }
+    log("----------------------------------------------------")
 }
-export default deployTestERC20
-deployTestERC20.tags = ["all", "consumerExample", "testnet"]
+export default deployConsumerExample
+deployConsumerExample.tags = ["all", "consumerexample", "testnet"]

@@ -43,18 +43,35 @@ const deployCRRRNGCoordinator: DeployFunction = async (hre: HardhatRuntimeEnviro
             ? 1
             : VERIFICATION_BLOCK_CONFIRMATIONS
     log("----------------------------------------------------")
-    const crrRngCoordinator = await deploy("CRRNGCoordinator", {
-        from: deployer,
-        log: true,
-        args: [
-            coordinatorConstructorParams.disputePeriod,
-            coordinatorConstructorParams.minimumDepositAmount,
-            coordinatorConstructorParams.avgRecoveOverhead,
-            coordinatorConstructorParams.premiumPercentage,
-            coordinatorConstructorParams.flatFee,
-        ],
-        waitConfirmations: waitBlockConfirmations,
-    })
+    let crrRngCoordinator
+    if (chainId === 55007) {
+        crrRngCoordinator = await deploy("CRRNGCoordinator", {
+            from: deployer,
+            log: true,
+            args: [
+                coordinatorConstructorParams.disputePeriod,
+                coordinatorConstructorParams.minimumDepositAmount,
+                coordinatorConstructorParams.avgRecoveOverhead,
+                coordinatorConstructorParams.premiumPercentage,
+                coordinatorConstructorParams.flatFee,
+            ],
+            waitConfirmations: waitBlockConfirmations,
+            gasLimit: 5000000,
+        })
+    } else {
+        crrRngCoordinator = await deploy("CRRNGCoordinator", {
+            from: deployer,
+            log: true,
+            args: [
+                coordinatorConstructorParams.disputePeriod,
+                coordinatorConstructorParams.minimumDepositAmount,
+                coordinatorConstructorParams.avgRecoveOverhead,
+                coordinatorConstructorParams.premiumPercentage,
+                coordinatorConstructorParams.flatFee,
+            ],
+            waitConfirmations: waitBlockConfirmations,
+        })
+    }
     // deploy result
     log("CRRNGCoordinator deployed at:", crrRngCoordinator.address)
     if (chainId !== 31337 && process.env.ETHERSCAN_API_KEY) {
