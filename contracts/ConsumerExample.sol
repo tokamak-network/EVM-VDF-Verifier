@@ -45,4 +45,8 @@ contract ConsumerExample is RNGConsumerBase {
         RequestStatus memory request = s_requests[_requestId];
         return (request.requested, request.fulfilled, request.randomWord);
     }
+
+    function withdraw() external {
+        payable(msg.sender).transfer(address(this).balance);
+    }
 }
