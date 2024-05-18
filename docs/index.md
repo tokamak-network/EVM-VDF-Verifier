@@ -64,11 +64,11 @@ Consumer requests a random number, the consumer must send the cost of the reques
 -   effects
 
 1. Increments the round number
-2. Sets the start time of the round
-3. Sets the stage of the round to Commit, commit starts
-4. Sets the msg.sender as the consumer of the round, doesn't check if the consumer is EOA or CA
-5. Sets the cost of the round, derived from the \_calculateDirectFundingPrice function
-6. Emits a RandomWordsRequested(round, msg.sender) event
+   // \* 2. Sets the start time of the round
+2. Sets the stage of the round to Commit, commit starts
+3. Sets the msg.sender as the consumer of the round, doesn't check if the consumer is EOA or CA
+4. Sets the cost of the round, derived from the \_calculateDirectFundingPrice function
+5. Emits a RandomWordsRequested(round, msg.sender) event
 
 -   interactions
 
@@ -368,9 +368,8 @@ This getter function is for anyone to get the values of the round that are used 
 -   [4]: bStar -> The bStar value of the round. This is updated on recovery stage.
 -   [5]: commitsString -> The concatenated string of the commits of the operators. This is updated when commit
 -   [6]: omega -> The omega value of the round. This is updated after recovery.
--   [7]: stage -> The stage of the round. 0 is Recovered or NotStarted, 1 is Commit, 2 is Reveal which is not used in this contract.
+-   [7]: stage -> The stage of the round. 0 is Recovered or NotStarted, 1 is Commit
 -   [8]: isCompleted -> The flag to check if the round is completed. This is updated after recovery.
--   [9]: isAllRevealed -> The flag to check if all the operators have revealed their commits. We don't use this flag in this contract.
 
 #### Parameters
 
@@ -387,14 +386,13 @@ This getter function is for anyone to get the values of the round that are used 
 ### getUserStatusAtRound
 
 ```solidity
-function getUserStatusAtRound(address _operator, uint256 _round) external view returns (struct VDFCRRNG.UserStatusAtRound)
+function getUserStatusAtRound(address _operator, uint256 _round) external view returns (struct VDFCRRNG.OperatorStatusAtRound)
 ```
 
 This getter function is for anyone to get the status of the operator at the round
 
--   [0]: index -> The index of the commitRevealValue array of the operator
+-   [0]: index -> The index of the commitValue array of the operator
 -   [1]: committed -> The flag to check if the operator has committed to the round
--   [2]: revealed -> The flag to check if the operator has revealed the commit
 
 #### Parameters
 
@@ -405,20 +403,19 @@ This getter function is for anyone to get the status of the operator at the roun
 
 #### Return Values
 
-| Name | Type                              | Description                                                                           |
-| ---- | --------------------------------- | ------------------------------------------------------------------------------------- |
-| [0]  | struct VDFCRRNG.UserStatusAtRound | The status of the operator at the round. The return value is struct UserStatusAtRound |
+| Name | Type                                  | Description                                                                           |
+| ---- | ------------------------------------- | ------------------------------------------------------------------------------------- |
+| [0]  | struct VDFCRRNG.OperatorStatusAtRound | The status of the operator at the round. The return value is struct UserStatusAtRound |
 
-### getCommitRevealValues
+### getCommitValue
 
 ```solidity
-function getCommitRevealValues(uint256 _round, uint256 _index) external view returns (struct VDFCRRNG.CommitRevealValue)
+function getCommitValue(uint256 _round, uint256 _index) external view returns (struct VDFCRRNG.CommitValue)
 ```
 
-This getter function is for anyone to get the commit, reveal value and the operator address of the round
+This getter function is for anyone to get the commit value and the operator address of the round
 
 -   [0]: commit -> The commit value of the operator
--   [1]: reveal -> The reveal value of the operator
 -   [2]: operator -> The operator address
 
 #### Parameters
@@ -430,9 +427,9 @@ This getter function is for anyone to get the commit, reveal value and the opera
 
 #### Return Values
 
-| Name | Type                              | Description                                                                                                  |
-| ---- | --------------------------------- | ------------------------------------------------------------------------------------------------------------ |
-| [0]  | struct VDFCRRNG.CommitRevealValue | The commit, reveal value and the operator address of the round. The return value is struct CommitRevealValue |
+| Name | Type                        | Description                                                                                    |
+| ---- | --------------------------- | ---------------------------------------------------------------------------------------------- |
+| [0]  | struct VDFCRRNG.CommitValue | The commit value and the operator address of the round. The return value is struct CommitValue |
 
 ### \_calculateDirectFundingPrice
 
@@ -464,13 +461,12 @@ This contract is not audited
 ### Stages
 
 Stages of the contract
-Recover can be performed in the Reveal and Finished stages.
+Recover can be performed in the Finished stages.
 
 ```solidity
 enum Stages {
   Finished,
-  Commit,
-  Reveal
+  Commit
 }
 ```
 
@@ -479,60 +475,50 @@ enum Stages {
 @notice The struct to store the values of the round
 
 -   [0]: startTime -> The start time of the round
--   [1]:numOfPariticipants -> This is the number of operators who have committed to the round. And this is updated on the recovery stage.
--   [2]: count -> The number of operators who have committed to the round. And this is updated real-time.
--   [3]: consumer -> The address of the consumer of the round
--   [4]: bStar -> The bStar value of the round. This is updated on recovery stage.
--   [5]: commitsString -> The concatenated string of the commits of the operators. This is updated when commit
--   [6]: omega -> The omega value of the round. This is updated after recovery.
--   [7]: stage -> The stage of the round. 0 is Recovered or NotStarted, 1 is Commit, 2 is Reveal which is not used in this contract.
--   [8]: isCompleted -> The flag to check if the round is completed. This is updated after recovery.
--   [9]: isAllRevealed -> The flag to check if all the operators have revealed their commits. We don't use this flag in this contract.
+-   [1]: commitCounts -> The number of operators who have committed to the round. And this is updated real-time.
+-   [2]: consumer -> The address of the consumer of the round
+-   [3]: commitsString -> The concatenated string of the commits of the operators. This is updated when commit
+-   [4]: omega -> The omega value of the round. This is updated after recovery.
+-   [5]: stage -> The stage of the round. 0 is Recovered or NotStarted, 1 is Commit
+-   [6]: isCompleted -> The flag to check if the round is completed. This is updated after recovery.
 
 ```solidity
 struct ValueAtRound {
   uint256 startTime;
-  uint256 numOfPariticipants;
-  uint256 count;
+  uint256 commitCounts;
   address consumer;
-  bytes bStar;
   bytes commitsString;
   struct BigNumber omega;
   enum VDFCRRNG.Stages stage;
   bool isCompleted;
-  bool isAllRevealed;
 }
 ```
 
-### CommitRevealValue
+### CommitValue
 
-\_The struct to store the commit, reveal values and the committed address
+\_The struct to store the commit value and the operator address
 
--   [0]: c -> The commit value of the operator
--   [1]: a -> The reveal value of the operator
--   [2]: participantAddress -> The address of the operator that committed the value\_
+-   [0]: commit -> The commit value of the operator
+-   [1]: operatorAddress -> The address of the operator that committed the value\_
 
 ```solidity
-struct CommitRevealValue {
-  struct BigNumber c;
-  struct BigNumber a;
-  address participantAddress;
+struct CommitValue {
+  struct BigNumber commit;
+  address operatorAddress;
 }
 ```
 
-### UserStatusAtRound
+### OperatorStatusAtRound
 
 \_The struct to store the user status at the round
 
--   [0]: index -> The key of the commitRevealValues mapping
--   [1]: committed -> The flag to check if the operator has committed
--   [2]: revealed -> The flag to check if the operator has revealed\_
+-   [0]: index -> The key of the commitValue mapping
+-   [1]: committed -> The flag to check if the operator has committed\_
 
 ```solidity
-struct UserStatusAtRound {
-  uint256 index;
+struct OperatorStatusAtRound {
+  uint256 commitIndex;
   bool committed;
-  bool revealed;
 }
 ```
 
@@ -616,21 +602,21 @@ mapping(address => uint256) s_incentiveForOperator
 
 _The mapping of all the incentive for the operator_
 
-### s_userInfosAtRound
+### s_operatorStatusAtRound
 
 ```solidity
-mapping(uint256 => mapping(address => struct VDFCRRNG.UserStatusAtRound)) s_userInfosAtRound
+mapping(uint256 => mapping(address => struct VDFCRRNG.OperatorStatusAtRound)) s_operatorStatusAtRound
 ```
 
 _The mapping of the user status at the round_
 
-### s_commitRevealValues
+### s_commitValues
 
 ```solidity
-mapping(uint256 => mapping(uint256 => struct VDFCRRNG.CommitRevealValue)) s_commitRevealValues
+mapping(uint256 => mapping(uint256 => struct VDFCRRNG.CommitValue)) s_commitValues
 ```
 
-_The mapping of the commit reveal values and the committed address_
+_The mapping of the commit values and the operator address_
 
 ### COMMITDURATION
 
@@ -644,12 +630,6 @@ _The duration of the commit stage, 120 seconds_
 
 ```solidity
 event CommitC(uint256 commitCount, bytes commitVal)
-```
-
-### RevealA
-
-```solidity
-event RevealA(uint256 revealLeftCount, bytes aVal)
 ```
 
 ### Recovered
@@ -698,24 +678,6 @@ error AlreadyCommitted()
 
 ```solidity
 error NotCommittedParticipant()
-```
-
-### AlreadyRevealed
-
-```solidity
-error AlreadyRevealed()
-```
-
-### ModExpRevealNotMatchCommit
-
-```solidity
-error ModExpRevealNotMatchCommit()
-```
-
-### NotAllRevealed
-
-```solidity
-error NotAllRevealed()
 ```
 
 ### OmegaAlreadyCompleted
@@ -949,8 +911,8 @@ The function to commit the value
 
 1. The operator's committed flag is set to true
 2. The operator's index is set to the count of the round
-3. The commit value is stored in the commitRevealValues mapping
-4. The address of the operator is stored in the commitRevealValues mapping
+3. The commit value is stored in the commitValue mapping
+4. The address of the operator is stored in the commitValues mapping
 5. The commit value is concatenated to the commitsString
 6. The count of the round is incremented
 7. The CommitC(\_count, c.val) event is emitted
@@ -973,7 +935,7 @@ The function to recover the value and call fulfillRandomwords to the consumer co
 -   checks
 
 1. The msg.sender should be the operator
-2. The stage should be Reveal or Finished stage, which means the recovery stage
+2. The stage should be Finished stage, which means the recovery stage
 3. NonReentrant
 4. The operator should have committed
 5. The round should have at least 2 participants
@@ -1028,9 +990,8 @@ The getter function to get the setup values
 
 This contract is for generating random number
 
-1. Finished: Not SetUped | Calculate or recover the random number
+1. Finished: round not Started | recover the random number
 2. Commit: participants commit their value
-3. Reveal: participants reveal their value
 
 ### requestRandomWordDirectFunding
 
@@ -1831,3 +1792,83 @@ function tstore(StorageSlot.Int256SlotType slot, int256 value) internal
 ```
 
 _Store `value` at location `slot` in transient storage._
+
+## ConsumerExample
+
+### RequestStatus
+
+```solidity
+struct RequestStatus {
+  bool requested;
+  bool fulfilled;
+  uint256 randomWord;
+}
+```
+
+### s_requests
+
+```solidity
+mapping(uint256 => struct ConsumerExample.RequestStatus) s_requests
+```
+
+### requestIds
+
+```solidity
+uint256[] requestIds
+```
+
+### requestCount
+
+```solidity
+uint256 requestCount
+```
+
+### lastRequestId
+
+```solidity
+uint256 lastRequestId
+```
+
+### CALLBACK_GAS_LIMIT
+
+```solidity
+uint32 CALLBACK_GAS_LIMIT
+```
+
+### constructor
+
+```solidity
+constructor(address coordinator) public
+```
+
+### requestRandomWord
+
+```solidity
+function requestRandomWord() external payable
+```
+
+### fulfillRandomWords
+
+```solidity
+function fulfillRandomWords(uint256 requestId, uint256 hashedOmegaVal) internal
+```
+
+### getRNGCoordinator
+
+```solidity
+function getRNGCoordinator() external view returns (address)
+```
+
+### getRequestStatus
+
+```solidity
+function getRequestStatus(uint256 _requestId) external view returns (bool, bool, uint256)
+```
+
+## TonToken
+
+### constructor
+
+```solidity
+constructor() public
+```
