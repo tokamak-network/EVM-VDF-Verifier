@@ -29,15 +29,13 @@ import { CRRNGCoordinator, CryptoDice, TonToken } from "../../typechain-types"
 /**
  * struct ValueAtRound {
     uint256 startTime;
-    uint256 numOfPariticipants;
-    uint256 count; //This variable is used to keep track of the number of commitments and reveals, and to check if anything has been committed when moving to the reveal stage.
+    uint256 commitCounts
     address consumer;
     bytes bStar; // hash of commitsString
     bytes commitsString; // concatenated string of commits
     BigNumber omega; // the random number
     Stages stage; // stage of the contract
     bool isCompleted; // omega is finialized when this is true
-    bool isAllRevealed; // true when all participants have revealed
 }
  */
 interface BigNumber {
@@ -46,15 +44,12 @@ interface BigNumber {
 }
 interface ValueAtRound {
     startTime: BigNumberish
-    numOfPariticipants: BigNumberish
-    count: BigNumberish
+    commitCounts: BigNumberish
     consumer: AddressLike
-    bStar: BytesLike
     commitsString: BytesLike
     omega: BigNumber
     stage: BigNumberish
     isCompleted: boolean
-    isAllRevealed: boolean
 }
 function getLength(value: number): number {
     let length: number = 32
@@ -354,22 +349,21 @@ const createCorrectAlgorithmVersionTestCase = () => {
                       const receipt = await tx.wait()
                       const valuesAtRound: ValueAtRound =
                           await crrrngCoordinator.getValuesAtRound(round)
-                      expect(valuesAtRound.count).to.equal(i + 1)
+                      expect(valuesAtRound.commitCounts).to.equal(i + 1)
 
                       const userInfoAtRound = await crrrngCoordinator.getUserStatusAtRound(
                           signers[i].address,
                           round,
                       )
                       expect(userInfoAtRound.committed).to.equal(true)
-                      expect(userInfoAtRound.revealed).to.equal(false)
-                      expect(userInfoAtRound.index).to.equal(i)
+                      expect(userInfoAtRound.commitIndex).to.equal(i)
 
-                      const getCommitRevealValues = await crrrngCoordinator.getCommitRevealValues(
+                      const getCommitValues = await crrrngCoordinator.getCommitValue(
                           round,
-                          userInfoAtRound.index,
+                          userInfoAtRound.commitIndex,
                       )
-                      expect(getCommitRevealValues.c.val).to.equal(commitParams[i].val)
-                      expect(getCommitRevealValues.participantAddress).to.equal(signers[i].address)
+                      expect(getCommitValues.commit.val).to.equal(commitParams[i].val)
+                      expect(getCommitValues.operatorAddress).to.equal(signers[i].address)
                   }
               })
               it("calculate hash(R|address) for each operator", async () => {
@@ -397,23 +391,21 @@ const createCorrectAlgorithmVersionTestCase = () => {
                   const receipt = await tx.wait()
                   const valuesAtRound: ValueAtRound =
                       await crrrngCoordinator.getValuesAtRound(round)
-                  expect(valuesAtRound.count).to.equal(3)
+                  expect(valuesAtRound.commitCounts).to.equal(3)
                   const userInfoAtRound = await crrrngCoordinator.getUserStatusAtRound(
                       thirdSmallestHashSigner.address,
                       round,
                   )
                   expect(userInfoAtRound.committed).to.equal(true)
-                  expect(userInfoAtRound.index).to.equal(2)
+                  expect(userInfoAtRound.commitIndex).to.equal(2)
 
                   const valueAtRound = await crrrngCoordinator.getValuesAtRound(round)
-                  expect(valueAtRound.isAllRevealed).to.equal(false)
                   expect(valueAtRound.stage).to.equal(0n)
                   expect(valueAtRound.omega.val).to.equal(recoverParams.y.val)
                   expect(valueAtRound.omega.bitlen).to.equal(recoverParams.y.bitlen)
                   expect(valueAtRound.consumer).to.equal(cryptoDiceAddress)
-                  expect(valueAtRound.numOfPariticipants).to.equal(3)
                   expect(valueAtRound.isCompleted).to.equal(true)
-                  expect(valueAtRound.count).to.equal(3)
+                  expect(valueAtRound.commitCounts).to.equal(3)
 
                   const provider = ethers.provider
                   const serviceValueAtRound =
@@ -563,14 +555,11 @@ async function assertValuesAtRequestRandomWord(
     const blockNumber = receipt?.blockNumber
     const blockTimestamp = (await provider.getBlock(blockNumber as number))?.timestamp
     expect(valuesAtRound.startTime).to.equal(blockTimestamp)
-    expect(valuesAtRound.numOfPariticipants).to.equal(0)
-    expect(valuesAtRound.count).to.equal(0)
+    expect(valuesAtRound.commitCounts).to.equal(0)
     expect(valuesAtRound.consumer).to.not.equal(ethers.ZeroAddress)
-    expect(valuesAtRound.bStar).to.equal(ethers.ZeroHash)
     expect(valuesAtRound.commitsString).to.equal(ethers.ZeroHash)
     expect(valuesAtRound.omega.val).to.equal(ethers.ZeroHash)
     expect(valuesAtRound.omega.bitlen).to.equal(0)
     expect(valuesAtRound.stage).to.equal(1)
     expect(valuesAtRound.isCompleted).to.equal(false)
-    expect(valuesAtRound.isAllRevealed).to.equal(false)
 }

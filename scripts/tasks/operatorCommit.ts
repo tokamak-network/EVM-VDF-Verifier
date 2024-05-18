@@ -38,7 +38,7 @@ task("commitAtRound", "Operator commits")
             "CRRNGCoordinator",
             crrrngCoordinatorAddress,
         )
-        const commitCount = (await crrngCoordinatorContract.getValuesAtRound(round)).count
+        const commitCount = (await crrngCoordinatorContract.getValuesAtRound(round)).commitCounts
         const signer = (await ethers.getSigners())[Number(commitCount)]
         let rand = crypto.getRandomValues(new Uint8Array(2048 / 8))
         const bytesHex = "0x" + rand.reduce((o, v) => o + ("00" + v.toString(16)).slice(-2), "")

@@ -25,15 +25,13 @@ interface BigNumber {
 }
 interface ValueAtRound {
     startTime: BigNumberish
-    numOfPariticipants: BigNumberish
-    count: BigNumberish
+    commitCounts: BigNumberish
     consumer: AddressLike
     bStar: BytesLike
     commitsString: BytesLike
     omega: BigNumber
     stage: BigNumberish
     isCompleted: boolean
-    isAllRevealed: boolean
 }
 function getLength(value: number): number {
     let length: number = 32

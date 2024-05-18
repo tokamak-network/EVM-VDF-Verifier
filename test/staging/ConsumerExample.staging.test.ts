@@ -25,15 +25,12 @@ interface BigNumber {
 }
 interface ValueAtRound {
     startTime: BigNumberish
-    numOfPariticipants: BigNumberish
-    count: BigNumberish
+    commitCounts: BigNumberish
     consumer: AddressLike
-    bStar: BytesLike
     commitsString: BytesLike
     omega: BigNumber
     stage: BigNumberish
     isCompleted: boolean
-    isAllRevealed: boolean
 }
 function getLength(value: number): number {
     let length: number = 32
@@ -221,7 +218,7 @@ const createCorrectAlgorithmVersionTestCase = () => {
                       const receipt = await tx.wait()
                       const valuesAtRound: ValueAtRound =
                           await crrrngCoordinator.getValuesAtRound(round)
-                      expect(valuesAtRound.count).to.equal(i + 1)
+                      expect(valuesAtRound.commitCounts).to.equal(i + 1)
                       const gasUsed = receipt?.gasUsed as bigint
                       const gasPrice = receipt?.gasPrice as bigint
                       console.log("commit", gasUsed * gasPrice)
@@ -231,15 +228,14 @@ const createCorrectAlgorithmVersionTestCase = () => {
                           round,
                       )
                       expect(userInfoAtRound.committed).to.equal(true)
-                      expect(userInfoAtRound.revealed).to.equal(false)
-                      expect(userInfoAtRound.index).to.equal(i)
+                      expect(userInfoAtRound.commitIndex).to.equal(i)
 
-                      const getCommitRevealValues = await crrrngCoordinator.getCommitRevealValues(
+                      const getCommitValues = await crrrngCoordinator.getCommitValue(
                           round,
-                          userInfoAtRound.index,
+                          userInfoAtRound.commitIndex,
                       )
-                      expect(getCommitRevealValues.c.val).to.equal(commitParams[i].val)
-                      expect(getCommitRevealValues.participantAddress).to.equal(signers[i].address)
+                      expect(getCommitValues.commit.val).to.equal(commitParams[i].val)
+                      expect(getCommitValues.operatorAddress).to.equal(signers[i].address)
                   }
               })
               it("calculate hash(R|address) for each operator", async () => {
@@ -270,24 +266,22 @@ const createCorrectAlgorithmVersionTestCase = () => {
                   console.log("recover", gasUsed * gasPrice)
                   const valuesAtRound: ValueAtRound =
                       await crrrngCoordinator.getValuesAtRound(round)
-                  expect(valuesAtRound.count).to.equal(3)
+                  expect(valuesAtRound.commitCounts).to.equal(3)
                   const userInfoAtRound = await crrrngCoordinator.getUserStatusAtRound(
                       thirdSmallestHashSigner.address,
                       round,
                   )
                   expect(userInfoAtRound.committed).to.equal(true)
-                  expect(userInfoAtRound.index).to.equal(2)
+                  expect(userInfoAtRound.commitIndex).to.equal(2)
 
                   const valueAtRound = await crrrngCoordinator.getValuesAtRound(round)
-                  expect(valueAtRound.isAllRevealed).to.equal(false)
                   expect(valueAtRound.stage).to.equal(0n)
                   expect(valueAtRound.omega.val).to.equal(recoverParams.y.val)
                   expect(valueAtRound.omega.bitlen).to.equal(recoverParams.y.bitlen)
                   const consumerAddress = await consumerExample.getAddress()
                   expect(valueAtRound.consumer).to.equal(consumerAddress)
-                  expect(valueAtRound.numOfPariticipants).to.equal(3)
+                  expect(valueAtRound.commitCounts).to.equal(3)
                   expect(valueAtRound.isCompleted).to.equal(true)
-                  expect(valueAtRound.count).to.equal(3)
 
                   const provider = ethers.provider
                   const serviceValueAtRound =
