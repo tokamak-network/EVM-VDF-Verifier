@@ -88,7 +88,6 @@ contract CRRNGCoordinator is ICRRRNGCoordinator, Ownable, VDFCRRNG {
         uint256 cost = _calculateDirectFundingPrice(callbackGasLimit, tx.gasprice);
         if (msg.value < cost) revert InsufficientAmount();
         uint256 _round = s_nextRound++;
-        // s_valuesAtRound[_round].startTime = block.timestamp;
         s_valuesAtRound[_round].stage = Stages.Commit;
         s_valuesAtRound[_round].consumer = msg.sender;
         s_cost[_round] = cost;
@@ -116,7 +115,7 @@ contract CRRNGCoordinator is ICRRRNGCoordinator, Ownable, VDFCRRNG {
         if (s_operatorCount < 2) revert NotEnoughOperators();
         if (block.timestamp < s_valuesAtRound[round].startTime + COMMITDURATION)
             revert StillInCommitStage();
-        if (s_valuesAtRound[round].numOfPariticipants > 1) revert TwoOrMoreCommittedPleaseRecover();
+        if (s_valuesAtRound[round].commitCounts > 1) revert TwoOrMoreCommittedPleaseRecover();
         s_valuesAtRound[round].stage = Stages.Commit;
         s_valuesAtRound[round].startTime = block.timestamp;
         emit RandomWordsRequested(round, msg.sender);
@@ -192,7 +191,7 @@ contract CRRNGCoordinator is ICRRRNGCoordinator, Ownable, VDFCRRNG {
      */
     function disputeLeadershipAtRound(uint256 round) external onlyOperator {
         // check if committed
-        if (!s_userInfosAtRound[round][msg.sender].committed) revert NotCommittedParticipant();
+        if (!s_operatorStatusAtRound[round][msg.sender].committed) revert NotCommittedParticipant();
         if (s_disputeEndTimeAtRound[round] < block.timestamp) revert DisputePeriodEnded();
         if (!s_valuesAtRound[round].isCompleted) revert OmegaNotCompleted();
         bytes memory _omega = s_valuesAtRound[round].omega.val;
@@ -203,9 +202,9 @@ contract CRRNGCoordinator is ICRRRNGCoordinator, Ownable, VDFCRRNG {
         if (_myHash < _leaderHash) {
             s_leaderAtRound[round] = msg.sender;
             s_disputeEndTimeForOperator[msg.sender] = s_disputeEndTimeAtRound[round];
+            s_disputeEndTimeForOperator[_leader] = 0;
             s_incentiveForOperator[msg.sender] += s_cost[round];
             s_incentiveForOperator[_leader] -= s_cost[round];
-            s_disputeEndTimeForOperator[_leader] = 0;
         } else revert NotLeader();
     }
 
@@ -311,9 +310,8 @@ contract CRRNGCoordinator is ICRRRNGCoordinator, Ownable, VDFCRRNG {
      * - [4]: bStar -> The bStar value of the round. This is updated on recovery stage.
      * - [5]: commitsString -> The concatenated string of the commits of the operators. This is updated when commit
      * - [6]: omega -> The omega value of the round. This is updated after recovery.
-     * - [7]: stage -> The stage of the round. 0 is Recovered or NotStarted, 1 is Commit, 2 is Reveal which is not used in this contract.
+     * - [7]: stage -> The stage of the round. 0 is Recovered or NotStarted, 1 is Commit
      * - [8]: isCompleted -> The flag to check if the round is completed. This is updated after recovery.
-     * - [9]: isAllRevealed -> The flag to check if all the operators have revealed their commits. We don't use this flag in this contract.
      */
     function getValuesAtRound(uint256 _round) external view returns (ValueAtRound memory) {
         return s_valuesAtRound[_round];
@@ -325,30 +323,28 @@ contract CRRNGCoordinator is ICRRRNGCoordinator, Ownable, VDFCRRNG {
      * @return The status of the operator at the round. The return value is struct UserStatusAtRound
      * @notice This getter function is for anyone to get the status of the operator at the round
      *
-     * - [0]: index -> The index of the commitRevealValue array of the operator
+     * - [0]: index -> The index of the commitValue array of the operator
      * - [1]: committed -> The flag to check if the operator has committed to the round
-     * - [2]: revealed -> The flag to check if the operator has revealed the commit
      */
     function getUserStatusAtRound(
         address _operator,
         uint256 _round
-    ) external view returns (UserStatusAtRound memory) {
-        return s_userInfosAtRound[_round][_operator];
+    ) external view returns (OperatorStatusAtRound memory) {
+        return s_operatorStatusAtRound[_round][_operator];
     }
 
     /**
      * @param _round The round ID of the request
-     * @return The commit, reveal value and the operator address of the round. The return value is struct CommitRevealValue
-     * @notice This getter function is for anyone to get the commit, reveal value and the operator address of the round
+     * @return The commit value and the operator address of the round. The return value is struct CommitValue
+     * @notice This getter function is for anyone to get the commit value and the operator address of the round
      * - [0]: commit -> The commit value of the operator
-     * - [1]: reveal -> The reveal value of the operator
      * - [2]: operator -> The operator address
      */
-    function getCommitRevealValues(
+    function getCommitValue(
         uint256 _round,
         uint256 _index
-    ) external view returns (CommitRevealValue memory) {
-        return s_commitRevealValues[_round][_index];
+    ) external view returns (CommitValue memory) {
+        return s_commitValues[_round][_index];
     }
 
     /**

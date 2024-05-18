@@ -14,62 +14,51 @@ contract VDFCRRNG is ReentrancyGuardTransient {
     // *** Type declarations
     /**
      * @notice Stages of the contract
-     * @notice Recover can be performed in the Reveal and Finished stages.
+     * @notice Recover can be performed in the Finished stages.
      */
     enum Stages {
         Finished,
-        Commit,
-        Reveal
+        Commit
     }
 
     /**
      *  @notice The struct to store the values of the round
      * - [0]: startTime -> The start time of the round
-     * - [1]:numOfPariticipants -> This is the number of operators who have committed to the round. And this is updated on the recovery stage.
-     * - [2]: count -> The number of operators who have committed to the round. And this is updated real-time.
-     * - [3]: consumer -> The address of the consumer of the round
-     * - [4]: bStar -> The bStar value of the round. This is updated on recovery stage.
-     * - [5]: commitsString -> The concatenated string of the commits of the operators. This is updated when commit
-     * - [6]: omega -> The omega value of the round. This is updated after recovery.
-     * - [7]: stage -> The stage of the round. 0 is Recovered or NotStarted, 1 is Commit, 2 is Reveal which is not used in this contract.
-     * - [8]: isCompleted -> The flag to check if the round is completed. This is updated after recovery.
-     * - [9]: isAllRevealed -> The flag to check if all the operators have revealed their commits. We don't use this flag in this contract.
+     * - [1]: commitCounts -> The number of operators who have committed to the round. And this is updated real-time.
+     * - [2]: consumer -> The address of the consumer of the round
+     * - [3]: commitsString -> The concatenated string of the commits of the operators. This is updated when commit
+     * - [4]: omega -> The omega value of the round. This is updated after recovery.
+     * - [5]: stage -> The stage of the round. 0 is Recovered or NotStarted, 1 is Commit
+     * - [6]: isCompleted -> The flag to check if the round is completed. This is updated after recovery.
      */
     struct ValueAtRound {
         uint256 startTime;
-        uint256 numOfPariticipants;
-        uint256 count; //This variable is used to keep track of the number of commitments and reveals, and to check if anything has been committed when moving to the reveal stage.
+        uint256 commitCounts;
         address consumer;
-        bytes bStar; // hash of commitsString
         bytes commitsString; // concatenated string of commits
         BigNumber omega; // the random number
         Stages stage; // stage of the contract
         bool isCompleted; // omega is finialized when this is true
-        bool isAllRevealed; // true when all participants have revealed
     }
 
     /**
-     * @dev The struct to store the commit, reveal values and the committed address
-     * - [0]: c -> The commit value of the operator
-     * - [1]: a -> The reveal value of the operator
-     * - [2]: participantAddress -> The address of the operator that committed the value
+     * @dev The struct to store the commit value and the operator address
+     * - [0]: commit -> The commit value of the operator
+     * - [1]: operatorAddress -> The address of the operator that committed the value
      */
-    struct CommitRevealValue {
-        BigNumber c;
-        BigNumber a;
-        address participantAddress;
+    struct CommitValue {
+        BigNumber commit;
+        address operatorAddress;
     }
 
     /**
      * @dev The struct to store the user status at the round
-     * - [0]: index -> The key of the commitRevealValues mapping
+     * - [0]: index -> The key of the commitValue mapping
      * - [1]: committed -> The flag to check if the operator has committed
-     * - [2]: revealed -> The flag to check if the operator has revealed
      */
-    struct UserStatusAtRound {
-        uint256 index;
+    struct OperatorStatusAtRound {
+        uint256 commitIndex;
         bool committed;
-        bool revealed;
     }
 
     // *** State variables
@@ -95,17 +84,14 @@ contract VDFCRRNG is ReentrancyGuardTransient {
     /// @dev The mapping of all the incentive for the operator
     mapping(address operator => uint256 incentive) internal s_incentiveForOperator;
     /// @dev The mapping of the user status at the round
-    mapping(uint256 round => mapping(address owner => UserStatusAtRound))
-        internal s_userInfosAtRound;
-    /// @dev The mapping of the commit reveal values and the committed address
-    mapping(uint256 round => mapping(uint256 index => CommitRevealValue))
-        internal s_commitRevealValues;
+    mapping(uint256 round => mapping(address operator => OperatorStatusAtRound))
+        internal s_operatorStatusAtRound;
+    /// @dev The mapping of the commit values and the operator address
+    mapping(uint256 round => mapping(uint256 index => CommitValue)) internal s_commitValues;
     // * internal constant
     /// @dev The duration of the commit stage, 120 seconds
     uint256 internal constant COMMITDURATION = 120;
     // * constants
-    /// @dev The duration of the commit+reveal stage, 240 seconds. The reveal stage is not used.
-    uint256 private constant COMMITREVEALDURATION = 240;
     /// @dev The constant T, 2^22
     uint256 private constant T = 4194304;
     /// @dev The constant delta, 9
@@ -132,7 +118,6 @@ contract VDFCRRNG is ReentrancyGuardTransient {
 
     // *** Events
     event CommitC(uint256 commitCount, bytes commitVal);
-    event RevealA(uint256 revealLeftCount, bytes aVal);
     event Recovered(uint256 round, bytes recov, bytes omega, bool success);
     event RandomWordsRequested(uint256 round, address sender);
     event CalculateOmega(uint256 round, bytes omega);
@@ -143,9 +128,6 @@ contract VDFCRRNG is ReentrancyGuardTransient {
     error AlreadyVerified();
     error AlreadyCommitted();
     error NotCommittedParticipant();
-    error AlreadyRevealed();
-    error ModExpRevealNotMatchCommit();
-    error NotAllRevealed();
     error OmegaAlreadyCompleted();
     error FunctionInvalidAtThisStage();
     error NotVerifiedAtTOne();
@@ -191,19 +173,15 @@ contract VDFCRRNG is ReentrancyGuardTransient {
         uint256 _startTime = s_valuesAtRound[round].startTime;
         Stages _stage = s_valuesAtRound[round].stage;
         if (_stage == Stages.Commit && block.timestamp >= _startTime + COMMITDURATION) {
-            uint256 _count = s_valuesAtRound[round].count;
+            uint256 _count = s_valuesAtRound[round].commitCounts;
             if (_count > BigNumbers.UINTONE) {
-                _stage = Stages.Reveal;
-                s_valuesAtRound[round].numOfPariticipants = _count;
-                s_valuesAtRound[round].bStar = _hash(s_valuesAtRound[round].commitsString).val;
+                _stage = Stages.Finished;
+                //
             } else if (_count == BigNumbers.UINTZERO) {
                 s_valuesAtRound[round].startTime = block.timestamp;
             } else {
                 _stage = Stages.Finished;
             }
-        }
-        if (_stage == Stages.Reveal && block.timestamp >= _startTime + COMMITREVEALDURATION) {
-            _stage = Stages.Finished;
         }
         if (_stage != stage) revert FunctionInvalidAtThisStage();
         s_valuesAtRound[round].stage = _stage;
@@ -218,16 +196,6 @@ contract VDFCRRNG is ReentrancyGuardTransient {
         uint256 _startTime = s_valuesAtRound[round].startTime;
         Stages _stage = s_valuesAtRound[round].stage;
         if (_stage == Stages.Commit && block.timestamp >= _startTime + COMMITDURATION) {
-            uint256 _count = s_valuesAtRound[round].count;
-            if (_count > BigNumbers.UINTONE) {
-                _stage = Stages.Reveal;
-                s_valuesAtRound[round].numOfPariticipants = _count;
-                s_valuesAtRound[round].bStar = _hash(s_valuesAtRound[round].commitsString).val;
-            } else {
-                _stage = Stages.Finished;
-            }
-        }
-        if (_stage == Stages.Reveal && block.timestamp >= _startTime + COMMITREVEALDURATION) {
             _stage = Stages.Finished;
         }
         if (_stage == Stages.Commit) revert FunctionInvalidAtThisStage();
@@ -271,8 +239,8 @@ contract VDFCRRNG is ReentrancyGuardTransient {
      * - effects
      * 1. The operator's committed flag is set to true
      * 2. The operator's index is set to the count of the round
-     * 3. The commit value is stored in the commitRevealValues mapping
-     * 4. The address of the operator is stored in the commitRevealValues mapping
+     * 3. The commit value is stored in the commitValue mapping
+     * 4. The address of the operator is stored in the commitValues mapping
      * 5. The commit value is concatenated to the commitsString
      * 6. The count of the round is incremented
      * 7. The CommitC(_count, c.val) event is emitted
@@ -283,18 +251,18 @@ contract VDFCRRNG is ReentrancyGuardTransient {
     ) external onlyOperator checkStage(round, Stages.Commit) {
         //check
         if (BigNumbers.isZero(c)) revert ShouldNotBeZero();
-        if (s_userInfosAtRound[round][msg.sender].committed) revert AlreadyCommitted();
+        if (s_operatorStatusAtRound[round][msg.sender].committed) revert AlreadyCommitted();
         //effect
-        uint256 _count = s_valuesAtRound[round].count;
-        s_userInfosAtRound[round][msg.sender].index = _count;
-        s_userInfosAtRound[round][msg.sender].committed = true;
-        s_commitRevealValues[round][_count].c = c;
-        s_commitRevealValues[round][_count].participantAddress = msg.sender;
+        uint256 _count = s_valuesAtRound[round].commitCounts;
+        s_operatorStatusAtRound[round][msg.sender].commitIndex = _count;
+        s_operatorStatusAtRound[round][msg.sender].committed = true;
+        s_commitValues[round][_count].commit = c;
+        s_commitValues[round][_count].operatorAddress = msg.sender;
         s_valuesAtRound[round].commitsString = bytes.concat(
             s_valuesAtRound[round].commitsString,
             c.val
         );
-        s_valuesAtRound[round].count = _count = _unchecked_inc(_count);
+        s_valuesAtRound[round].commitCounts = _count = _unchecked_inc(_count);
         emit CommitC(_count, c.val);
     }
 
@@ -306,7 +274,7 @@ contract VDFCRRNG is ReentrancyGuardTransient {
      * @notice The function to recover the value and call fulfillRandomwords to the consumer contract
      * - checks
      * 1. The msg.sender should be the operator
-     * 2. The stage should be Reveal or Finished stage, which means the recovery stage
+     * 2. The stage should be Finished stage, which means the recovery stage
      * 3. NonReentrant
      * 4. The operator should have committed
      * 5. The round should have at least 2 participants
@@ -331,16 +299,16 @@ contract VDFCRRNG is ReentrancyGuardTransient {
         BigNumber memory y
     ) external onlyOperator checkRecoverStage(round) nonReentrant {
         // check
-        if (!s_userInfosAtRound[round][msg.sender].committed) revert NotCommittedParticipant();
-        uint256 _numOfPariticipants = s_valuesAtRound[round].numOfPariticipants;
-        if (_numOfPariticipants < BigNumbers.UINTTWO) revert NotEnoughParticipated();
+        if (!s_operatorStatusAtRound[round][msg.sender].committed) revert NotCommittedParticipant();
+        uint256 _commitCounts = s_valuesAtRound[round].commitCounts;
+        if (_commitCounts < BigNumbers.UINTTWO) revert NotEnoughParticipated();
         if (s_valuesAtRound[round].isCompleted) revert OmegaAlreadyCompleted();
         BigNumber memory _n = BigNumber(NVAL, NBITLEN);
-        bytes memory _bStar = s_valuesAtRound[round].bStar;
+        bytes memory _bStar = _hash(s_valuesAtRound[round].commitsString).val;
         _verifyRecursiveHalvingProof(v, x, y, _n);
         BigNumber memory _recov = BigNumber(BigNumbers.BYTESONE, BigNumbers.UINTONE);
-        for (uint256 i; i < _numOfPariticipants; i = _unchecked_inc(i)) {
-            BigNumber memory _c = s_commitRevealValues[round][i].c;
+        for (uint256 i; i < _commitCounts; i = _unchecked_inc(i)) {
+            BigNumber memory _c = s_commitValues[round][i].commit;
             _recov = BigNumbers.modmul(
                 _recov,
                 BigNumbers.modexp(_c, _hash(_c.val, _bStar), _n),

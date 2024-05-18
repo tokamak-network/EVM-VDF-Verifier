@@ -2,12 +2,11 @@
 pragma solidity ^0.8.24;
 
 /**
- * @title Commit-Reveal-Recover
+ * @title Commit-Recover
  * @author Justin g
  * @notice This contract is for generating random number
- *    1. Finished: Not SetUped | Calculate or recover the random number
+ *    1. Finished: round not Started | recover the random number
  *    2. Commit: participants commit their value
- *    3. Reveal: participants reveal their value
  */
 interface ICRRRNGCoordinator {
     function requestRandomWordDirectFunding(
