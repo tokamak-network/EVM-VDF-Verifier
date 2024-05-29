@@ -12,62 +12,36 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { BigNumberish } from "ethers"
-import { ethers } from "hardhat"
 import { DeployFunction } from "hardhat-deploy/types"
 import { HardhatRuntimeEnvironment } from "hardhat/types"
 import { VERIFICATION_BLOCK_CONFIRMATIONS } from "../helper-hardhat-config"
 import verify from "../utils/verify"
-const deployCRRRNGCoordinator: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
+const deployConsumerExample: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
     const { deployments, getNamedAccounts, network } = hre
     const { deploy, log } = deployments
     const { deployer } = await getNamedAccounts()
     const chainId = network.config.chainId
-
-    const coordinatorConstructorParams: {
-        disputePeriod: BigNumberish
-        minimumDepositAmount: BigNumberish
-        avgL2GasUsed: BigNumberish
-        premiumPercentage: BigNumberish
-        flatFee: BigNumberish
-    } = {
-        disputePeriod: 180n,
-        minimumDepositAmount: ethers.parseEther("0.01"),
-        avgL2GasUsed: 2297700n,
-        premiumPercentage: 0n,
-        flatFee: ethers.parseEther("0.0013"),
-    }
-
+    const crrRngCoordinatorAddress = (await deployments.get("CRRNGCoordinatorPoF")).address
     const waitBlockConfirmations =
         chainId === 31337 || chainId === 5050 || chainId === 55004 || chainId === 111551115050
             ? 1
             : VERIFICATION_BLOCK_CONFIRMATIONS
+
     log("----------------------------------------------------")
-    const crrRngCoordinator = await deploy("CRRNGCoordinator", {
+    const consumerExample = await deploy("ConsumerExample", {
         from: deployer,
         log: true,
-        args: [
-            coordinatorConstructorParams.disputePeriod,
-            coordinatorConstructorParams.minimumDepositAmount,
-            coordinatorConstructorParams.avgL2GasUsed,
-            coordinatorConstructorParams.premiumPercentage,
-            coordinatorConstructorParams.flatFee,
-        ],
+        args: [crrRngCoordinatorAddress],
         waitConfirmations: waitBlockConfirmations,
     })
     // deploy result
-    log("CRRNGCoordinator deployed at:", crrRngCoordinator.address)
+    log("consumerExample deployed at:", consumerExample.address)
+
     if (chainId !== 31337 && process.env.ETHERSCAN_API_KEY) {
         log("Verifying...")
-        await verify(crrRngCoordinator.address, [
-            coordinatorConstructorParams.disputePeriod,
-            coordinatorConstructorParams.minimumDepositAmount,
-            coordinatorConstructorParams.avgL2GasUsed,
-            coordinatorConstructorParams.premiumPercentage,
-            coordinatorConstructorParams.flatFee,
-        ])
+        await verify(consumerExample.address, [crrRngCoordinatorAddress])
     }
     log("----------------------------------------------------")
 }
-export default deployCRRRNGCoordinator
-deployCRRRNGCoordinator.tags = ["all", "CRRNGCoordinator", "anvil"]
+export default deployConsumerExample
+deployConsumerExample.tags = ["all", "consumerexample", "testnet", "v2"]

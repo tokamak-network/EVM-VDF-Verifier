@@ -28,14 +28,18 @@ const deployCRRRNGCoordinator: DeployFunction = async (hre: HardhatRuntimeEnviro
         disputePeriod: BigNumberish
         minimumDepositAmount: BigNumberish
         avgL2GasUsed: BigNumberish
+        avgL1GasUsed: BigNumberish
         premiumPercentage: BigNumberish
+        penaltyPercentage: BigNumberish
         flatFee: BigNumberish
     } = {
         disputePeriod: 180n,
-        minimumDepositAmount: ethers.parseEther("0.0001"),
-        avgL2GasUsed: 0n,
+        minimumDepositAmount: ethers.parseEther("0.005"),
+        avgL2GasUsed: 2101449n,
+        avgL1GasUsed: 27824n,
         premiumPercentage: 0n,
-        flatFee: 0n,
+        penaltyPercentage: 20n,
+        flatFee: ethers.parseEther("0.001"),
     }
 
     const waitBlockConfirmations =
@@ -43,48 +47,35 @@ const deployCRRRNGCoordinator: DeployFunction = async (hre: HardhatRuntimeEnviro
             ? 1
             : VERIFICATION_BLOCK_CONFIRMATIONS
     log("----------------------------------------------------")
-    let crrRngCoordinator
-    if (chainId === 55007) {
-        crrRngCoordinator = await deploy("CRRNGCoordinator", {
-            from: deployer,
-            log: true,
-            args: [
-                coordinatorConstructorParams.disputePeriod,
-                coordinatorConstructorParams.minimumDepositAmount,
-                coordinatorConstructorParams.avgL2GasUsed,
-                coordinatorConstructorParams.premiumPercentage,
-                coordinatorConstructorParams.flatFee,
-            ],
-            waitConfirmations: waitBlockConfirmations,
-            gasLimit: 5000000,
-        })
-    } else {
-        crrRngCoordinator = await deploy("CRRNGCoordinator", {
-            from: deployer,
-            log: true,
-            args: [
-                coordinatorConstructorParams.disputePeriod,
-                coordinatorConstructorParams.minimumDepositAmount,
-                coordinatorConstructorParams.avgL2GasUsed,
-                coordinatorConstructorParams.premiumPercentage,
-                coordinatorConstructorParams.flatFee,
-            ],
-            waitConfirmations: waitBlockConfirmations,
-        })
-    }
+    const crrRngCoordinator = await deploy("CRRNGCoordinatorPoF", {
+        from: deployer,
+        log: true,
+        args: [
+            coordinatorConstructorParams.disputePeriod,
+            coordinatorConstructorParams.minimumDepositAmount,
+            coordinatorConstructorParams.avgL2GasUsed,
+            coordinatorConstructorParams.avgL1GasUsed,
+            coordinatorConstructorParams.premiumPercentage,
+            coordinatorConstructorParams.penaltyPercentage,
+            coordinatorConstructorParams.flatFee,
+        ],
+        waitConfirmations: waitBlockConfirmations,
+    })
     // deploy result
-    log("CRRNGCoordinator deployed at:", crrRngCoordinator.address)
+    log("CRRNGCoordinatorPoF deployed at:", crrRngCoordinator.address)
     if (chainId !== 31337 && process.env.ETHERSCAN_API_KEY) {
         log("Verifying...")
         await verify(crrRngCoordinator.address, [
             coordinatorConstructorParams.disputePeriod,
             coordinatorConstructorParams.minimumDepositAmount,
             coordinatorConstructorParams.avgL2GasUsed,
+            coordinatorConstructorParams.avgL1GasUsed,
             coordinatorConstructorParams.premiumPercentage,
+            coordinatorConstructorParams.penaltyPercentage,
             coordinatorConstructorParams.flatFee,
         ])
     }
     log("----------------------------------------------------")
 }
 export default deployCRRRNGCoordinator
-deployCRRRNGCoordinator.tags = ["all", "CRRNGCoordinator", "testnet"]
+deployCRRRNGCoordinator.tags = ["all", "CRRNGCoordinator", "anvil", "v2"]
