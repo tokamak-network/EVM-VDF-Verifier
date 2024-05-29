@@ -16,15 +16,19 @@
 .PHONY: all settingsForAnvil
 
 settingsForAnvil: deployContracts fiveOperatorDeposits
+settingsForAnvilForTitan: deployContractsForTitan fiveOperatorDepositsForTitan
 
-deployContracts:; npx hardhat deploy --network anvil --reset --tags testnet
+deployContracts:; npx hardhat deploy --network anvil --reset --tags v2
+deployContractsForTitan:; npx hardhat deploy --network anvil --reset --tags titan
 
 fiveOperatorDeposits:; npx hardhat run scripts/2-fiveOperatorsDeposit.ts --network anvil
+fiveOperatorDepositsForTitan:; npx hardhat run scripts/ForTitan/2-fiveOperatorsDepositForTitan.ts --network anvil
 
 # randomWordsRequestedEvent: startRegistration transferTon participantsRegister requestRandomWord
 
 
 randomWordsRequestedEvent:; npx hardhat run scripts/6-requestRandomWordConsumerExample.ts --network anvil
+randomWordsRequestedEventForTitan:; npx hardhat run scripts/ForTitan/6-requestRandomWordConsumerExampleForTitan.ts --network anvil
 
 
 startRegistration:; npx hardhat run scripts/3-startRegistration.ts --network anvil

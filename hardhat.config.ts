@@ -11,7 +11,11 @@ import { HardhatUserConfig } from "hardhat/config"
 import "solidity-coverage"
 import "solidity-docgen"
 import "./scripts/tasks/operatorCommit.ts"
+import "./scripts/tasks/operatorCommitForTitan.ts"
+import "./scripts/tasks/operatorFulfillRandom.ts"
+import "./scripts/tasks/operatorFulfillRandomForTitan.ts"
 import "./scripts/tasks/operatorRecover.ts"
+import "./scripts/tasks/operatorRecoverForTitan.ts"
 /** @type import('hardhat/config').HardhatUserConfig */
 
 const optimizerSettings = {
@@ -26,9 +30,25 @@ const optimizerSettings = {
     },
 }
 
+const parisSettings = {
+    evmVersion: "paris",
+    viaIR: true,
+    optimizer: {
+        enabled: true,
+        runs: 100000000, //4294967295,
+        details: {
+            yul: true,
+        },
+    },
+}
+
 const NEW_COMPILER_SETTINGS = {
     version: "0.8.24",
     settings: optimizerSettings,
+}
+const PARIS_COMPILER_SETTINGS = {
+    version: "0.8.24",
+    settings: parisSettings,
 }
 const MAINNET_RPC_URL = process.env.MAINNET_RPC_URL
 const SEPOLIA_RPC_URL = process.env.SEPOLIA_RPC_URL
@@ -60,7 +80,9 @@ const config: HardhatUserConfig = {
             allowUnlimitedContractSize: true,
         },
         anvil: {
+            //chainId: 55004,
             chainId: 31337,
+            //chainId: 55007,
             url: "http://localhost:8545",
             //allowUnlimitedContractSize: true,
         },
@@ -209,6 +231,9 @@ const config: HardhatUserConfig = {
     },
     solidity: {
         compilers: [NEW_COMPILER_SETTINGS],
+        overrides: {
+            "contracts/CRRNGCooridnatorPoFForTitan.sol": PARIS_COMPILER_SETTINGS,
+        },
     },
     mocha: {
         timeout: 20000000, // 2000 seconds max for running tests
