@@ -1,8 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
-import {ReentrancyGuardTransient} from "./utils/ReentrancyGuardTransient.sol";
 import "./libraries/BigNumbers.sol";
+import {ReentrancyGuardTransient} from "./utils/ReentrancyGuardTransient.sol";
+import {GetL1Fee} from "./utils/GetL1Fee.sol";
 import {RNGConsumerBase} from "./RNGConsumerBase.sol";
 
 /**
@@ -10,7 +11,7 @@ import {RNGConsumerBase} from "./RNGConsumerBase.sol";
  * @notice This contract is not audited
  * @author Justin G
  */
-contract VDFCRRNG is ReentrancyGuardTransient {
+contract VDFCRRNGPoF is ReentrancyGuardTransient, GetL1Fee {
     // *** Type declarations
     /**
      * @notice Stages of the contract
@@ -18,7 +19,8 @@ contract VDFCRRNG is ReentrancyGuardTransient {
      */
     enum Stages {
         Finished,
-        Commit
+        Commit,
+        Recover
     }
 
     /**
@@ -38,7 +40,13 @@ contract VDFCRRNG is ReentrancyGuardTransient {
         bytes commitsString; // concatenated string of commits
         BigNumber omega; // the random number
         Stages stage; // stage of the contract
-        bool isCompleted; // omega is finialized when this is true
+        bool isCompleted; // the flag to check if the round is completed
+        bool isVerified; // omega is verified when this is true
+    }
+
+    struct FulfillStatus {
+        bool executed;
+        bool succeeded;
     }
 
     /**
@@ -63,8 +71,11 @@ contract VDFCRRNG is ReentrancyGuardTransient {
 
     // *** State variables
     // * internal
+    uint256 internal s_minimumDepositAmount;
     /// @dev The flag to check if the setUp values are verified
     bool internal s_initialized;
+    uint256 internal s_operatorCount;
+    uint256 internal s_penaltyPercentage;
     /// @dev The next round number
     uint256 internal s_nextRound;
     /// @dev The dispute period
@@ -82,7 +93,8 @@ contract VDFCRRNG is ReentrancyGuardTransient {
     /// @dev The mapping of the dispute end time for the operator
     mapping(address operator => uint256 disputeEndTime) internal s_disputeEndTimeForOperator;
     /// @dev The mapping of all the incentive for the operator
-    mapping(address operator => uint256 incentive) internal s_incentiveForOperator;
+    mapping(address operator => uint256 depositAmount) internal s_depositedAmount;
+    mapping(uint256 round => FulfillStatus fulfillStatus) internal s_fulfillStatus;
     /// @dev The mapping of the user status at the round
     mapping(uint256 round => mapping(address operator => OperatorStatusAtRound))
         internal s_operatorStatusAtRound;
@@ -92,6 +104,8 @@ contract VDFCRRNG is ReentrancyGuardTransient {
     /// @dev The duration of the commit stage, 120 seconds
     uint256 internal constant COMMITDURATION = 120;
     // * constants
+    uint256 private constant L2_DISPUTERECOVER_TX_GAS = 2881159;
+    uint256 private constant L2_DISPUTELEADERSHIP_TX_GAS = 94000;
     /// @dev The constant T, 2^22
     uint256 private constant T = 4194304;
     /// @dev The constant delta, 9
@@ -121,6 +135,7 @@ contract VDFCRRNG is ReentrancyGuardTransient {
     event Recovered(uint256 round, bytes recov, bytes omega, bool success);
     event RandomWordsRequested(uint256 round, address sender);
     event CalculateOmega(uint256 round, bytes omega);
+    event FulfillRandomness(uint256 round, uint256 hashedOmega, bool success);
 
     // *** Errors
     error CRRNGCoordinator_InsufficientDepositAmount();
@@ -142,13 +157,18 @@ contract VDFCRRNG is ReentrancyGuardTransient {
     error StillInCommitStage();
     error OmegaNotCompleted();
     error NotLeader();
+    error CommitNotStarted();
     error DisputePeriodEnded();
     error InvalidProofLength();
     error InsufficientAmount();
     error SendFailed();
     error DisputePeriodNotEnded();
     error AlreadyLeader();
+    error AlreadySucceeded();
     error NotEnoughOperators();
+    error DisputePeriodNotEndedOrStarted();
+    error SubmittedSameOmega();
+    error NotFulfilledExecuted();
     error XPrimeNotEqualAtIndex(uint256 index);
     error YPrimeNotEqualAtIndex(uint256 index);
 
@@ -175,7 +195,7 @@ contract VDFCRRNG is ReentrancyGuardTransient {
         if (_stage == Stages.Commit && block.timestamp >= _startTime + COMMITDURATION) {
             uint256 _count = s_valuesAtRound[round].commitCounts;
             if (_count > BigNumbers.UINTONE) {
-                _stage = Stages.Finished;
+                _stage = Stages.Recover;
                 //
             } else if (_count == BigNumbers.UINTZERO) {
                 s_valuesAtRound[round].startTime = block.timestamp;
@@ -186,30 +206,6 @@ contract VDFCRRNG is ReentrancyGuardTransient {
         if (_stage != stage) revert FunctionInvalidAtThisStage();
         s_valuesAtRound[round].stage = _stage;
         _;
-    }
-    /**
-     * @param round The round number
-     * @dev The modifier to check the recover stage of the round.
-     */
-    modifier checkRecoverStage(uint256 round) {
-        if (round >= s_nextRound) revert NotStartedRound();
-        uint256 _startTime = s_valuesAtRound[round].startTime;
-        Stages _stage = s_valuesAtRound[round].stage;
-        if (_stage == Stages.Commit && block.timestamp >= _startTime + COMMITDURATION) {
-            _stage = Stages.Finished;
-        }
-        if (_stage == Stages.Commit) revert FunctionInvalidAtThisStage();
-        s_valuesAtRound[round].stage = _stage;
-        _;
-    }
-
-    /**
-     * @notice The constructor of the contract
-     * @param disputePeriod The dispute period
-     * @dev The dispute period is set to s_disputePeriod
-     */
-    constructor(uint256 disputePeriod) {
-        s_disputePeriod = disputePeriod;
     }
 
     /**
@@ -266,47 +262,40 @@ contract VDFCRRNG is ReentrancyGuardTransient {
         emit CommitC(_count, c.val);
     }
 
-    /**
-     * @param round The round number
-     * @param v The proof that is array of BigNumber
-     * @param x The x BigNumber value
-     * @param y The y BigNumber value
-     * @notice The function to recover the value and call fulfillRandomwords to the consumer contract
-     * - checks
-     * 1. The msg.sender should be the operator
-     * 2. The stage should be Finished stage, which means the recovery stage
-     * 3. NonReentrant
-     * 4. The operator should have committed
-     * 5. The round should have at least 2 participants
-     * 6. The round should not have been completed
-     * 7. Verify recursive halving proof
-     * 8. The calculated recov value should be equal to x
-     * - effects
-     * 1. The round is set to completed
-     * 2. The omega value is set to y
-     * 3. The stage is set to Finished
-     * 4. The dispute end time of this round is set to the current time + dispute period
-     * 5. The dispute end time of the operator is set to the current time + dispute period
-     * 6. The incentive of the operator is increased by the cost of the round. The cost includes _callbackGasLimit, recoveryGasOverhead, and flatFee
-     * 7. The operator is set to the leader of the round
-     * - interaction
-     * 1. Call the consumer contract's fulfillRandomWords function and emit Recovered(round, x.val, y.val, success) event. The success is true if the call is successful.
-     */
     function recover(
         uint256 round,
-        BigNumber[] memory v,
-        BigNumber memory x,
         BigNumber memory y
-    ) external onlyOperator checkRecoverStage(round) nonReentrant {
+    ) external onlyOperator checkStage(round, Stages.Recover) nonReentrant {
         // check
         if (!s_operatorStatusAtRound[round][msg.sender].committed) revert NotCommittedParticipant();
         uint256 _commitCounts = s_valuesAtRound[round].commitCounts;
         if (_commitCounts < BigNumbers.UINTTWO) revert NotEnoughParticipated();
         if (s_valuesAtRound[round].isCompleted) revert OmegaAlreadyCompleted();
+        // effect
+        s_valuesAtRound[round].isCompleted = true;
+        s_valuesAtRound[round].omega = y;
+        s_valuesAtRound[round].stage = Stages.Finished;
+        s_disputeEndTimeAtRound[round] = block.timestamp + s_disputePeriod;
+        s_disputeEndTimeForOperator[msg.sender] = block.timestamp + s_disputePeriod;
+        s_leaderAtRound[round] = msg.sender;
+    }
+
+    function disputeRecover(
+        uint256 round,
+        BigNumber[] memory v,
+        BigNumber memory x,
+        BigNumber memory y
+    ) external onlyOperator {
+        if (s_valuesAtRound[round].isVerified) revert AlreadyVerified();
+        if (BigNumbers.eq(s_valuesAtRound[round].omega, y)) revert SubmittedSameOmega();
+        if (!s_valuesAtRound[round].isCompleted) revert OmegaNotCompleted();
+        if (!s_operatorStatusAtRound[round][msg.sender].committed) revert NotCommittedParticipant();
+        if (s_disputeEndTimeAtRound[round] < block.timestamp) revert DisputePeriodEnded();
         BigNumber memory _n = BigNumber(NVAL, NBITLEN);
         bytes memory _bStar = _hash(s_valuesAtRound[round].commitsString).val;
         _verifyRecursiveHalvingProof(v, x, y, _n);
         BigNumber memory _recov = BigNumber(BigNumbers.BYTESONE, BigNumbers.UINTONE);
+        uint256 _commitCounts = s_valuesAtRound[round].commitCounts;
         for (uint256 i; i < _commitCounts; i = _unchecked_inc(i)) {
             BigNumber memory _c = s_commitValues[round][i].commit;
             _recov = BigNumbers.modmul(
@@ -316,26 +305,126 @@ contract VDFCRRNG is ReentrancyGuardTransient {
             );
         }
         if (!BigNumbers.eq(_recov, x)) revert RecovNotMatchX();
-        // effect
-        s_valuesAtRound[round].isCompleted = true;
+        uint256 _penaltyAmount = _getDisputeRecoverTxGasFee();
         s_valuesAtRound[round].omega = y;
-        s_valuesAtRound[round].stage = Stages.Finished;
-        uint256 _disputeEndTime = block.timestamp + s_disputePeriod;
-        s_disputeEndTimeAtRound[round] = _disputeEndTime;
-        s_disputeEndTimeForOperator[msg.sender] = _disputeEndTime;
-        s_incentiveForOperator[msg.sender] += s_cost[round];
+        address previousLeader = s_leaderAtRound[round];
         s_leaderAtRound[round] = msg.sender;
-        // interaction
+        s_disputeEndTimeForOperator[msg.sender] = s_disputeEndTimeAtRound[round];
+        s_disputeEndTimeForOperator[previousLeader] = 0;
+        s_valuesAtRound[round].isVerified = true;
+        s_depositedAmount[msg.sender] += _penaltyAmount;
+        s_depositedAmount[previousLeader] -= _penaltyAmount;
+        if (s_depositedAmount[previousLeader] < s_minimumDepositAmount) {
+            s_operators[previousLeader] = false;
+            unchecked {
+                s_operatorCount--;
+            }
+        }
+        emit Recovered(round, _recov.val, y.val, true);
+    }
+
+    /**
+     * @param round The round ID of the request
+     * @notice This function is for operators who have committed to the round to dispute the leadership of the round
+     * - checks
+     * 1. Reverts when the operator has not committed to the round
+     * 2. Reverts when the dispute end time of the round is less than the current block timestamp, meaning the dispute period has ended
+     * 3. Reverts when the round is not completed, meaning the recovery stage is not ended
+     * 4. Reverts when the msg.sender is already the leader
+     * 5. Reverts when the keccak256(omega, msg.sender) is greater than the keccak256(omega, previousLeader)
+     * - effects
+     * 1. Resets the leader of the round to the msg.sender
+     * 2. Sets the dispute end time of the operator to the dispute end time of the round, meaning the operator can't withdraw the deposit amount until the dispute period ends
+     * 3. Increments the incentive of the msg.sender by the cost of the round
+     * 4. Decrements the incentive of the previous leader by the cost of the round
+     */
+    function disputeLeadershipAtRound(uint256 round) external onlyOperator {
+        // check if committed
+        if (!s_operatorStatusAtRound[round][msg.sender].committed) revert NotCommittedParticipant();
+        if (s_disputeEndTimeAtRound[round] < block.timestamp)
+            revert DisputePeriodNotEndedOrStarted();
+        if (!s_valuesAtRound[round].isCompleted) revert OmegaNotCompleted();
+        bytes memory _omega = s_valuesAtRound[round].omega.val;
+        address _leader = s_leaderAtRound[round];
+        if (_leader == msg.sender) revert AlreadyLeader();
+        bytes32 _leaderHash = keccak256(abi.encodePacked(_omega, _leader));
+        bytes32 _myHash = keccak256(abi.encodePacked(_omega, msg.sender));
+        if (_myHash < _leaderHash) {
+            s_leaderAtRound[round] = msg.sender;
+            s_disputeEndTimeForOperator[msg.sender] = s_disputeEndTimeAtRound[round];
+            s_disputeEndTimeForOperator[_leader] = 0;
+            uint256 penalyAmount = _getDisputeLeadershipTxGasFee();
+            s_depositedAmount[msg.sender] += penalyAmount; // s_cost[round];
+            s_depositedAmount[_leader] -= penalyAmount; // s_cost[round];
+        } else revert NotLeader();
+    }
+
+    function disputeLeadershipAfterFulfill(uint256 round) external onlyOperator {
+        // check if committed
+        if (!s_operatorStatusAtRound[round][msg.sender].committed) revert NotCommittedParticipant();
+        if (!s_fulfillStatus[round].executed) revert NotFulfilledExecuted();
+        bytes memory _omega = s_valuesAtRound[round].omega.val;
+        address _leader = s_leaderAtRound[round];
+        if (_leader == msg.sender) revert AlreadyLeader();
+        bytes32 _leaderHash = keccak256(abi.encodePacked(_omega, _leader));
+        bytes32 _myHash = keccak256(abi.encodePacked(_omega, msg.sender));
+        if (_myHash < _leaderHash) {
+            s_leaderAtRound[round] = msg.sender;
+            uint256 penalyAmount = _getDisputeLeadershipTxGasFee();
+            s_depositedAmount[msg.sender] += (penalyAmount + s_cost[round]);
+            s_depositedAmount[_leader] -= (penalyAmount + s_cost[round]);
+        } else revert NotLeader();
+    }
+
+    function _getDisputeLeadershipTxGasFee() private view returns (uint256) {
+        return
+            ((_getDisputeLeadershipTxL1GasFee() + (L2_DISPUTELEADERSHIP_TX_GAS * tx.gasprice)) *
+                (100 + s_penaltyPercentage)) / 100;
+    }
+
+    function _getDisputeRecoverTxGasFee() internal view returns (uint256) {
+        return
+            ((_getDisputeRecoverTxL1GasFee() + (L2_DISPUTERECOVER_TX_GAS * tx.gasprice)) *
+                (100 + s_penaltyPercentage)) / 100;
+    }
+
+    function fulfillRandomness(uint256 round) external onlyOperator nonReentrant {
+        if (!s_operatorStatusAtRound[round][msg.sender].committed) revert NotCommittedParticipant();
+        if (s_disputeEndTimeAtRound[round] >= block.timestamp)
+            revert DisputePeriodNotEndedOrStarted();
+        if (!s_valuesAtRound[round].isCompleted) revert OmegaNotCompleted();
+        s_depositedAmount[msg.sender] += s_cost[round];
+        s_leaderAtRound[round] = msg.sender;
+
         // Do not allow any non-view/non-pure coordinator functions to be called during the consumers callback code via reentrancyLock.
+        uint256 hashedOmega = uint256(keccak256(s_valuesAtRound[round].omega.val));
         bool success = _call(
             s_valuesAtRound[round].consumer,
             abi.encodeWithSelector(
                 RNGConsumerBase.rawFulfillRandomWords.selector,
                 round,
-                uint256(keccak256(y.val))
+                hashedOmega
             )
         );
-        emit Recovered(round, _recov.val, y.val, success);
+        s_fulfillStatus[round] = FulfillStatus(true, success);
+        emit FulfillRandomness(round, hashedOmega, success);
+    }
+
+    function fulfillRandomnessOfFailed(uint256 round) external nonReentrant {
+        if (!s_fulfillStatus[round].executed) revert NotFulfilledExecuted();
+        if (s_fulfillStatus[round].succeeded) revert AlreadySucceeded();
+        // Do not allow any non-view/non-pure coordinator functions to be called during the consumers callback code via reentrancyLock.
+        uint256 hashedOmega = uint256(keccak256(s_valuesAtRound[round].omega.val));
+        bool success = _call(
+            s_valuesAtRound[round].consumer,
+            abi.encodeWithSelector(
+                RNGConsumerBase.rawFulfillRandomWords.selector,
+                round,
+                hashedOmega
+            )
+        );
+        s_fulfillStatus[round].succeeded = success;
+        emit FulfillRandomness(round, hashedOmega, success);
     }
 
     /**
