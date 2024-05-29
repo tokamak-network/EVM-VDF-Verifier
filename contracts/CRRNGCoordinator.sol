@@ -13,7 +13,7 @@ contract CRRNGCoordinator is ICRRRNGCoordinator, Ownable, VDFCRRNG {
     // *** State variables
     // * private
     uint256 private s_operatorCount;
-    uint256 private s_avgRecoveOverhead;
+    uint256 private s_avgL2GasUsed;
     uint256 private s_minimumDepositAmount;
     uint256 private s_premiumPercentage;
     uint256 private s_flatFee;
@@ -23,17 +23,17 @@ contract CRRNGCoordinator is ICRRRNGCoordinator, Ownable, VDFCRRNG {
     /// @dev no zero checks
     /// @param disputePeriod The dispute period after recovery
     /// @param minimumDepositAmount The minimum deposit amount to become operators
-    /// @param avgRecoveOverhead The average gas cost for recovery of the random number
+    /// @param avgL2GasUsed The average gas cost for recovery of the random number
     /// @param premiumPercentage The percentage of the premium, will be set to 0
     /// @param flatFee The flat fee for the direct funding
     constructor(
         uint256 disputePeriod,
         uint256 minimumDepositAmount,
-        uint256 avgRecoveOverhead,
+        uint256 avgL2GasUsed,
         uint256 premiumPercentage,
         uint256 flatFee
     ) VDFCRRNG(disputePeriod) Ownable(msg.sender) {
-        s_avgRecoveOverhead = avgRecoveOverhead;
+        s_avgL2GasUsed = avgL2GasUsed;
         s_minimumDepositAmount = minimumDepositAmount;
         s_premiumPercentage = premiumPercentage;
         s_flatFee = flatFee;
@@ -44,20 +44,20 @@ contract CRRNGCoordinator is ICRRRNGCoordinator, Ownable, VDFCRRNG {
      *  2. no safety checks for values since it is only owner
      * @param disputePeriod The dispute period after recovery
      * @param minimumDepositAmount The minimum deposit amount to become operators
-     * @param avgRecoveOverhead The average gas cost for recovery of the random number
+     * @param avgL2GasUsed The average gas cost for recovery of the random number
      * @param premiumPercentage The percentage of the premium, will be set to 0
      * @param flatFee The flat fee for the direct funding
      */
     function setSettings(
         uint256 disputePeriod,
         uint256 minimumDepositAmount,
-        uint256 avgRecoveOverhead,
+        uint256 avgL2GasUsed,
         uint256 premiumPercentage,
         uint256 flatFee
     ) external onlyOwner {
         s_disputePeriod = disputePeriod;
         s_minimumDepositAmount = minimumDepositAmount;
-        s_avgRecoveOverhead = avgRecoveOverhead;
+        s_avgL2GasUsed = avgL2GasUsed;
         s_premiumPercentage = premiumPercentage;
         s_flatFee = flatFee;
     }
@@ -213,7 +213,7 @@ contract CRRNGCoordinator is ICRRRNGCoordinator, Ownable, VDFCRRNG {
      * @param gasPrice The expected gas price for the callback transaction.
      * @return calculatedDirectFundingPrice The cost of the direct funding
      * @notice This function is for the consumer to estimate the cost of the direct funding
-     * 1. returns cost =  (((gasPrice * (_callbackGasLimit + s_avgRecoveOverhead)) * (s_premiumPercentage + 100)) / 100) + s_flatFee;
+     * 1. returns cost =  (((gasPrice * (_callbackGasLimit + s_avgL2GasUsed)) * (s_premiumPercentage + 100)) / 100) + s_flatFee;
      */
     function estimateDirectFundingPrice(
         uint32 _callbackGasLimit,
@@ -226,7 +226,7 @@ contract CRRNGCoordinator is ICRRRNGCoordinator, Ownable, VDFCRRNG {
      * @param _callbackGasLimit The gas limit for the processing of the callback request in consumer's fulfillRandomWords() function.
      * @return calculatedDirectFundingPrice The cost of the direct funding
      * @notice This function is for the consumer to calculate the cost of the direct funding with the current gas price on-chain
-     * 1. returns cost =  (((tx.gasprice * (_callbackGasLimit + s_avgRecoveOverhead)) * (s_premiumPercentage + 100)) / 100) + s_flatFee;
+     * 1. returns cost =  (((tx.gasprice * (_callbackGasLimit + s_avgL2GasUsed)) * (s_premiumPercentage + 100)) / 100) + s_flatFee;
      */
     function calculateDirectFundingPrice(
         uint32 _callbackGasLimit
@@ -352,15 +352,15 @@ contract CRRNGCoordinator is ICRRRNGCoordinator, Ownable, VDFCRRNG {
      * @param gasPrice The gas price for the callback transaction.
      * @return calculatedDirectFundingPrice The cost of the direct funding
      * @notice This function is for the contract to calculate the cost of the direct funding
-     * - returns cost =  (((gasPrice * (_callbackGasLimit + s_avgRecoveOverhead)) * (s_premiumPercentage + 100)) / 100) + s_flatFee;
+     * - returns cost =  (((gasPrice * (_callbackGasLimit + s_avgL2GasUsed)) * (s_premiumPercentage + 100)) / 100) + s_flatFee;
      */
     function _calculateDirectFundingPrice(
         uint32 _callbackGasLimit,
         uint256 gasPrice
     ) internal view returns (uint256) {
         return
-            (((gasPrice * (_callbackGasLimit + s_avgRecoveOverhead)) *
-                (s_premiumPercentage + 100)) / 100) + s_flatFee;
+            (((gasPrice * (_callbackGasLimit + s_avgL2GasUsed)) * (s_premiumPercentage + 100)) /
+                100) + s_flatFee;
     }
 
     /// @notice Performs a low level call without copying any returndata.
