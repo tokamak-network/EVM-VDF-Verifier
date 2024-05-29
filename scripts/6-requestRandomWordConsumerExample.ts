@@ -16,10 +16,10 @@ import { deployments, ethers, getNamedAccounts, network } from "hardhat"
 async function requestRandomWordConsumerExample() {
     const chainId: number = network.config.chainId as number
     const { deployer } = await getNamedAccounts()
-    const crrrngCoordinatorAddress = (await deployments.get("CRRNGCoordinator")).address
-    console.log("CRRNGCoordinator address:", crrrngCoordinatorAddress)
+    const crrrngCoordinatorAddress = (await deployments.get("CRRNGCoordinatorPoF")).address
+    console.log("CRRNGCoordinatorPoF address:", crrrngCoordinatorAddress)
     const crrngCoordinatorContract = await ethers.getContractAt(
-        "CRRNGCoordinator",
+        "CRRNGCoordinatorPoF",
         crrrngCoordinatorAddress,
     )
     const consumerExampleAddress = (await deployments.get("ConsumerExample")).address
@@ -28,7 +28,7 @@ async function requestRandomWordConsumerExample() {
         "ConsumerExample",
         consumerExampleAddress,
     )
-    const callback_gaslimit = 50000n
+    const callback_gaslimit = 100000n
     const provider = ethers.provider
     const fee = await provider.getFeeData()
     const gasPrice = fee.gasPrice as bigint
