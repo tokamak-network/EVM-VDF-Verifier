@@ -27,15 +27,16 @@ export const getBitLenth2 = (num: string): BigNumberish => {
     return BigInt(num).toString(2).length
 }
 
-task("commitAtRound", "Operator commits")
+task("commitAtRoundForTitan", "Operator commits For Titan")
     .addParam("round", "The round to commit")
     .setAction(async ({ round }, { deployments, ethers, getNamedAccounts }) => {
         const { deployer } = await getNamedAccounts()
         console.log("EOA address:", deployer)
-        const crrrngCoordinatorAddress = (await deployments.get("CRRNGCoordinatorPoF")).address
-        console.log("CRRRNGCoordinator address:", crrrngCoordinatorAddress)
+        const crrrngCoordinatorAddress = (await deployments.get("CRRNGCoordinatorPoFForTitan"))
+            .address
+        console.log("CRRNGCoordinatorPoFForTitan address:", crrrngCoordinatorAddress)
         const crrngCoordinatorContract = await ethers.getContractAt(
-            "CRRNGCoordinatorPoF",
+            "CRRNGCoordinatorPoFForTitan",
             crrrngCoordinatorAddress,
         )
         const commitCount = (await crrngCoordinatorContract.getValuesAtRound(round)).commitCounts

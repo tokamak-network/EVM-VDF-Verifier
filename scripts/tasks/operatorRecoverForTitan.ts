@@ -28,15 +28,16 @@ export const getBitLenth2 = (num: string): BigNumberish => {
     return BigInt(num).toString(2).length
 }
 
-task("recoverAtRound", "Operator recover")
+task("recoverAtRoundForTitan", "Operator recover For Titan")
     .addParam("round", "The round to recover")
     .setAction(async ({ round }, { deployments, ethers, getNamedAccounts }) => {
         const { deployer } = await getNamedAccounts()
         console.log("EOA address:", deployer)
-        const crrrngCoordinatorAddress = (await deployments.get("CRRNGCoordinatorPoF")).address
+        const crrrngCoordinatorAddress = (await deployments.get("CRRNGCoordinatorPoFForTitan"))
+            .address
         console.log("CRRRNGCoordinator address:", crrrngCoordinatorAddress)
         const crrngCoordinatorContract = await ethers.getContractAt(
-            "CRRNGCoordinatorPoF",
+            "CRRNGCoordinatorPoFForTitan",
             crrrngCoordinatorAddress,
         )
         const testCaseJson = createCorrectAlgorithmVersionTestCase()

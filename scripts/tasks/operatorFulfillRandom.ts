@@ -28,8 +28,8 @@ export const getBitLenth2 = (num: string): BigNumberish => {
     return BigInt(num).toString(2).length
 }
 
-task("recoverAtRound", "Operator recover")
-    .addParam("round", "The round to recover")
+task("fulfillAtRound", "Operator fulfillRandomWord")
+    .addParam("round", "The round to fulfill")
     .setAction(async ({ round }, { deployments, ethers, getNamedAccounts }) => {
         const { deployer } = await getNamedAccounts()
         console.log("EOA address:", deployer)
@@ -39,33 +39,11 @@ task("recoverAtRound", "Operator recover")
             "CRRNGCoordinatorPoF",
             crrrngCoordinatorAddress,
         )
-        const testCaseJson = createCorrectAlgorithmVersionTestCase()
-        const delta: number = 9
-        let recoverParams: {
-            round: BigNumberish
-            v: BigNumber[]
-            x: BigNumber
-            y: BigNumber
-        } = {
-            round: round,
-            v: [],
-            x: { val: "0x0", bitlen: 0 },
-            y: { val: "0x0", bitlen: 0 },
-        }
-        recoverParams.x = testCaseJson.recoveryProofs[0].x
-        recoverParams.y = testCaseJson.recoveryProofs[0].y
-        if (delta > 0) {
-            testCaseJson.recoveryProofs = testCaseJson.recoveryProofs?.slice(0, -(delta + 1))
-        }
-        for (let i = 0; i < testCaseJson.recoveryProofs.length; i++) {
-            recoverParams.v.push(testCaseJson.recoveryProofs[i].v)
-        }
-
-        console.log("Recovering...")
-        const tx = await crrngCoordinatorContract.recover(recoverParams.round, recoverParams.y)
+        console.log("Fulfill...")
+        const tx = await crrngCoordinatorContract.fulfillRandomness(round)
         const receipt = await tx.wait()
         console.log("Transaction receipt", receipt)
-        console.log("Recovered")
+        console.log("Fulfilled successfully")
         console.log("----------------------")
     })
 const createCorrectAlgorithmVersionTestCase = () => {
