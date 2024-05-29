@@ -50,13 +50,13 @@ const createCorrectAlgorithmVersionTestCase = () => {
           const coordinatorConstructorParams: {
               disputePeriod: BigNumberish
               minimumDepositAmount: BigNumberish
-              avgRecoveOverhead: BigNumberish
+              avgL2GasUsed: BigNumberish
               premiumPercentage: BigNumberish
               flatFee: BigNumberish
           } = {
               disputePeriod: 180n,
               minimumDepositAmount: ethers.parseEther("0.0001"),
-              avgRecoveOverhead: 0n,
+              avgL2GasUsed: 0n,
               premiumPercentage: 0n,
               flatFee: 0n,
           }
@@ -123,7 +123,7 @@ const createCorrectAlgorithmVersionTestCase = () => {
                   crrrngCoordinator = await CRRNGCoordinator.deploy(
                       coordinatorConstructorParams.disputePeriod,
                       coordinatorConstructorParams.minimumDepositAmount,
-                      coordinatorConstructorParams.avgRecoveOverhead,
+                      coordinatorConstructorParams.avgL2GasUsed,
                       coordinatorConstructorParams.premiumPercentage,
                       coordinatorConstructorParams.flatFee,
                   )
