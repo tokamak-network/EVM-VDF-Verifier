@@ -17,7 +17,7 @@ contract ConsumerExample is RNGConsumerBase {
     uint256 public requestCount;
     uint256 public lastRequestId;
 
-    uint32 public constant CALLBACK_GAS_LIMIT = 50000;
+    uint32 public constant CALLBACK_GAS_LIMIT = 83011;
 
     constructor(address coordinator) RNGConsumerBase(coordinator) {}
 
