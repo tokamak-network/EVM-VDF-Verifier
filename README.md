@@ -1,6 +1,6 @@
 # Pietrzak-VDF-Verifier
 
-Pietrzak VDF verifier implementation for EVM
+Pietrzak VDF verifier implementation for EVM. The related technical details are presented in our preprint ([Arxiv](https://arxiv.org/abs/2405.06498)).
 
 ## INSTALL
 ```shell
