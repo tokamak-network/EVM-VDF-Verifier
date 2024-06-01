@@ -45,7 +45,7 @@ const createCorrectAlgorithmVersionTestCase = () => {
 
 !developmentChains.includes(network.name)
     ? describe.skip
-    : describe("ProofOfValidity Test", function () {
+    : describe("ProofOfValidity Test PoF", function () {
           const L1_FEE_DATA_PADDING =
               "0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
           let callback_gaslimit: BigNumberish
@@ -250,9 +250,6 @@ const createCorrectAlgorithmVersionTestCase = () => {
                   await expect(
                       crrrngCoordinator.fulfillRandomness(round),
                   ).to.be.revertedWithCustomError(crrrngCoordinator, "NotCommittedParticipant")
-                  await expect(
-                      crrrngCoordinator.disputeLeadershipAtRound(round),
-                  ).to.be.revertedWithCustomError(crrrngCoordinator, "NotCommittedParticipant")
               })
               it("Request Randomword on ConsumerExample", async () => {
                   const provider = ethers.provider
@@ -354,12 +351,6 @@ const createCorrectAlgorithmVersionTestCase = () => {
                   await expect(
                       crrrngCoordinator.fulfillRandomness(round),
                   ).to.be.revertedWithCustomError(crrrngCoordinator, "OmegaNotCompleted")
-                  await expect(
-                      crrrngCoordinator.disputeLeadershipAtRound(round),
-                  ).to.be.revertedWithCustomError(
-                      crrrngCoordinator,
-                      "DisputePeriodNotEndedOrStarted",
-                  )
               })
               it("calculate hash(R|address) for each operator", async () => {
                   const Rval = recoverParams.y.val
@@ -515,75 +506,75 @@ const createCorrectAlgorithmVersionTestCase = () => {
                   await expect(isOperatorSecond).to.equal(true)
                   await expect(isOperatorThird).to.equal(false)
               })
-              it("disputeLeadership by smallestHashSigner", async () => {
-                  const round = (await crrrngCoordinator.getNextRound()) - 1n
-                  const tx = await crrrngCoordinator
-                      .connect(smallestHashSigner)
-                      .disputeLeadershipAtRound(round)
-                  const receipt = await tx.wait()
-                  const gasUsed = receipt?.gasUsed as bigint
-                  console.log("disputeLeadership l2GasUsed", gasUsed)
+              //   it("disputeLeadership by smallestHashSigner", async () => {
+              //       const round = (await crrrngCoordinator.getNextRound()) - 1n
+              //       const tx = await crrrngCoordinator
+              //           .connect(smallestHashSigner)
+              //           .disputeLeadershipAtRound(round)
+              //       const receipt = await tx.wait()
+              //       const gasUsed = receipt?.gasUsed as bigint
+              //       console.log("disputeLeadership l2GasUsed", gasUsed)
 
-                  const encodedFuncData = crrrngCoordinator.interface.encodeFunctionData(
-                      "disputeLeadershipAtRound",
-                      [round],
-                  )
-                  const concatedNatedData = ethers.concat([encodedFuncData, L1_FEE_DATA_PADDING])
-                  const titanProvider = new ethers.JsonRpcProvider(
-                      "https://rpc.titan.tokamak.network",
-                  )
-                  const signer = new ethers.JsonRpcSigner(titanProvider, signers[0].address)
-                  const OVM_GasPriceOracle = await ethers.getContractAt(
-                      OVM_GasPriceOracleABI,
-                      "0x420000000000000000000000000000000000000F",
-                      signer,
-                  )
-                  const l1GasUsed =
-                      (await OVM_GasPriceOracle.getL1GasUsed(concatedNatedData)) - 4000n
-                  console.log("disputeRecover l1GasUsed: ", l1GasUsed)
+              //       const encodedFuncData = crrrngCoordinator.interface.encodeFunctionData(
+              //           "disputeLeadershipAtRound",
+              //           [round],
+              //       )
+              //       const concatedNatedData = ethers.concat([encodedFuncData, L1_FEE_DATA_PADDING])
+              //       const titanProvider = new ethers.JsonRpcProvider(
+              //           "https://rpc.titan.tokamak.network",
+              //       )
+              //       const signer = new ethers.JsonRpcSigner(titanProvider, signers[0].address)
+              //       const OVM_GasPriceOracle = await ethers.getContractAt(
+              //           OVM_GasPriceOracleABI,
+              //           "0x420000000000000000000000000000000000000F",
+              //           signer,
+              //       )
+              //       const l1GasUsed =
+              //           (await OVM_GasPriceOracle.getL1GasUsed(concatedNatedData)) - 4000n
+              //       console.log("disputeRecover l1GasUsed: ", l1GasUsed)
 
-                  // ** get
-                  const valuesAtRound = await crrrngCoordinator.getValuesAtRound(round)
-                  const getDisputeEndTimeAndLeaderAtRound =
-                      await crrrngCoordinator.getDisputeEndTimeAndLeaderAtRound(round)
-                  const getDisputeEndTimeOfOperatorSecond =
-                      await crrrngCoordinator.getDisputeEndTimeOfOperator(
-                          secondSmallestHashSigner.address,
-                      )
-                  const getDisputeEndTimeOfOperatorSmallest =
-                      await crrrngCoordinator.getDisputeEndTimeOfOperator(
-                          smallestHashSigner.address,
-                      )
+              //       // ** get
+              //       const valuesAtRound = await crrrngCoordinator.getValuesAtRound(round)
+              //       const getDisputeEndTimeAndLeaderAtRound =
+              //           await crrrngCoordinator.getDisputeEndTimeAndLeaderAtRound(round)
+              //       const getDisputeEndTimeOfOperatorSecond =
+              //           await crrrngCoordinator.getDisputeEndTimeOfOperator(
+              //               secondSmallestHashSigner.address,
+              //           )
+              //       const getDisputeEndTimeOfOperatorSmallest =
+              //           await crrrngCoordinator.getDisputeEndTimeOfOperator(
+              //               smallestHashSigner.address,
+              //           )
 
-                  // ** assert
-                  await expect(valuesAtRound.commitCounts).to.equal(3)
-                  await expect(valuesAtRound.isCompleted).to.equal(true)
-                  await expect(valuesAtRound.stage).to.equal(0)
-                  await expect(valuesAtRound.omega.val).to.equal(recoverParams.y.val)
-                  await expect(valuesAtRound.omega.bitlen).to.equal(recoverParams.y.bitlen)
-                  await expect(valuesAtRound.isVerified).to.equal(true)
-                  await expect(getDisputeEndTimeAndLeaderAtRound[1]).to.equal(
-                      smallestHashSigner.address,
-                  )
-                  await expect(getDisputeEndTimeOfOperatorSecond).to.equal(0n)
-                  await expect(getDisputeEndTimeOfOperatorSmallest).to.equal(
-                      getDisputeEndTimeAndLeaderAtRound[0],
-                  )
-                  const operatorCount = await crrrngCoordinator.getOperatorCount()
-                  const isOperatorSecond = await crrrngCoordinator.isOperator(
-                      secondSmallestHashSigner.address,
-                  )
-                  console.log("operatorCount", operatorCount)
-                  console.log("isOperatorSecond", isOperatorSecond)
-                  console.log(
-                      "Second Deposited Amount",
-                      await crrrngCoordinator.getDepositAmount(secondSmallestHashSigner.address),
-                  )
-                  console.log(
-                      "Smallest Deposited Amount",
-                      await crrrngCoordinator.getDepositAmount(smallestHashSigner.address),
-                  )
-              })
+              //       // ** assert
+              //       await expect(valuesAtRound.commitCounts).to.equal(3)
+              //       await expect(valuesAtRound.isCompleted).to.equal(true)
+              //       await expect(valuesAtRound.stage).to.equal(0)
+              //       await expect(valuesAtRound.omega.val).to.equal(recoverParams.y.val)
+              //       await expect(valuesAtRound.omega.bitlen).to.equal(recoverParams.y.bitlen)
+              //       await expect(valuesAtRound.isVerified).to.equal(true)
+              //       await expect(getDisputeEndTimeAndLeaderAtRound[1]).to.equal(
+              //           smallestHashSigner.address,
+              //       )
+              //       await expect(getDisputeEndTimeOfOperatorSecond).to.equal(0n)
+              //       await expect(getDisputeEndTimeOfOperatorSmallest).to.equal(
+              //           getDisputeEndTimeAndLeaderAtRound[0],
+              //       )
+              //       const operatorCount = await crrrngCoordinator.getOperatorCount()
+              //       const isOperatorSecond = await crrrngCoordinator.isOperator(
+              //           secondSmallestHashSigner.address,
+              //       )
+              //       console.log("operatorCount", operatorCount)
+              //       console.log("isOperatorSecond", isOperatorSecond)
+              //       console.log(
+              //           "Second Deposited Amount",
+              //           await crrrngCoordinator.getDepositAmount(secondSmallestHashSigner.address),
+              //       )
+              //       console.log(
+              //           "Smallest Deposited Amount",
+              //           await crrrngCoordinator.getDepositAmount(smallestHashSigner.address),
+              //       )
+              //   })
               it("fulfillRandomness by smallestHashSigner", async () => {
                   const round = (await crrrngCoordinator.getNextRound()) - 1n
                   const disputePeriod = coordinatorConstructorParams.disputePeriod
@@ -672,7 +663,7 @@ const createCorrectAlgorithmVersionTestCase = () => {
                   // ** disputeLeadershipAfterfufill by smallestHashSigner
                   const txDispute = await crrrngCoordinator
                       .connect(smallestHashSigner)
-                      .disputeLeadershipAfterFulfill(round)
+                      .disputeLeadershipAtRound(round)
                   await txDispute.wait()
 
                   // ** get
