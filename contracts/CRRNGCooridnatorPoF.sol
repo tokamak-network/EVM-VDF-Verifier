@@ -96,10 +96,9 @@ contract CRRNGCoordinatorPoF is ICRRRNGCoordinator, Ownable, VDFCRRNGPoF {
         uint256 _round = s_nextRound++;
         s_valuesAtRound[_round].stage = Stages.Commit;
         s_valuesAtRound[_round].consumer = msg.sender;
-        s_cost[_round] = cost;
+        s_cost[_round] = msg.value;
+        s_callbackGasLimit[_round] = callbackGasLimit;
         emit RandomWordsRequested(_round, msg.sender);
-        bool success = _send(msg.sender, gasleft(), msg.value - cost);
-        if (!success) revert SendFailed();
         return _round;
     }
 
@@ -114,18 +113,23 @@ contract CRRNGCoordinatorPoF is ICRRRNGCoordinator, Ownable, VDFCRRNGPoF {
      * 2. Resets the start time of the round
      * 3. ReEmits a RandomWordsRequested(round, msg.sender) event
      */
-    function reRequestRandomWordAtRound(
-        uint256 round
-    ) external nonReentrant checkStage(round, Stages.Recover) {
+    function reRequestRandomWordAtRound(uint256 round) external nonReentrant {
         // check
+        if (round >= s_nextRound) revert NotStartedRound();
         if (s_operatorCount < 2) revert NotEnoughOperators();
         if (s_valuesAtRound[round].startTime == 0) revert CommitNotStarted();
         if (block.timestamp < s_valuesAtRound[round].startTime + COMMITDURATION)
             revert StillInCommitStage();
-        if (s_valuesAtRound[round].commitCounts > 1) revert TwoOrMoreCommittedPleaseRecover();
+        uint256 count = s_valuesAtRound[round].commitCounts - s_ignoredCounts[round];
+        if (count > 1) revert TwoOrMoreCommittedPleaseRecover();
+        if (count == 1) {
+            unchecked {
+                s_ignoredCounts[round]++;
+            }
+        }
         s_valuesAtRound[round].stage = Stages.Commit;
         s_valuesAtRound[round].startTime = block.timestamp;
-        emit RandomWordsRequested(round, msg.sender);
+        emit RandomWordsRequested(round, s_valuesAtRound[round].consumer);
     }
 
     /**
