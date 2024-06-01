@@ -71,6 +71,7 @@ contract VDFCRRNGPoFForTitan is ReentrancyGuard, GetL1Fee {
 
     // *** State variables
     // * internal
+    mapping(uint256 round => uint256 ignoredCounts) internal s_ignoredCounts;
     uint256 internal s_minimumDepositAmount;
     /// @dev The flag to check if the setUp values are verified
     bool internal s_initialized;
@@ -100,6 +101,7 @@ contract VDFCRRNGPoFForTitan is ReentrancyGuard, GetL1Fee {
         internal s_operatorStatusAtRound;
     /// @dev The mapping of the commit values and the operator address
     mapping(uint256 round => mapping(uint256 index => CommitValue)) internal s_commitValues;
+    mapping(uint256 round => uint32 callbackGasLimit) internal s_callbackGasLimit;
     // * internal constant
     /// @dev The duration of the commit stage, 120 seconds
     uint256 internal constant COMMITDURATION = 120;
@@ -149,8 +151,6 @@ contract VDFCRRNGPoFForTitan is ReentrancyGuard, GetL1Fee {
     error RecovNotMatchX();
     error NotEnoughParticipated();
     error ShouldNotBeZero();
-    error TOneNotAtLast();
-    error InvalidProofsLength();
     error TwoOrMoreCommittedPleaseRecover();
     error NotStartedRound();
     error NotVerified();
@@ -169,8 +169,6 @@ contract VDFCRRNGPoFForTitan is ReentrancyGuard, GetL1Fee {
     error DisputePeriodNotEndedOrStarted();
     error SubmittedSameOmega();
     error NotFulfilledExecuted();
-    error XPrimeNotEqualAtIndex(uint256 index);
-    error YPrimeNotEqualAtIndex(uint256 index);
 
     // *** Modifiers
     /**
@@ -193,7 +191,7 @@ contract VDFCRRNGPoFForTitan is ReentrancyGuard, GetL1Fee {
         uint256 _startTime = s_valuesAtRound[round].startTime;
         Stages _stage = s_valuesAtRound[round].stage;
         if (_stage == Stages.Commit && block.timestamp >= _startTime + COMMITDURATION) {
-            uint256 _count = s_valuesAtRound[round].commitCounts;
+            uint256 _count = s_valuesAtRound[round].commitCounts - s_ignoredCounts[round];
             if (_count > BigNumbers.UINTONE) {
                 _stage = Stages.Recover;
                 //
@@ -269,7 +267,8 @@ contract VDFCRRNGPoFForTitan is ReentrancyGuard, GetL1Fee {
         // check
         if (!s_operatorStatusAtRound[round][msg.sender].committed) revert NotCommittedParticipant();
         uint256 _commitCounts = s_valuesAtRound[round].commitCounts;
-        if (_commitCounts < BigNumbers.UINTTWO) revert NotEnoughParticipated();
+        if (_commitCounts - s_ignoredCounts[round] < BigNumbers.UINTTWO)
+            revert NotEnoughParticipated();
         if (s_valuesAtRound[round].isCompleted) revert OmegaAlreadyCompleted();
         // effect
         s_valuesAtRound[round].isCompleted = true;
@@ -323,45 +322,11 @@ contract VDFCRRNGPoFForTitan is ReentrancyGuard, GetL1Fee {
         emit Recovered(round, _recov.val, y.val, true);
     }
 
-    /**
-     * @param round The round ID of the request
-     * @notice This function is for operators who have committed to the round to dispute the leadership of the round
-     * - checks
-     * 1. Reverts when the operator has not committed to the round
-     * 2. Reverts when the dispute end time of the round is less than the current block timestamp, meaning the dispute period has ended
-     * 3. Reverts when the round is not completed, meaning the recovery stage is not ended
-     * 4. Reverts when the msg.sender is already the leader
-     * 5. Reverts when the keccak256(omega, msg.sender) is greater than the keccak256(omega, previousLeader)
-     * - effects
-     * 1. Resets the leader of the round to the msg.sender
-     * 2. Sets the dispute end time of the operator to the dispute end time of the round, meaning the operator can't withdraw the deposit amount until the dispute period ends
-     * 3. Increments the incentive of the msg.sender by the cost of the round
-     * 4. Decrements the incentive of the previous leader by the cost of the round
-     */
     function disputeLeadershipAtRound(uint256 round) external onlyOperator {
         // check if committed
         if (!s_operatorStatusAtRound[round][msg.sender].committed) revert NotCommittedParticipant();
         if (s_disputeEndTimeAtRound[round] < block.timestamp)
             revert DisputePeriodNotEndedOrStarted();
-        if (!s_valuesAtRound[round].isCompleted) revert OmegaNotCompleted();
-        bytes memory _omega = s_valuesAtRound[round].omega.val;
-        address _leader = s_leaderAtRound[round];
-        if (_leader == msg.sender) revert AlreadyLeader();
-        bytes32 _leaderHash = keccak256(abi.encodePacked(_omega, _leader));
-        bytes32 _myHash = keccak256(abi.encodePacked(_omega, msg.sender));
-        if (_myHash < _leaderHash) {
-            s_leaderAtRound[round] = msg.sender;
-            s_disputeEndTimeForOperator[msg.sender] = s_disputeEndTimeAtRound[round];
-            s_disputeEndTimeForOperator[_leader] = 0;
-            uint256 penalyAmount = _getDisputeLeadershipTxGasFee();
-            s_depositedAmount[msg.sender] += penalyAmount; // s_cost[round];
-            s_depositedAmount[_leader] -= penalyAmount; // s_cost[round];
-        } else revert NotLeader();
-    }
-
-    function disputeLeadershipAfterFulfill(uint256 round) external onlyOperator {
-        // check if committed
-        if (!s_operatorStatusAtRound[round][msg.sender].committed) revert NotCommittedParticipant();
         if (!s_fulfillStatus[round].executed) revert NotFulfilledExecuted();
         bytes memory _omega = s_valuesAtRound[round].omega.val;
         address _leader = s_leaderAtRound[round];
@@ -376,18 +341,6 @@ contract VDFCRRNGPoFForTitan is ReentrancyGuard, GetL1Fee {
         } else revert NotLeader();
     }
 
-    function _getDisputeLeadershipTxGasFee() private view returns (uint256) {
-        return
-            ((_getDisputeLeadershipTxL1GasFee() + (L2_DISPUTELEADERSHIP_TX_GAS * tx.gasprice)) *
-                (100 + s_penaltyPercentage)) / 100;
-    }
-
-    function _getDisputeRecoverTxGasFee() internal view returns (uint256) {
-        return
-            ((_getDisputeRecoverTxL1GasFee() + (L2_DISPUTERECOVER_TX_GAS * tx.gasprice)) *
-                (100 + s_penaltyPercentage)) / 100;
-    }
-
     function fulfillRandomness(uint256 round) external onlyOperator nonReentrant {
         if (!s_operatorStatusAtRound[round][msg.sender].committed) revert NotCommittedParticipant();
         if (s_disputeEndTimeAtRound[round] >= block.timestamp)
@@ -398,13 +351,16 @@ contract VDFCRRNGPoFForTitan is ReentrancyGuard, GetL1Fee {
 
         // Do not allow any non-view/non-pure coordinator functions to be called during the consumers callback code via reentrancyLock.
         uint256 hashedOmega = uint256(keccak256(s_valuesAtRound[round].omega.val));
+        s_disputeEndTimeAtRound[round] = block.timestamp + s_disputePeriod;
+        s_disputeEndTimeForOperator[msg.sender] = block.timestamp + s_disputePeriod;
         bool success = _call(
             s_valuesAtRound[round].consumer,
             abi.encodeWithSelector(
                 RNGConsumerBase.rawFulfillRandomWords.selector,
                 round,
                 hashedOmega
-            )
+            ),
+            s_callbackGasLimit[round]
         );
         s_fulfillStatus[round] = FulfillStatus(true, success);
         emit FulfillRandomness(round, hashedOmega, success);
@@ -421,7 +377,8 @@ contract VDFCRRNGPoFForTitan is ReentrancyGuard, GetL1Fee {
                 RNGConsumerBase.rawFulfillRandomWords.selector,
                 round,
                 hashedOmega
-            )
+            ),
+            s_callbackGasLimit[round]
         );
         s_fulfillStatus[round].succeeded = success;
         emit FulfillRandomness(round, hashedOmega, success);
@@ -445,7 +402,21 @@ contract VDFCRRNGPoFForTitan is ReentrancyGuard, GetL1Fee {
         return (T, NBITLEN, GBITLEN, HBITLEN, NVAL, GVAL, HVAL);
     }
 
-    function _call(address target, bytes memory data) private returns (bool success) {
+    function _getDisputeLeadershipTxGasFee() private view returns (uint256) {
+        return (_getDisputeLeadershipTxL1GasFee() + (L2_DISPUTELEADERSHIP_TX_GAS * tx.gasprice));
+    }
+
+    function _getDisputeRecoverTxGasFee() internal view returns (uint256) {
+        return
+            ((_getDisputeRecoverTxL1GasFee() + (L2_DISPUTERECOVER_TX_GAS * tx.gasprice)) *
+                (100 + s_penaltyPercentage)) / 100;
+    }
+
+    function _call(
+        address target,
+        bytes memory data,
+        uint256 callbackGasLimit
+    ) private returns (bool success) {
         assembly {
             let g := gas()
             // Compute g -= GAS_FOR_CALL_EXACT_CHECK and check for underflow
@@ -461,13 +432,16 @@ contract VDFCRRNGPoFForTitan is ReentrancyGuard, GetL1Fee {
             // if g - g//64 <= gas
             // we subtract g//64 because of EIP-150
             g := sub(g, div(g, 64))
+            if iszero(gt(sub(g, div(g, 64)), callbackGasLimit)) {
+                revert(0, 0)
+            }
             // solidity calls check that a contract actually exists at the destination, so we do the same
             if iszero(extcodesize(target)) {
                 revert(0, 0)
             }
             // call and return whether we succeeded. ignore return data
             // call(gas, addr, value, argsOffset,argsLength,retOffset,retLength)
-            success := call(g, target, 0, add(data, 0x20), mload(data), 0, 0)
+            success := call(callbackGasLimit, target, 0, add(data, 0x20), mload(data), 0, 0)
         }
         return success;
     }
