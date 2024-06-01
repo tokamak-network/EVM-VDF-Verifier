@@ -22,9 +22,6 @@ abstract contract RNGConsumerBase {
         i_rngCoordinator = ICRRRNGCoordinator(rngCoordinator);
     }
 
-    /// @dev receive() external payable is required for contract to receive ETH when getting refunds from Coordinator when consumer overpays the calculatedDirectFundingPrice when requesting randomness
-    receive() external payable {}
-
     /**
      * @param _callbackGasLimit The amount of gas for processing of the callback request in your fulfillRandomWords()
      * @return requestId The ID of the request
