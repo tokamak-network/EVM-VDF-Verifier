@@ -44,7 +44,7 @@ const createCorrectAlgorithmVersionTestCase = () => {
 
 !developmentChains.includes(network.name)
     ? describe.skip
-    : describe("ConsumerExample Test", function () {
+    : describe("ConsumerExample", function () {
           const callback_gaslimit = 50000
           const delta: number = 9
           const coordinatorConstructorParams: {
@@ -192,7 +192,7 @@ const createCorrectAlgorithmVersionTestCase = () => {
                       gasPrice,
                   )
                   const tx = await consumerExample.requestRandomWord({
-                      value: (directFundingCost * (100n + 1n)) / 100n,
+                      value: (directFundingCost * (100n + 15n)) / 100n,
                   })
                   console.log("directFundingCost", directFundingCost)
                   const receipt = await tx.wait()
