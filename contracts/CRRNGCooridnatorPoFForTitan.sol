@@ -96,6 +96,7 @@ contract CRRNGCoordinatorPoFForTitan is ICRRRNGCoordinator, Ownable, VDFCRRNGPoF
         uint256 _round = s_nextRound++;
         s_valuesAtRound[_round].stage = Stages.Commit;
         s_valuesAtRound[_round].consumer = msg.sender;
+        s_valuesAtRound[_round].requestedTime = block.timestamp;
         s_cost[_round] = msg.value;
         s_callbackGasLimit[_round] = callbackGasLimit;
         emit RandomWordsRequested(_round, msg.sender);
@@ -130,6 +131,18 @@ contract CRRNGCoordinatorPoFForTitan is ICRRRNGCoordinator, Ownable, VDFCRRNGPoF
         s_valuesAtRound[round].stage = Stages.Commit;
         s_valuesAtRound[round].startTime = block.timestamp;
         emit RandomWordsRequested(round, s_valuesAtRound[round].consumer);
+    }
+
+    function refundAtRound(uint256 round) external nonReentrant {
+        // check
+        if (round >= s_nextRound) revert NotStartedRound();
+        if (s_valuesAtRound[round].consumer != msg.sender) revert NotConsumer();
+        uint256 count = s_valuesAtRound[round].commitCounts - s_ignoredCounts[round];
+        if (s_valuesAtRound[round].requestedTime + 180 < block.timestamp && count == 0)
+            _refund(round);
+        if (block.timestamp < s_valuesAtRound[round].startTime + COMMITDURATION)
+            revert StillInCommitStage();
+        if (count < 2) _refund(round);
     }
 
     /**
@@ -169,12 +182,12 @@ contract CRRNGCoordinatorPoFForTitan is ICRRRNGCoordinator, Ownable, VDFCRRNGPoF
      * - interactions
      * 1. Sends the amount to the operator, reverts if the send fails
      */
-    function operatorWithdraw(uint256 amount) external onlyOperator nonReentrant {
+    function operatorWithdraw(uint256 amount) external nonReentrant {
         uint256 depositAmount = s_depositedAmount[msg.sender];
         if (s_disputeEndTimeForOperator[msg.sender] > block.timestamp)
             revert DisputePeriodNotEnded();
         if (depositAmount < amount) revert CRRNGCoordinator_InsufficientDepositAmount();
-        if (depositAmount - amount < s_minimumDepositAmount) {
+        if (depositAmount - amount < s_minimumDepositAmount && s_operators[msg.sender]) {
             s_operators[msg.sender] = false;
             unchecked {
                 s_operatorCount--;
@@ -355,6 +368,10 @@ contract CRRNGCoordinatorPoFForTitan is ICRRRNGCoordinator, Ownable, VDFCRRNGPoF
         return s_commitValues[_round][_index];
     }
 
+    function getCommittedOperatorsAtRound(uint256 round) external view returns (address[] memory) {
+        return s_committedOperatorsAtRound[round];
+    }
+
     /**
      * @param _callbackGasLimit The gas limit for the processing of the callback request in consumer's fulfillRandomWords() function.
      * @param gasPrice The gas price for the callback transaction.
@@ -406,5 +423,15 @@ contract CRRNGCoordinatorPoFForTitan is ICRRRNGCoordinator, Ownable, VDFCRRNGPoF
             )
         }
         return _success;
+    }
+
+    function _refund(uint256 round) private {
+        s_valuesAtRound[round].stage = Stages.Finished;
+        s_valuesAtRound[round].isCompleted = true;
+
+        // interaction
+        uint256 refundAmount = s_cost[round];
+        bool success = _send(msg.sender, gasleft(), refundAmount);
+        if (!success) revert SendFailed();
     }
 }
