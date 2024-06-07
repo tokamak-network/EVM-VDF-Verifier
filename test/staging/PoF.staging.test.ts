@@ -18,7 +18,7 @@ import { AddressLike, BigNumberish, BytesLike } from "ethers"
 import fs from "fs"
 import { ethers, network } from "hardhat"
 import { developmentChains } from "../../helper-hardhat-config"
-import { CRRNGCoordinatorPoFForTitan, ConsumerExample } from "../../typechain-types"
+import { CRRNGCoordinatorPoF, ConsumerExample } from "../../typechain-types"
 import OVM_GasPriceOracleABI from "../shared/OVM_GasPriceOracle.json"
 interface BigNumber {
     val: BytesLike
@@ -45,7 +45,7 @@ const createCorrectAlgorithmVersionTestCase = () => {
 
 !developmentChains.includes(network.name)
     ? describe.skip
-    : describe("ProofOfValidity Test PoF For Titan", function () {
+    : describe("ProofOfFraud Test PoF", function () {
           const L1_FEE_DATA_PADDING =
               "0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
           let callback_gaslimit: BigNumberish
@@ -69,7 +69,7 @@ const createCorrectAlgorithmVersionTestCase = () => {
           }
           let testCaseJson
           let signers: SignerWithAddress[]
-          let crrrngCoordinator: CRRNGCoordinatorPoFForTitan
+          let crrrngCoordinator: CRRNGCoordinatorPoF
           let crrngCoordinatorAddress: string
           let consumerExample: ConsumerExample
           let initializeParams: {
@@ -142,9 +142,7 @@ const createCorrectAlgorithmVersionTestCase = () => {
                   callback_gaslimit = (gasUsed * (100n + 25n)) / 100n
               })
               it("deploy CRRRRNGCoordinator", async function () {
-                  const CRRNGCoordinator = await ethers.getContractFactory(
-                      "CRRNGCoordinatorPoFForTitan",
-                  )
+                  const CRRNGCoordinator = await ethers.getContractFactory("CRRNGCoordinatorPoF")
                   crrrngCoordinator = await CRRNGCoordinator.deploy(
                       coordinatorConstructorParams.disputePeriod,
                       coordinatorConstructorParams.minimumDepositAmount,
@@ -336,6 +334,9 @@ const createCorrectAlgorithmVersionTestCase = () => {
                           await expect(valuesAtRound.startTime).to.equal(blockTimestamp)
                       }
                   }
+                  const committedOperators =
+                      await crrrngCoordinator.getCommittedOperatorsAtRound(round)
+                  console.log("committedOperators", committedOperators)
               })
               it("try all other external functions that are not supposed to be in Commit phase, and see if revert", async () => {
                   const round = (await crrrngCoordinator.getNextRound()) - 1n
