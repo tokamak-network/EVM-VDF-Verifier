@@ -35,6 +35,7 @@ contract VDFCRRNGPoFForTitan is ReentrancyGuard, GetL1Fee {
      */
     struct ValueAtRound {
         uint256 startTime;
+        uint256 requestedTime;
         uint256 commitCounts;
         address consumer;
         bytes commitsString; // concatenated string of commits
@@ -83,6 +84,7 @@ contract VDFCRRNGPoFForTitan is ReentrancyGuard, GetL1Fee {
     uint256 internal s_disputePeriod;
     /// @dev The mapping of the operators
     mapping(address operators => bool) internal s_operators;
+    mapping(uint256 round => address[] committedOperators) internal s_committedOperatorsAtRound;
     /// @dev The mapping of the cost of the round. The cost includes _callbackGasLimit, recoveryGasOverhead, and flatFee
     mapping(uint256 round => uint256 cost) internal s_cost;
     /// @dev The mapping of the values at the round that are used for commit-recover
@@ -134,10 +136,9 @@ contract VDFCRRNGPoFForTitan is ReentrancyGuard, GetL1Fee {
 
     // *** Events
     event CommitC(uint256 commitCount, bytes commitVal);
-    event Recovered(uint256 round, bytes recov, bytes omega, bool success);
+    event Recovered(uint256 round, bytes omega);
     event RandomWordsRequested(uint256 round, address sender);
-    event CalculateOmega(uint256 round, bytes omega);
-    event FulfillRandomness(uint256 round, uint256 hashedOmega, bool success);
+    event FulfillRandomness(uint256 round, uint256 hashedOmega, bool success, address leader);
 
     // *** Errors
     error CRRNGCoordinator_InsufficientDepositAmount();
@@ -169,6 +170,9 @@ contract VDFCRRNGPoFForTitan is ReentrancyGuard, GetL1Fee {
     error DisputePeriodNotEndedOrStarted();
     error SubmittedSameOmega();
     error NotFulfilledExecuted();
+    error NotConsumer();
+    error TooEarlyToRefund();
+    error PreviousRoundNotRecovered();
 
     // *** Modifiers
     /**
@@ -194,9 +198,17 @@ contract VDFCRRNGPoFForTitan is ReentrancyGuard, GetL1Fee {
             uint256 _count = s_valuesAtRound[round].commitCounts - s_ignoredCounts[round];
             if (_count > BigNumbers.UINTONE) {
                 _stage = Stages.Recover;
-                //
             } else if (_count == BigNumbers.UINTZERO) {
-                s_valuesAtRound[round].startTime = block.timestamp;
+                //previous round has to be recovered
+                uint256 previousRound;
+                unchecked {
+                    previousRound = round - BigNumbers.UINTONE;
+                }
+                if (s_valuesAtRound[previousRound].requestedTime > 0) {
+                    if (s_valuesAtRound[previousRound].isCompleted)
+                        s_valuesAtRound[round].startTime = block.timestamp;
+                    else revert PreviousRoundNotRecovered();
+                } else s_valuesAtRound[round].startTime = block.timestamp;
             } else {
                 _stage = Stages.Finished;
             }
@@ -257,6 +269,7 @@ contract VDFCRRNGPoFForTitan is ReentrancyGuard, GetL1Fee {
             c.val
         );
         s_valuesAtRound[round].commitCounts = _count = _unchecked_inc(_count);
+        s_committedOperatorsAtRound[round].push(msg.sender);
         emit CommitC(_count, c.val);
     }
 
@@ -277,6 +290,7 @@ contract VDFCRRNGPoFForTitan is ReentrancyGuard, GetL1Fee {
         s_disputeEndTimeAtRound[round] = block.timestamp + s_disputePeriod;
         s_disputeEndTimeForOperator[msg.sender] = block.timestamp + s_disputePeriod;
         s_leaderAtRound[round] = msg.sender;
+        emit Recovered(round, y.val);
     }
 
     function disputeRecover(
@@ -319,7 +333,6 @@ contract VDFCRRNGPoFForTitan is ReentrancyGuard, GetL1Fee {
                 s_operatorCount--;
             }
         }
-        emit Recovered(round, _recov.val, y.val, true);
     }
 
     function disputeLeadershipAtRound(uint256 round) external onlyOperator {
@@ -363,7 +376,7 @@ contract VDFCRRNGPoFForTitan is ReentrancyGuard, GetL1Fee {
             s_callbackGasLimit[round]
         );
         s_fulfillStatus[round] = FulfillStatus(true, success);
-        emit FulfillRandomness(round, hashedOmega, success);
+        emit FulfillRandomness(round, hashedOmega, success, msg.sender);
     }
 
     function fulfillRandomnessOfFailed(uint256 round) external nonReentrant {
@@ -381,7 +394,7 @@ contract VDFCRRNGPoFForTitan is ReentrancyGuard, GetL1Fee {
             s_callbackGasLimit[round]
         );
         s_fulfillStatus[round].succeeded = success;
-        emit FulfillRandomness(round, hashedOmega, success);
+        emit FulfillRandomness(round, hashedOmega, success, s_leaderAtRound[round]);
     }
 
     /**
