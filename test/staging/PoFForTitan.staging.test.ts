@@ -26,12 +26,14 @@ interface BigNumber {
 }
 interface ValueAtRound {
     startTime: BigNumberish
+    requestedTime: BigNumberish
     commitCounts: BigNumberish
     consumer: AddressLike
     commitsString: BytesLike
     omega: BigNumber
     stage: BigNumberish
     isCompleted: boolean
+    isVerified: boolean
 }
 function getLength(value: number): number {
     let length: number = 32

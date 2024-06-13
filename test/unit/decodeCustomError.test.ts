@@ -174,6 +174,7 @@ const createCorrectAlgorithmVersionTestCase = () => {
           describe("decode", function () {
               it("decode 0xa264a954", async function () {
                   console.log(crrrngCoordinator.interface.parseError("0xa264a954"))
+                  console.log(crrrngCoordinator.interface.parseError("0xaf1bddf7"))
               })
           })
       })
