@@ -136,7 +136,7 @@ contract VDFCRRNGPoF is ReentrancyGuardTransient, GetL1Fee {
 
     // *** Events
     event CommitC(uint256 commitCount, bytes commitVal);
-    event Recovered(uint256 round, bytes omega);
+    event Recovered(uint256 round, address recoverer, bytes omega);
     event RandomWordsRequested(uint256 round, address sender);
     event FulfillRandomness(uint256 round, uint256 hashedOmega, bool success, address leader);
 
@@ -290,7 +290,7 @@ contract VDFCRRNGPoF is ReentrancyGuardTransient, GetL1Fee {
         s_disputeEndTimeAtRound[round] = block.timestamp + s_disputePeriod;
         s_disputeEndTimeForOperator[msg.sender] = block.timestamp + s_disputePeriod;
         s_leaderAtRound[round] = msg.sender;
-        emit Recovered(round, y.val);
+        emit Recovered(round, msg.sender, y.val);
     }
 
     function disputeRecover(
