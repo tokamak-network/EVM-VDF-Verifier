@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
-import {RNGConsumerBase} from "./RNGConsumerBase.sol";
-import {ICRRRNGCoordinator} from "./interfaces/ICRRRNGCoordinator.sol";
+import {RNGConsumerBase} from "../RNGConsumerBase.sol";
+import {ICRRRNGCoordinator} from "../interfaces/ICRRRNGCoordinator.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import {Bitmap} from "./libraries/Bitmap.sol";
+import {Bitmap} from "../libraries/Bitmap.sol";
 
-contract RandomDay is RNGConsumerBase, Ownable {
+contract RandomDayTest is RNGConsumerBase, Ownable {
     using Bitmap for mapping(uint16 => uint256);
     using SafeERC20 for IERC20;
 
@@ -40,7 +40,7 @@ contract RandomDay is RNGConsumerBase, Ownable {
     uint256 public requestCount;
     uint256 public lastRequestId;
     uint256 public eventEndTime;
-    uint256 public constant EVENTPERIOD = 198000;
+    uint256 public constant EVENTPERIOD = 864000;
     uint256 public constant FIRSTPRIZE = 550 ether;
     uint256 public constant SECONDPRIZE = 300 ether;
     uint256 public constant THIRDPRIZE = 150 ether;
@@ -92,9 +92,9 @@ contract RandomDay is RNGConsumerBase, Ownable {
         s_requests[requestId].randomWord = hashedOmegaVal;
         uint256 modOneThousand = (hashedOmegaVal % 1000) + 1;
         s_requesters[requester].randomNums.push(modOneThousand);
-        uint256 _randNumCount = s_requesters[requester].randomNums.length;
+        uint256 _requestCount = s_requesters[requester].requestIds.length;
         uint256 _avgNum = s_requesters[requester].avgNum;
-        uint256 _newAvgNum = (_avgNum * (_randNumCount - 1) + (modOneThousand)) / _randNumCount;
+        uint256 _newAvgNum = (_avgNum * (_requestCount - 1) + (modOneThousand)) / _requestCount;
         if (_avgNum != 0 && _avgNum != _newAvgNum) {
             if (--s_ticksCount[_avgNum] == 0) {
                 s_tickBitmap.flipTick(uint24(_avgNum));
