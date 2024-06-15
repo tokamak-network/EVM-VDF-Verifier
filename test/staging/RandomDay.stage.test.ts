@@ -15,10 +15,17 @@ import { SignerWithAddress } from "@nomicfoundation/hardhat-ethers/signers"
 import { time } from "@nomicfoundation/hardhat-network-helpers"
 import { expect } from "chai"
 import { getRandomValues } from "crypto"
-import { AddressLike, BigNumberish, BytesLike, dataLength, toBeHex } from "ethers"
+import {
+    AddressLike,
+    BigNumberish,
+    BytesLike,
+    ContractTransactionReceipt,
+    dataLength,
+    toBeHex,
+} from "ethers"
 import fs from "fs"
 import { ethers, network } from "hardhat"
-import { CRRNGCoordinatorPoF, RandomDay, TonToken } from "../../typechain-types"
+import { CRRNGCoordinatorPoF, RandomDayTest, TonToken } from "../../typechain-types"
 import OVM_GasPriceOracleABI from "../shared/OVM_GasPriceOracle.json"
 const getBitLenth2 = (num: string): BigNumberish => {
     return BigInt(num).toString(2).length
@@ -79,7 +86,7 @@ async function getL1GasUsed(encodedFuncData: BytesLike) {
 describe("RandomDay", function () {
     const L1_FEE_DATA_PADDING =
         "0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
-    let callback_gaslimit: BigNumberish = 200000n
+    let callback_gaslimit: BigNumberish = 210000n
     const delta: number = 9
     const eventPeriod: number = 864000
     const coordinatorConstructorParams: {
@@ -103,7 +110,7 @@ describe("RandomDay", function () {
     let signers: SignerWithAddress[]
     let crrrngCoordinator: CRRNGCoordinatorPoF
     let crrngCoordinatorAddress: string
-    let randomDay: RandomDay
+    let randomDay: RandomDayTest
     let randomDayAddress: string
     let tonToken: TonToken
     let tonTokenAddress: string
@@ -282,7 +289,7 @@ describe("RandomDay", function () {
             await expect(tonTokenAddress).to.be.properAddress
         })
         it("deploy RandomDay", async function () {
-            const RandomDay = await ethers.getContractFactory("RandomDay")
+            const RandomDay = await ethers.getContractFactory("RandomDayTest")
             randomDay = await RandomDay.deploy(crrngCoordinatorAddress, tonTokenAddress)
             await randomDay.waitForDeployment()
             const receipt = await randomDay.deploymentTransaction()?.wait()
@@ -335,6 +342,27 @@ describe("RandomDay", function () {
             await expect(operatorCount).to.equal(5)
         })
     })
+    async function getEvent(receipt: ContractTransactionReceipt) {
+        const eventInterface = crrrngCoordinator.interface.getEvent("FulfillRandomness")
+        const eventName = "FulfillRandomness"
+        let eventIndex = -1
+        for (let i = 0; i < receipt.logs.length; i++) {
+            if (receipt.logs[i].topics[0] === eventInterface.topicHash) {
+                eventIndex = i
+                break
+            }
+        }
+        if (eventIndex === -1) {
+            console.log("No Events")
+            process.exit()
+        }
+        const data = receipt.logs[eventIndex].data
+        const topics = receipt.logs[eventIndex].topics
+        const event = crrrngCoordinator.interface.decodeEventLog(eventName, data, topics)
+        if (event[2] == false) {
+            console.log("fulfilledFailed", event)
+        }
+    }
     describe("test RequestRandomWords", function () {
         it("try other external functions, and see if revert", async () => {
             const round = await crrrngCoordinator.getNextRound()
@@ -397,14 +425,12 @@ describe("RandomDay", function () {
                 totalCostAvg += totalCost
 
                 // ** get
-                const s_deposits = await randomDay.s_deposits(signers[i].address)
                 const s_requests = await randomDay.s_requests(i)
                 const s_requesters = await randomDay.getRequestersInfos(signers[i].address)
                 const requestCount = await randomDay.requestCount()
                 const lastRequestId = await randomDay.lastRequestId()
 
                 // ** assert
-                await expect(s_deposits).to.equal(0n)
                 await expect(s_requests.requested).to.equal(true)
                 await expect(s_requests.fulfilled).to.equal(false)
                 await expect(s_requests.randomWord).to.equal(0n)
@@ -533,6 +559,7 @@ describe("RandomDay", function () {
                 receipt = await tx.wait()
                 gasUsed = receipt?.gasUsed as bigint
                 titanGasCost = await getTotalTitanGasCost(tx.data as BytesLike, gasUsed)
+                await getEvent(receipt!)
 
                 fulfillAvgGas += titanGasCost
 
@@ -560,12 +587,15 @@ describe("RandomDay", function () {
             console.log("recover avg gas", recoverAvgGas / 500n)
             console.log("fulfill avg gas", fulfillAvgGas / 500n)
 
+            let requesterNum = 0n
             for (let i = 1; i < 1001; i++) {
                 const requesters = await randomDay.getTickRequesters(i)
                 if (requesters.length > 0) {
                     console.log("tick:", i, " requestersNum:", requesters.length)
+                    requesterNum += BigInt(requesters.length)
                 }
             }
+            expect(requesterNum).to.equal(500n)
             it("getThreeClosestToSevenHundred", async () => {
                 const getThreeClosestToSevenHundreds =
                     await randomDay.getThreeClosestToSevenHundred()
@@ -573,7 +603,7 @@ describe("RandomDay", function () {
                 console.log(getThreeClosestToSevenHundreds)
             })
         })
-        it("500 signers requestRandomWords ~ fulfill one more", async () => {
+        it("500 signers requestRandomWords ~ fulfill one more #1", async () => {
             // ** requestRandomWords
             const provider = ethers.provider
             for (let i = 0; i < 500; i++) {
@@ -615,6 +645,7 @@ describe("RandomDay", function () {
                 await time.increase(BigInt(disputePeriod) + 1n)
                 tx = await crrrngCoordinator.connect(signers[0]).fulfillRandomness(round)
                 receipt = await tx.wait()
+                await getEvent(receipt!)
 
                 // ** get
                 const valuesAtRound = await crrrngCoordinator.getValuesAtRound(round)
@@ -641,17 +672,91 @@ describe("RandomDay", function () {
                 )
                 await expect(s_requests.requester).to.equal(signers[round % 500].address)
             }
+            let requesterNum = 0n
             for (let i = 1; i < 1001; i++) {
                 const requesters = await randomDay.getTickRequesters(i)
                 if (requesters.length > 0) {
                     console.log("tick:", i, " requestersNum:", requesters.length)
+                    requesterNum += BigInt(requesters.length)
                 }
             }
+            expect(requesterNum).to.equal(500n)
         })
-        it("getThreeClosestToSevenHundred", async () => {
-            const getThreeClosestToSevenHundreds = await randomDay.getThreeClosestToSevenHundred()
-            console.log("ticks, nums")
-            console.log(getThreeClosestToSevenHundreds)
+        it("500 signers requestRandomWords ~ fulfill one more #2", async () => {
+            // ** requestRandomWords
+            const provider = ethers.provider
+            for (let i = 0; i < 500; i++) {
+                const fee = await provider.getFeeData()
+                const gasPrice = fee.gasPrice as bigint
+                const directFundingCost = await crrrngCoordinator.estimateDirectFundingPrice(
+                    callback_gaslimit,
+                    gasPrice,
+                )
+                const tx = await randomDay
+                    .connect(signers[i])
+                    .requestRandomWord({ value: directFundingCost })
+                const receipt = await tx.wait()
+            }
+            for (let round = 1000; round < 1500; round++) {
+                for (let i = 0; i < 3; i++) {
+                    // ** commit
+                    const tx = await crrrngCoordinator
+                        .connect(signers[i])
+                        .commit(round, commitParams[i])
+                    await tx.wait()
+                }
+
+                // ** recover
+                let rand = getRandomValues(new Uint8Array(2048 / 8))
+                const bytesHex =
+                    "0x" + rand.reduce((o, v) => o + ("00" + v.toString(16)).slice(-2), "")
+                const recover = {
+                    val: toBeHex(bytesHex, getLength(dataLength(toBeHex(bytesHex)))),
+                    bitlen: getBitLenth2(toBeHex(bytesHex)),
+                }
+
+                await time.increase(180)
+                let tx = await crrrngCoordinator.connect(signers[0]).recover(round, recover)
+                let receipt = await tx.wait()
+
+                // ** fulfill
+                const disputePeriod = coordinatorConstructorParams.disputePeriod
+                await time.increase(BigInt(disputePeriod) + 1n)
+                tx = await crrrngCoordinator.connect(signers[0]).fulfillRandomness(round)
+                receipt = await tx.wait()
+                await getEvent(receipt!)
+
+                // ** get
+                const valuesAtRound = await crrrngCoordinator.getValuesAtRound(round)
+                const s_requesters = await randomDay.getRequestersInfos(
+                    signers[round % 500].address,
+                )
+                const s_requests = await randomDay.s_requests(round)
+
+                const getFulfillStatusAtRound =
+                    await crrrngCoordinator.getFulfillStatusAtRound(round)
+
+                // ** assert
+                await expect(getFulfillStatusAtRound[0]).to.equal(true)
+                await expect(getFulfillStatusAtRound[1]).to.equal(true)
+
+                const calculated =
+                    (s_requesters[2][0] + s_requesters[2][1] + s_requesters[2][2]) / 3n
+                const difference = Math.abs(Number(calculated - s_requesters[0]))
+                await expect(difference).to.be.lessThan(2)
+
+                await expect(s_requesters[1]).to.eql([
+                    BigInt(round) - 1000n,
+                    BigInt(round) - 500n,
+                    BigInt(round),
+                ])
+                await expect(s_requests.requested).to.equal(true)
+                await expect(s_requests.fulfilled).to.equal(true)
+                await expect(s_requests.randomWord).to.equal(
+                    BigInt(ethers.keccak256(valuesAtRound.omega.val)),
+                )
+                await expect(s_requests.requester).to.equal(signers[round % 500].address)
+            }
         })
         it("transfer 1000 TON to RandomDay", async () => {
             const tx = await tonToken.transfer(randomDayAddress, ethers.parseEther("1000"))
@@ -660,10 +765,69 @@ describe("RandomDay", function () {
             await expect(balance).to.equal(ethers.parseEther("1000"))
         })
         it("finalizeRankingandSendPrize", async () => {
-            const tx = await randomDay.finalizeRankingandSendPrize()
-            await tx.wait()
+            const eventEndTime = await randomDay.eventEndTime()
+            const currentTimestamp = await ethers.provider.getBlock("latest")
+            await time.increase(eventEndTime - BigInt(currentTimestamp!.timestamp) + 1n)
+
+            // ** blackList funciton
+            const blackListAddresses: string[] = []
+            for (let i = 10; i < 15; i++) {
+                blackListAddresses.push(signers[i].address)
+            }
+            let tx = await randomDay.blackList(blackListAddresses)
+            let receipt = await tx.wait()
+            let gasUsed = receipt?.gasUsed as bigint
+            let titanGasCost = await getTotalTitanGasCost(tx.data as BytesLike, gasUsed)
+            console.log(
+                "blackList 5 people total gasCost on Titan",
+                ethers.formatEther(titanGasCost),
+                "ETH",
+            )
+
+            let requesterNum = 0n
+            for (let i = 1; i < 1001; i++) {
+                const requesters = await randomDay.getTickRequesters(i)
+                if (requesters.length > 0) {
+                    console.log("tick:", i, " requestersNum:", requesters.length)
+                    requesterNum += BigInt(requesters.length)
+                }
+            }
+            expect(requesterNum).to.equal(495n)
+
+            // ** finalizeRankingandSendPrize
+            const getThreeClosestToSevenHundreds = await randomDay.getThreeClosestToSevenHundred()
+            console.log("ticks, nums")
+            console.log(getThreeClosestToSevenHundreds)
+            const winners: {
+                [key: number]: string[]
+            } = {}
+            for (let i = 0; i < getThreeClosestToSevenHundreds[0].length; i++) {
+                if (getThreeClosestToSevenHundreds[0][i] != 1001n) {
+                    const tickRequesters = await randomDay.getTickRequesters(
+                        getThreeClosestToSevenHundreds[0][i],
+                    )
+                    winners[Number(getThreeClosestToSevenHundreds[0][i])] = tickRequesters
+                }
+            }
+
+            tx = await randomDay.finalizeRankingandSendPrize()
+            receipt = await tx.wait()
+            gasUsed = receipt?.gasUsed as bigint
+            titanGasCost = await getTotalTitanGasCost(tx.data as BytesLike, gasUsed)
+            console.log(
+                "finalizeRankingandSendPrize total gasCost on Titan",
+                ethers.formatEther(titanGasCost),
+                "ETH",
+            )
             const balance = await tonToken.balanceOf(randomDayAddress)
-            console.log(balance)
+            console.log("randomDay contract Ton balance", balance)
+
+            for (const key in winners) {
+                console.log("tick:", key, " Ton balance")
+                for (let i = 0; i < winners[key].length; i++) {
+                    console.log(await tonToken.balanceOf(winners[key][i]))
+                }
+            }
         })
     })
 })
