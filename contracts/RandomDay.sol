@@ -40,7 +40,7 @@ contract RandomDay is RNGConsumerBase, Ownable {
     uint256 public requestCount;
     uint256 public lastRequestId;
     uint256 public eventEndTime;
-    uint256 public constant EVENTPERIOD = 198000;
+    uint256 public constant EVENTPERIOD = 3600;
     uint256 public constant FIRSTPRIZE = 550 ether;
     uint256 public constant SECONDPRIZE = 300 ether;
     uint256 public constant THIRDPRIZE = 150 ether;

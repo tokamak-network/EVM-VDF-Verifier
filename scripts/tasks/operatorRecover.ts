@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 import { BigNumberish, BytesLike } from "ethers"
-import fs from "fs"
 import { task } from "hardhat/config"
 
 interface BigNumber {
@@ -39,36 +38,22 @@ task("recoverAtRound", "Operator recover")
             "CRRNGCoordinatorPoF",
             crrrngCoordinatorAddress,
         )
-        const testCaseJson = createCorrectAlgorithmVersionTestCase()
-        const delta: number = 9
-        let recoverParams: {
-            round: BigNumberish
-            v: BigNumber[]
-            x: BigNumber
-            y: BigNumber
-        } = {
-            round: round,
-            v: [],
-            x: { val: "0x0", bitlen: 0 },
-            y: { val: "0x0", bitlen: 0 },
-        }
-        recoverParams.x = testCaseJson.recoveryProofs[0].x
-        recoverParams.y = testCaseJson.recoveryProofs[0].y
-        if (delta > 0) {
-            testCaseJson.recoveryProofs = testCaseJson.recoveryProofs?.slice(0, -(delta + 1))
-        }
-        for (let i = 0; i < testCaseJson.recoveryProofs.length; i++) {
-            recoverParams.v.push(testCaseJson.recoveryProofs[i].v)
-        }
 
         console.log("Recovering...")
-        const tx = await crrngCoordinatorContract.recover(recoverParams.round, recoverParams.y)
-        const receipt = await tx.wait()
-        console.log("Transaction receipt", receipt)
-        console.log("Recovered")
-        console.log("----------------------")
+        let rand = crypto.getRandomValues(new Uint8Array(2048 / 8))
+        const bytesHex = "0x" + rand.reduce((o, v) => o + ("00" + v.toString(16)).slice(-2), "")
+        const recover = {
+            val: ethers.toBeHex(bytesHex, getLength(ethers.dataLength(ethers.toBeHex(bytesHex)))),
+            bitlen: getBitLenth2(ethers.toBeHex(bytesHex)),
+        }
+        console.log(recover)
+        try {
+            let tx = await crrngCoordinatorContract.recover(round, recover)
+            const receipt = await tx.wait()
+            console.log("Transaction receipt", receipt)
+            console.log("Recovered")
+            console.log("----------------------")
+        } catch (e) {
+            console.log(e)
+        }
     })
-const createCorrectAlgorithmVersionTestCase = () => {
-    const testCaseJson = JSON.parse(fs.readFileSync(__dirname + "/../recover.json", "utf-8"))
-    return testCaseJson
-}

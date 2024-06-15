@@ -25,17 +25,16 @@ const deployTestERC20: DeployFunction = async (hre: HardhatRuntimeEnvironment) =
         chainId === 31337 || chainId === 5050 || chainId === 55004 || chainId === 111551115050
             ? 1
             : VERIFICATION_BLOCK_CONFIRMATIONS
-    if (chainId == 31337) {
-        log("----------------------------------------------------")
-        const tonToken = await deploy("TonToken", {
-            from: deployer,
-            log: true,
-            args: [],
-            waitConfirmations: waitBlockConfirmations,
-        })
-        // deploy result
-        log("tonToken deployed at:", tonToken.address)
-    }
+
+    log("----------------------------------------------------")
+    const tonToken = await deploy("TonToken", {
+        from: deployer,
+        log: true,
+        args: [],
+        waitConfirmations: waitBlockConfirmations,
+    })
+    // deploy result
+    log("tonToken deployed at:", tonToken.address)
 }
 export default deployTestERC20
-deployTestERC20.tags = ["all", "TestERC20", "anvil", "anvilTitan"]
+deployTestERC20.tags = ["all", "erc", "anvil", "anvilTitan"]
