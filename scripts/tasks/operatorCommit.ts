@@ -31,7 +31,6 @@ task("commitAtRound", "Operator commits")
     .addParam("round", "The round to commit")
     .setAction(async ({ round }, { deployments, ethers, getNamedAccounts }) => {
         const { deployer } = await getNamedAccounts()
-        console.log("EOA address:", deployer)
         const crrrngCoordinatorAddress = (await deployments.get("CRRNGCoordinatorPoF")).address
         console.log("CRRRNGCoordinator address:", crrrngCoordinatorAddress)
         const crrngCoordinatorContract = await ethers.getContractAt(
@@ -48,7 +47,7 @@ task("commitAtRound", "Operator commits")
             bitlen: getBitLenth2(bytesHex),
         }
         console.log(commitData)
-
+        console.log("Operator address:", signer?.address)
         const tx = await crrngCoordinatorContract.connect(signer).commit(round, commitData)
         await tx.wait()
         console.log(`Operator ${commitCount} committed successfully`)

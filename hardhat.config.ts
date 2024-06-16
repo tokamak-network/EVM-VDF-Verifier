@@ -55,6 +55,7 @@ const MAINNET_RPC_URL = process.env.MAINNET_RPC_URL
 const SEPOLIA_RPC_URL = process.env.SEPOLIA_RPC_URL
 const POLYGON_MAINNET_RPC_URL = process.env.POLYGON_MAINNET_RPC_URL
 const PRIVATE_KEY = process.env.PRIVATE_KEY
+const PRIVATE_KEY2 = process.env.PRIVATE_KEY2
 const OP_SEPOLIA_RPC_URL = process.env.OP_SEPOLIA_RPC_URL
 const OP_ETHERSCAN_API_KEY = process.env.OP_ETHERSCAN_API_KEY || "Your etherscan API key"
 
@@ -101,7 +102,7 @@ const config: HardhatUserConfig = {
             chainId: 11155420,
             url: OP_SEPOLIA_RPC_URL,
             saveDeployments: true,
-            accounts: PRIVATE_KEY !== undefined ? [PRIVATE_KEY] : [],
+            accounts: PRIVATE_KEY !== undefined ? [PRIVATE_KEY, PRIVATE_KEY2!] : [],
         },
         mainnet: {
             url: MAINNET_RPC_URL,

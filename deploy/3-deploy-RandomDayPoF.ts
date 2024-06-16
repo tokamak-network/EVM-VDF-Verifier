@@ -40,9 +40,12 @@ const deployRandomDay: DeployFunction = async (hre: HardhatRuntimeEnvironment) =
 
     if (chainId !== 31337 && process.env.ETHERSCAN_API_KEY) {
         log("Verifying...")
-        await verify(randomDay.address, [crrRngCoordinatorAddress, tonTokenAddress])
+        await verify("0xE9e724f5A5681E88Ef242A0946fBf77E0D0400Ee", [
+            crrRngCoordinatorAddress,
+            tonTokenAddress,
+        ])
     }
     log("----------------------------------------------------")
 }
 export default deployRandomDay
-deployRandomDay.tags = ["all", "randomDay", "testnet", "v2", "anvil", "rand"]
+deployRandomDay.tags = ["all", "randomDay", "testnet", "v2", "anvil", "rand", "opSepoliaRandom"]

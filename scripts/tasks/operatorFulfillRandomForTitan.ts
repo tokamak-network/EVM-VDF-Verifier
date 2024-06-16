@@ -11,6 +11,7 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+import { time } from "@nomicfoundation/hardhat-network-helpers"
 import { BigNumberish, BytesLike } from "ethers"
 import fs from "fs"
 import { task } from "hardhat/config"
@@ -30,7 +31,8 @@ export const getBitLenth2 = (num: string): BigNumberish => {
 
 task("fulfillAtRoundForTitan", "Operator fulfillRandomWord For Titan")
     .addParam("round", "The round to fulfill")
-    .setAction(async ({ round }, { deployments, ethers, getNamedAccounts }) => {
+    .setAction(async ({ round }, { getChainId, deployments, ethers, getNamedAccounts }) => {
+        const chainId = await getChainId()
         const { deployer } = await getNamedAccounts()
         console.log("EOA address:", deployer)
         const crrrngCoordinatorAddress = (await deployments.get("CRRNGCoordinatorPoFForTitan"))
@@ -41,6 +43,9 @@ task("fulfillAtRoundForTitan", "Operator fulfillRandomWord For Titan")
             crrrngCoordinatorAddress,
         )
         console.log("Fulfill...")
+        if (chainId == "31337") {
+            await time.increase(181)
+        }
         const tx = await crrngCoordinatorContract.fulfillRandomness(round)
         const receipt = await tx.wait()
         console.log("Transaction receipt", receipt)

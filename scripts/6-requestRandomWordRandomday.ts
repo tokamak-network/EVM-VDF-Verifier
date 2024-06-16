@@ -19,49 +19,53 @@ async function requestRandomWord() {
     // get timestamp
     const timestamp = (await provider.getBlock("latest"))!.timestamp
     console.log("EOA address:", deployer)
-    const crrrngCoordinatorAddress = (await deployments.get("CRRNGCoordinatorPoF")).address
+    const crrrngCoordinatorAddress = (await deployments.get("CRRNGCoordinatorPoFForTitan")).address
     console.log("CRRNGCoordinator address:", crrrngCoordinatorAddress)
     const crrngCoordinatorContract = await ethers.getContractAt(
         "CRRNGCoordinator",
         crrrngCoordinatorAddress,
     )
-    //const randomDayAddress = (await deployments.get("RandomDay")).address
+    const randomDayAddress = (await deployments.get("RandomDay")).address
 
-    //console.log("randomDayAddress address:", randomDayAddress)
+    console.log("randomDayAddress address:", randomDayAddress)
 
     try {
         const callback_gaslimit = 210000n
         const fee = await provider.getFeeData()
-        const gasPrice = fee.gasPrice as bigint
-        console.log("gasPrice", gasPrice.toString())
+        const gasPrice = fee.maxFeePerGas as bigint
         const directFundingCost = await crrngCoordinatorContract.estimateDirectFundingPrice(
             callback_gaslimit,
             gasPrice,
         )
         let tx
         console.log("directFundingCost", directFundingCost.toString())
-        //const cryptoDiceContract = await ethers.getContractAt("RandomDay", randomDayAddress)
-        // try {
-        //     if (chainId == 5050 || chainId == 55004)
-        //         tx = await cryptoDiceContract.requestRandomWord({
-        //             gasLimit: 2400000,
-        //             value: (4467175825317694n * (100n + 25n)) / 100n,
-        //         })
-        //     else {
-        //         tx = await cryptoDiceContract.requestRandomWord({
-        //             value: (4467175825317694n * (100n + 25n)) / 100n,
-        //         })
-        //     }
-        //     const receipt = await tx.wait()
-        //     receipt!.logs?.forEach((event) => {
-        //         console.log(event)
-        //     })
-        //     console.log("Transaction receipt", receipt)
-        //     console.log("Random word requested")
-        //     console.log("----------------------")
-        // } catch (e) {
-        //     console.log(e)
-        // }
+        const cryptoDiceContract = await ethers.getContractAt("RandomDay", randomDayAddress)
+        try {
+            const currentBlock = await provider.getBlock("latest")
+            const currentTimestamp = currentBlock!.timestamp
+            const eventEndTime = await cryptoDiceContract.eventEndTime()
+            console.log("currentTimestamp", currentTimestamp)
+            console.log("eventEndTime", eventEndTime.toString())
+            if (chainId == 5050 || chainId == 55004)
+                tx = await cryptoDiceContract.requestRandomWord({
+                    gasLimit: 2400000,
+                    value: (4467175825317694n * (100n + 15n)) / 100n,
+                })
+            else {
+                tx = await cryptoDiceContract.requestRandomWord({
+                    value: (4467175825317694n * (100n + 15n)) / 100n,
+                })
+            }
+            const receipt = await tx.wait()
+            receipt!.logs?.forEach((event) => {
+                console.log(event)
+            })
+            console.log("Transaction receipt", receipt)
+            console.log("Random word requested")
+            console.log("----------------------")
+        } catch (e) {
+            console.log(e)
+        }
 
         //console logs
     } catch (error) {

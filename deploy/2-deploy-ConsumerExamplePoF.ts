@@ -44,4 +44,4 @@ const deployConsumerExample: DeployFunction = async (hre: HardhatRuntimeEnvironm
     log("----------------------------------------------------")
 }
 export default deployConsumerExample
-deployConsumerExample.tags = ["all", "consumerexample", "sepolia", "v2", "consume"]
+deployConsumerExample.tags = ["all", "consumerexample", "sepolia", "v2", "consume", "opSepolia"]

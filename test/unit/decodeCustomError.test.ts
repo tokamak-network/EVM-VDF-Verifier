@@ -18,7 +18,7 @@ import { AddressLike, BigNumberish, BytesLike, dataLength, toBeHex } from "ether
 import fs from "fs"
 import { ethers, network } from "hardhat"
 import { developmentChains } from "../../helper-hardhat-config"
-import { CRRNGCoordinator, CryptoDice, TonToken } from "../../typechain-types"
+import { CRRNGCoordinator, RandomDay, TonToken } from "../../typechain-types"
 interface BigNumber {
     val: BytesLike
     bitlen: BigNumberish
@@ -71,7 +71,7 @@ const createCorrectAlgorithmVersionTestCase = () => {
           let signers: SignerWithAddress[]
           let crrrngCoordinator: CRRNGCoordinator
           let tonToken: TonToken
-          let cryptoDice: CryptoDice
+          let cryptoDice: RandomDay
           let crrngCoordinatorAddress: string
           let tonTokenAddress: string
           let cryptoDiceAddress: string
@@ -160,21 +160,24 @@ const createCorrectAlgorithmVersionTestCase = () => {
               const balanceAfter = await ethers.provider.getBalance(signers[0].address)
           })
           it("deploy CryptoDice", async () => {
-              const CryptoDice = await ethers.getContractFactory("CryptoDice")
+              const CryptoDice = await ethers.getContractFactory("RandomDay")
               cryptoDice = (await CryptoDice.deploy(
                   crrngCoordinatorAddress,
                   tonTokenAddress,
-              )) as CryptoDice
+              )) as RandomDay
               await cryptoDice.waitForDeployment()
               cryptoDiceAddress = await cryptoDice.getAddress()
               expect(cryptoDiceAddress).to.be.properAddress
               expect(await cryptoDice.getRNGCoordinator()).to.equal(crrngCoordinatorAddress)
-              expect(await cryptoDice.getAirdropTokenAddress()).to.equal(tonTokenAddress)
           })
           describe("decode", function () {
               it("decode 0xa264a954", async function () {
-                  console.log(crrrngCoordinator.interface.parseError("0xa264a954"))
-                  console.log(crrrngCoordinator.interface.parseError("0xaf1bddf7"))
+                  console.log(crrrngCoordinator.interface.parseError("0x28a1045e"))
+                  console.log(cryptoDice.interface.parseError("0x28a1045e"))
+                  const currentBlock = await ethers.provider.getBlock("latest")
+                  const currentTimestamp = currentBlock!.timestamp
+                  console.log(currentTimestamp)
+                  console.log(await cryptoDice.eventEndTime())
               })
           })
       })

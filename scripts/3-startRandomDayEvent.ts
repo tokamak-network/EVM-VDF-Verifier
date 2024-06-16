@@ -16,8 +16,6 @@ import { deployments, ethers, getNamedAccounts, network } from "hardhat"
 async function startEvent() {
     const chainId: number = network.config.chainId as number
     const { deployer } = await getNamedAccounts()
-    const registrationDuration = 120n
-    const totalPrizeAmount = 1000n * 10n ** 18n
     console.log("EOA address:", deployer)
     const randomDayAddress = (await deployments.get("RandomDay")).address
     console.log("randomDay address:", randomDayAddress)
