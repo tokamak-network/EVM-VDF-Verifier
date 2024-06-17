@@ -45,7 +45,7 @@ const createCorrectAlgorithmVersionTestCase = () => {
 
 !developmentChains.includes(network.name)
     ? describe.skip
-    : describe("ProofOfFraud Test PoF", function () {
+    : describe("ProofOfFraud Test PoF1", function () {
           const L1_FEE_DATA_PADDING =
               "0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
           let callback_gaslimit: BigNumberish
