@@ -129,7 +129,7 @@ contract CRRNGCoordinatorPoF is ICRRRNGCoordinator, Ownable, VDFCRRNGPoF {
             }
         }
         s_valuesAtRound[round].stage = Stages.Commit;
-        s_valuesAtRound[round].startTime = block.timestamp;
+        s_valuesAtRound[round].startTime = 0;
         emit RandomWordsRequested(round, s_valuesAtRound[round].consumer);
     }
 

@@ -295,9 +295,9 @@ const createCorrectAlgorithmVersionTestCase = () => {
                   await expect(valuesAtRound.isCompleted).to.be.equal(false)
                   await expect(valuesAtRound.isVerified).to.be.equal(false)
               })
-              it("3 operators commit to CRRNGCoordinator", async () => {
+              it("1 operator commit once and reRequestRandomWord", async () => {
                   const round = (await crrrngCoordinator.getNextRound()) - 1n
-                  const numOfOperators = 3
+                  const numOfOperators = 1
                   for (let i = 0; i < numOfOperators; i++) {
                       const tx = await crrrngCoordinator
                           .connect(signers[i])
@@ -330,6 +330,53 @@ const createCorrectAlgorithmVersionTestCase = () => {
                           await expect(valuesAtRound.stage).to.equal(1)
                           await expect(valuesAtRound.commitCounts).to.equal(1)
                           await expect(valuesAtRound.startTime).to.equal(blockTimestamp)
+                      }
+                  }
+                  const committedOperators =
+                      await crrrngCoordinator.getCommittedOperatorsAtRound(round)
+                  console.log("committedOperators", committedOperators)
+                  await time.increase(120n)
+
+                  // ** reRequestRandomWordAtRound
+                  const tx = await crrrngCoordinator.reRequestRandomWordAtRound(round)
+                  const receipt = await tx.wait()
+                  const gasUsed = receipt?.gasUsed as bigint
+              })
+              it("3 operators commit to CRRNGCoordinator", async () => {
+                  const round = (await crrrngCoordinator.getNextRound()) - 1n
+                  const numOfOperators = 3
+                  for (let i = 0; i < numOfOperators; i++) {
+                      const tx = await crrrngCoordinator
+                          .connect(signers[i])
+                          .commit(round, commitParams[i])
+                      const receipt = await tx.wait()
+                      const valuesAtRound: ValueAtRound =
+                          await crrrngCoordinator.getValuesAtRound(round)
+                      await expect(valuesAtRound.commitCounts).to.equal(i + 1)
+                      const gasUsed = receipt?.gasUsed as bigint
+                      console.log("commit", gasUsed)
+
+                      const userStatusAtRound = await crrrngCoordinator.getUserStatusAtRound(
+                          signers[i].address,
+                          round,
+                      )
+                      await expect(userStatusAtRound.committed).to.equal(true)
+                      await expect(userStatusAtRound.commitIndex).to.equal(i)
+                      const getCommitValues = await crrrngCoordinator.getCommitValue(
+                          round,
+                          userStatusAtRound.commitIndex,
+                      )
+                      await expect(getCommitValues.commit.val).to.equal(commitParams[i].val)
+                      await expect(getCommitValues.operatorAddress).to.equal(signers[i].address)
+
+                      if (i == 0) {
+                          const blockNumber = receipt?.blockNumber as number
+                          const provider = ethers.provider
+                          const blockTimestamp = (await provider.getBlock(blockNumber))?.timestamp
+                          const valuesAtRound = await crrrngCoordinator.getValuesAtRound(round)
+                          //await expect(valuesAtRound.startTime).to.equal(blockTimestamp)
+                          await expect(valuesAtRound.stage).to.equal(1)
+                          await expect(valuesAtRound.commitCounts).to.equal(1)
                       }
                   }
                   const committedOperators =
