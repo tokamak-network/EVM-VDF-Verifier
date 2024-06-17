@@ -28,7 +28,6 @@ interface ValueAtRound {
     startTime: BigNumberish
     commitCounts: BigNumberish
     consumer: AddressLike
-    commitsString: BytesLike
     omega: BigNumber
     stage: BigNumberish
     isCompleted: boolean
@@ -291,7 +290,6 @@ const createCorrectAlgorithmVersionTestCase = () => {
                       await consumerExample.getAddress(),
                   )
                   await expect(consumerAddress).to.be.equal(await consumerExample.getAddress())
-                  await expect(valuesAtRound.commitsString).to.be.equal("0x")
                   await expect(valuesAtRound.omega.val).to.be.equal("0x")
                   await expect(valuesAtRound.stage).to.be.equal(1n)
                   await expect(valuesAtRound.isCompleted).to.be.equal(false)

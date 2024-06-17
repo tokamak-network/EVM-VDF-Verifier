@@ -28,7 +28,6 @@ contract VDFCRRNGPoF is ReentrancyGuardTransient, GetL1Fee {
      * - [0]: startTime -> The start time of the round
      * - [1]: commitCounts -> The number of operators who have committed to the round. And this is updated real-time.
      * - [2]: consumer -> The address of the consumer of the round
-     * - [3]: commitsString -> The concatenated string of the commits of the operators. This is updated when commit
      * - [4]: omega -> The omega value of the round. This is updated after recovery.
      * - [5]: stage -> The stage of the round. 0 is Recovered or NotStarted, 1 is Commit
      * - [6]: isCompleted -> The flag to check if the round is completed. This is updated after recovery.
@@ -38,7 +37,6 @@ contract VDFCRRNGPoF is ReentrancyGuardTransient, GetL1Fee {
         uint256 requestedTime;
         uint256 commitCounts;
         address consumer;
-        bytes commitsString; // concatenated string of commits
         BigNumber omega; // the random number
         Stages stage; // stage of the contract
         bool isCompleted; // the flag to check if the round is completed
@@ -66,6 +64,7 @@ contract VDFCRRNGPoF is ReentrancyGuardTransient, GetL1Fee {
      * - [1]: committed -> The flag to check if the operator has committed
      */
     struct OperatorStatusAtRound {
+        uint256 commitTimestamp;
         uint256 commitIndex;
         bool committed;
     }
@@ -250,7 +249,6 @@ contract VDFCRRNGPoF is ReentrancyGuardTransient, GetL1Fee {
      * 2. The operator's index is set to the count of the round
      * 3. The commit value is stored in the commitValue mapping
      * 4. The address of the operator is stored in the commitValues mapping
-     * 5. The commit value is concatenated to the commitsString
      * 6. The count of the round is incremented
      * 7. The CommitC(_count, c.val) event is emitted
      */
@@ -260,20 +258,30 @@ contract VDFCRRNGPoF is ReentrancyGuardTransient, GetL1Fee {
     ) external onlyOperator checkStage(round, Stages.Commit) {
         //check
         if (BigNumbers.isZero(c)) revert ShouldNotBeZero();
-        if (s_operatorStatusAtRound[round][msg.sender].committed) revert AlreadyCommitted();
-        //effect
         uint256 _count = s_valuesAtRound[round].commitCounts;
-        s_operatorStatusAtRound[round][msg.sender].commitIndex = _count;
-        s_operatorStatusAtRound[round][msg.sender].committed = true;
-        s_commitValues[round][_count].commit = c;
-        s_commitValues[round][_count].operatorAddress = msg.sender;
-        s_valuesAtRound[round].commitsString = bytes.concat(
-            s_valuesAtRound[round].commitsString,
-            c.val
-        );
-        s_valuesAtRound[round].commitCounts = _count = _unchecked_inc(_count);
-        s_committedOperatorsAtRound[round].push(msg.sender);
-        emit CommitC(_count, c.val);
+        if (s_operatorStatusAtRound[round][msg.sender].committed) {
+            if (
+                s_operatorStatusAtRound[round][msg.sender].commitTimestamp + COMMITDURATION >
+                block.timestamp
+            ) revert AlreadyCommitted();
+            unchecked {
+                --s_ignoredCounts[round];
+            }
+            s_commitValues[round][_count].commit = c;
+            s_operatorStatusAtRound[round][msg.sender].commitTimestamp = s_valuesAtRound[round]
+                .startTime;
+        } else {
+            //effect
+            s_operatorStatusAtRound[round][msg.sender].commitIndex = _count;
+            s_operatorStatusAtRound[round][msg.sender].committed = true;
+            s_operatorStatusAtRound[round][msg.sender].commitTimestamp = s_valuesAtRound[round]
+                .startTime;
+            s_commitValues[round][_count].commit = c;
+            s_commitValues[round][_count].operatorAddress = msg.sender;
+            s_valuesAtRound[round].commitCounts = _count = _unchecked_inc(_count);
+            s_committedOperatorsAtRound[round].push(msg.sender);
+            emit CommitC(_count, c.val);
+        }
     }
 
     function recover(
@@ -309,10 +317,17 @@ contract VDFCRRNGPoF is ReentrancyGuardTransient, GetL1Fee {
         if (!s_operatorStatusAtRound[round][msg.sender].committed) revert NotCommittedParticipant();
         if (s_disputeEndTimeAtRound[round] < block.timestamp) revert DisputePeriodEnded();
         BigNumber memory _n = BigNumber(NVAL, NBITLEN);
-        bytes memory _bStar = _hash(s_valuesAtRound[round].commitsString).val;
         _verifyRecursiveHalvingProof(v, x, y, _n);
         BigNumber memory _recov = BigNumber(BigNumbers.BYTESONE, BigNumbers.UINTONE);
         uint256 _commitCounts = s_valuesAtRound[round].commitCounts;
+        bytes memory _commitString = bytes.concat(
+            s_commitValues[round][0].commit.val,
+            s_commitValues[round][1].commit.val
+        );
+        for (uint256 i = 2; i < _commitCounts; i = _unchecked_inc(i)) {
+            _commitString = bytes.concat(_commitString, s_commitValues[round][i].commit.val);
+        }
+        bytes memory _bStar = _hash(_commitString).val;
         for (uint256 i; i < _commitCounts; i = _unchecked_inc(i)) {
             BigNumber memory _c = s_commitValues[round][i].commit;
             _recov = BigNumbers.modmul(

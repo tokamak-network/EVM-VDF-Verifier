@@ -125,7 +125,7 @@ contract CRRNGCoordinatorPoFForTitan is ICRRRNGCoordinator, Ownable, VDFCRRNGPoF
         if (count > 1) revert TwoOrMoreCommittedPleaseRecover();
         if (count == 1) {
             unchecked {
-                s_ignoredCounts[round]++;
+                ++s_ignoredCounts[round];
             }
         }
         s_valuesAtRound[round].stage = Stages.Commit;
@@ -317,7 +317,6 @@ contract CRRNGCoordinatorPoFForTitan is ICRRRNGCoordinator, Ownable, VDFCRRNGPoF
      * - [2]: count -> The number of operators who have committed to the round. And this is updated real-time.
      * - [3]: consumer -> The address of the consumer of the round
      * - [4]: bStar -> The bStar value of the round. This is updated on recovery stage.
-     * - [5]: commitsString -> The concatenated string of the commits of the operators. This is updated when commit
      * - [6]: omega -> The omega value of the round. This is updated after recovery.
      * - [7]: stage -> The stage of the round. 0 is Recovered or NotStarted, 1 is Commit
      * - [8]: isCompleted -> The flag to check if the round is completed. This is updated after recovery.
