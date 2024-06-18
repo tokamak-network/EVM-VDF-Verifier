@@ -71,8 +71,8 @@ contract VDFCRRNGPoF is ReentrancyGuardTransient, GetL1Fee {
 
     // *** State variables
     // * public
-    uint256 public lastRecoveredRound;
-    uint256 public lastFulfilledRound;
+    uint256 public lastRecoveredRoundNext;
+    uint256 public lastFulfilledRoundNext;
     // * internal
     mapping(uint256 round => uint256 ignoredCounts) internal s_ignoredCounts;
     uint256 internal s_minimumDepositAmount;
@@ -305,7 +305,9 @@ contract VDFCRRNGPoF is ReentrancyGuardTransient, GetL1Fee {
         s_disputeEndTimeAtRound[round] = block.timestamp + s_disputePeriod;
         s_disputeEndTimeForOperator[msg.sender] = block.timestamp + s_disputePeriod;
         s_leaderAtRound[round] = msg.sender;
-        lastRecoveredRound = round;
+        unchecked {
+            lastRecoveredRoundNext = round + 1;
+        }
         emit Recovered(round, msg.sender, y.val);
     }
 
@@ -399,7 +401,9 @@ contract VDFCRRNGPoF is ReentrancyGuardTransient, GetL1Fee {
             s_callbackGasLimit[round]
         );
         s_fulfillStatus[round] = FulfillStatus(true, success);
-        lastFulfilledRound = round;
+        unchecked {
+            lastFulfilledRoundNext = round + 1;
+        }
         emit FulfillRandomness(round, hashedOmega, success, msg.sender);
     }
 
