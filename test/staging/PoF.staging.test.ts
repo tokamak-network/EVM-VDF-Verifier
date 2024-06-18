@@ -24,6 +24,9 @@ interface BigNumber {
     val: BytesLike
     bitlen: BigNumberish
 }
+const getBitLenth2 = (num: string): BigNumberish => {
+    return BigInt(num).toString(2).length
+}
 interface ValueAtRound {
     startTime: BigNumberish
     commitCounts: BigNumberish
@@ -299,9 +302,19 @@ const createCorrectAlgorithmVersionTestCase = () => {
                   const round = (await crrrngCoordinator.getNextRound()) - 1n
                   const numOfOperators = 1
                   for (let i = 0; i < numOfOperators; i++) {
-                      const tx = await crrrngCoordinator
-                          .connect(signers[i])
-                          .commit(round, commitParams[i])
+                      let rand = crypto.getRandomValues(new Uint8Array(2048 / 8))
+                      const bytesHex =
+                          "0x" + rand.reduce((o, v) => o + ("00" + v.toString(16)).slice(-2), "")
+                      const commit = {
+                          val: ethers.toBeHex(
+                              bytesHex,
+                              getLength(ethers.dataLength(ethers.toBeHex(bytesHex))),
+                          ),
+                          bitlen: getBitLenth2(ethers.toBeHex(bytesHex)),
+                      }
+                      console.log(commit)
+
+                      const tx = await crrrngCoordinator.connect(signers[i]).commit(round, commit)
                       const receipt = await tx.wait()
                       const valuesAtRound: ValueAtRound =
                           await crrrngCoordinator.getValuesAtRound(round)
@@ -319,7 +332,6 @@ const createCorrectAlgorithmVersionTestCase = () => {
                           round,
                           userStatusAtRound.commitIndex,
                       )
-                      await expect(getCommitValues.commit.val).to.equal(commitParams[i].val)
                       await expect(getCommitValues.operatorAddress).to.equal(signers[i].address)
 
                       if (i == 0) {

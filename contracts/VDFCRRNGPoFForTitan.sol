@@ -175,6 +175,7 @@ contract VDFCRRNGPoFForTitan is ReentrancyGuard, GetL1Fee {
     error NotConsumer();
     error TooEarlyToRefund();
     error PreviousRoundNotRecovered();
+    error CommittedSameValue();
 
     // *** Modifiers
     /**
@@ -258,20 +259,23 @@ contract VDFCRRNGPoFForTitan is ReentrancyGuard, GetL1Fee {
     ) external onlyOperator checkStage(round, Stages.Commit) {
         //check
         if (BigNumbers.isZero(c)) revert ShouldNotBeZero();
-        uint256 _count = s_valuesAtRound[round].commitCounts;
         if (s_operatorStatusAtRound[round][msg.sender].committed) {
+            uint256 _count = s_operatorStatusAtRound[round][msg.sender].commitIndex;
             if (
                 s_operatorStatusAtRound[round][msg.sender].commitTimestamp + COMMITDURATION >
                 block.timestamp
             ) revert AlreadyCommitted();
+            if (BigNumbers.eq(s_commitValues[round][_count].commit, c)) revert CommittedSameValue();
             unchecked {
                 --s_ignoredCounts[round];
             }
             s_commitValues[round][_count].commit = c;
             s_operatorStatusAtRound[round][msg.sender].commitTimestamp = s_valuesAtRound[round]
                 .startTime;
+            emit CommitC(_count, c.val);
         } else {
             //effect
+            uint256 _count = s_valuesAtRound[round].commitCounts;
             s_operatorStatusAtRound[round][msg.sender].commitIndex = _count;
             s_operatorStatusAtRound[round][msg.sender].committed = true;
             s_operatorStatusAtRound[round][msg.sender].commitTimestamp = s_valuesAtRound[round]
