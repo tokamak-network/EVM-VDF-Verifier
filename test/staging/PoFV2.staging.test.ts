@@ -18,7 +18,7 @@ import { AddressLike, BigNumberish, BytesLike } from "ethers"
 import fs from "fs"
 import { ethers, network } from "hardhat"
 import { developmentChains } from "../../helper-hardhat-config"
-import { CRRNGCoordinatorPoF, ConsumerExample } from "../../typechain-types"
+import { CRRNGCoordinatorPoFV2, ConsumerExample } from "../../typechain-types"
 import OVM_GasPriceOracleABI from "../shared/OVM_GasPriceOracle.json"
 interface BigNumber {
     val: BytesLike
@@ -28,12 +28,11 @@ const getBitLenth2 = (num: string): BigNumberish => {
     return BigInt(num).toString(2).length
 }
 interface ValueAtRound {
-    startTime: BigNumberish
-    commitCounts: BigNumberish
+    commitEndTime: BigNumberish
     consumer: AddressLike
     omega: BigNumber
-    stage: BigNumberish
     isRecovered: boolean
+    isVerified: boolean
 }
 function getLength(value: number): number {
     let length: number = 32
@@ -47,7 +46,7 @@ const createCorrectAlgorithmVersionTestCase = () => {
 
 !developmentChains.includes(network.name)
     ? describe.skip
-    : describe("ProofOfFraud Test PoF1", function () {
+    : describe("ProofOfFraud Test PoFV2", function () {
           const L1_FEE_DATA_PADDING =
               "0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
           let callback_gaslimit: BigNumberish
@@ -71,7 +70,7 @@ const createCorrectAlgorithmVersionTestCase = () => {
           }
           let testCaseJson
           let signers: SignerWithAddress[]
-          let crrrngCoordinator: CRRNGCoordinatorPoF
+          let crrrngCoordinator: CRRNGCoordinatorPoFV2
           let crrngCoordinatorAddress: string
           let consumerExample: ConsumerExample
           let initializeParams: {
@@ -144,7 +143,7 @@ const createCorrectAlgorithmVersionTestCase = () => {
                   callback_gaslimit = (gasUsed * (100n + 25n)) / 100n
               })
               it("deploy CRRRRNGCoordinator", async function () {
-                  const CRRNGCoordinator = await ethers.getContractFactory("CRRNGCoordinatorPoF")
+                  const CRRNGCoordinator = await ethers.getContractFactory("CRRNGCoordinatorPoFV2")
                   crrrngCoordinator = await CRRNGCoordinator.deploy(
                       coordinatorConstructorParams.disputePeriod,
                       coordinatorConstructorParams.minimumDepositAmount,
@@ -287,14 +286,12 @@ const createCorrectAlgorithmVersionTestCase = () => {
                   const consumerAddress = await crrrngCoordinator.getConsumerAtRound(round)
 
                   // ** assert
-                  await expect(valuesAtRound.startTime).to.be.equal(0n)
-                  await expect(valuesAtRound.commitCounts).to.be.equal(0n)
+                  await expect(valuesAtRound.commitEndTime).to.be.equal(0n)
                   await expect(valuesAtRound.consumer).to.be.equal(
                       await consumerExample.getAddress(),
                   )
                   await expect(consumerAddress).to.be.equal(await consumerExample.getAddress())
                   await expect(valuesAtRound.omega.val).to.be.equal("0x")
-                  await expect(valuesAtRound.stage).to.be.equal(1n)
                   await expect(valuesAtRound.isRecovered).to.be.equal(false)
                   await expect(valuesAtRound.isVerified).to.be.equal(false)
               })
@@ -318,7 +315,11 @@ const createCorrectAlgorithmVersionTestCase = () => {
                       const receipt = await tx.wait()
                       const valuesAtRound: ValueAtRound =
                           await crrrngCoordinator.getValuesAtRound(round)
-                      await expect(valuesAtRound.commitCounts).to.equal(i + 1)
+                      const commitCount = await crrrngCoordinator.getCommitCountAtRound(round)
+                      const validCommitCount =
+                          await crrrngCoordinator.getValidCommitCountAtRound(round)
+                      await expect(commitCount).to.equal(validCommitCount)
+                      await expect(commitCount).to.equal(i + 1)
                       const gasUsed = receipt?.gasUsed as bigint
                       console.log("commit", gasUsed)
 
@@ -328,20 +329,31 @@ const createCorrectAlgorithmVersionTestCase = () => {
                       )
                       await expect(userStatusAtRound.committed).to.equal(true)
                       await expect(userStatusAtRound.commitIndex).to.equal(i)
-                      const getCommitValues = await crrrngCoordinator.getCommitValue(
+                      const getCommitValues = await crrrngCoordinator.getOneCommitValueAtRound(
                           round,
                           userStatusAtRound.commitIndex,
                       )
-                      await expect(getCommitValues.operatorAddress).to.equal(signers[i].address)
+                      const operatorAddress =
+                          await crrrngCoordinator.getOneCommittedOperatorAtRound(
+                              round,
+                              userStatusAtRound.commitIndex,
+                          )
+                      const operatorAddresses =
+                          await crrrngCoordinator.getCommittedOperatorsAtRound(round)
+                      await expect(operatorAddress).to.equal(
+                          operatorAddresses[Number(userStatusAtRound.commitIndex)],
+                      )
+                      await expect(operatorAddress).to.equal(signers[i].address)
 
                       if (i == 0) {
                           const blockNumber = receipt?.blockNumber as number
                           const provider = ethers.provider
                           const blockTimestamp = (await provider.getBlock(blockNumber))?.timestamp
                           const valuesAtRound = await crrrngCoordinator.getValuesAtRound(round)
-                          await expect(valuesAtRound.stage).to.equal(1)
-                          await expect(valuesAtRound.commitCounts).to.equal(1)
-                          await expect(valuesAtRound.startTime).to.equal(blockTimestamp)
+                          await expect(
+                              await crrrngCoordinator.getValidCommitCountAtRound(i),
+                          ).to.equal(1)
+                          await expect(valuesAtRound.commitEndTime).to.equal(blockTimestamp! + 120)
                       }
                   }
                   const committedOperators =
@@ -353,6 +365,9 @@ const createCorrectAlgorithmVersionTestCase = () => {
                   const tx = await crrrngCoordinator.reRequestRandomWordAtRound(round)
                   const receipt = await tx.wait()
                   const gasUsed = receipt?.gasUsed as bigint
+                  const commitCount = await crrrngCoordinator.getCommitCountAtRound(round)
+                  const validCommitCount = await crrrngCoordinator.getValidCommitCountAtRound(round)
+                  expect(commitCount).to.equal(validCommitCount + 1n)
               })
               it("3 operators commit to CRRNGCoordinator", async () => {
                   const round = (await crrrngCoordinator.getNextRound()) - 1n
@@ -364,7 +379,11 @@ const createCorrectAlgorithmVersionTestCase = () => {
                       const receipt = await tx.wait()
                       const valuesAtRound: ValueAtRound =
                           await crrrngCoordinator.getValuesAtRound(round)
-                      await expect(valuesAtRound.commitCounts).to.equal(i + 1)
+                      const commitCount = await crrrngCoordinator.getCommitCountAtRound(round)
+                      const validCommitCount =
+                          await crrrngCoordinator.getValidCommitCountAtRound(round)
+                      await expect(commitCount).to.equal(validCommitCount)
+                      await expect(commitCount).to.equal(i + 1)
                       const gasUsed = receipt?.gasUsed as bigint
                       console.log("commit", gasUsed)
 
@@ -374,21 +393,34 @@ const createCorrectAlgorithmVersionTestCase = () => {
                       )
                       await expect(userStatusAtRound.committed).to.equal(true)
                       await expect(userStatusAtRound.commitIndex).to.equal(i)
-                      const getCommitValues = await crrrngCoordinator.getCommitValue(
+                      const getOneCommitValue = await crrrngCoordinator.getOneCommitValueAtRound(
                           round,
                           userStatusAtRound.commitIndex,
                       )
-                      await expect(getCommitValues.commit.val).to.equal(commitParams[i].val)
-                      await expect(getCommitValues.operatorAddress).to.equal(signers[i].address)
+                      const getCommitValues = await crrrngCoordinator.getCommitValuesAtRound(i)
+                      const operatorAddress =
+                          await crrrngCoordinator.getOneCommittedOperatorAtRound(
+                              round,
+                              userStatusAtRound.commitIndex,
+                          )
+                      const operatorAddresses =
+                          await crrrngCoordinator.getCommittedOperatorsAtRound(round)
+                      await expect(operatorAddress).to.equal(
+                          operatorAddresses[Number(userStatusAtRound.commitIndex)],
+                      )
+                      await expect(operatorAddress).to.equal(operatorAddresses[i])
+                      await expect(getOneCommitValue.val).to.equal(commitParams[i].val)
+                      await expect(operatorAddress).to.equal(signers[i].address)
 
                       if (i == 0) {
                           const blockNumber = receipt?.blockNumber as number
                           const provider = ethers.provider
                           const blockTimestamp = (await provider.getBlock(blockNumber))?.timestamp
                           const valuesAtRound = await crrrngCoordinator.getValuesAtRound(round)
-                          //await expect(valuesAtRound.startTime).to.equal(blockTimestamp)
-                          await expect(valuesAtRound.stage).to.equal(1)
-                          await expect(valuesAtRound.commitCounts).to.equal(1)
+                          await expect(valuesAtRound.commitEndTime).to.equal(blockTimestamp! + 120)
+                          await expect(
+                              await crrrngCoordinator.getValidCommitCountAtRound(round),
+                          ).to.equal(1)
                       }
                   }
                   const committedOperators =
@@ -399,7 +431,7 @@ const createCorrectAlgorithmVersionTestCase = () => {
                   const round = (await crrrngCoordinator.getNextRound()) - 1n
                   await expect(
                       crrrngCoordinator.recover(round, recoverParams.y),
-                  ).to.be.revertedWithCustomError(crrrngCoordinator, "FunctionInvalidAtThisStage")
+                  ).to.be.revertedWithCustomError(crrrngCoordinator, "StillInCommitPhase")
                   await expect(
                       crrrngCoordinator.disputeRecover(
                           round,
@@ -452,11 +484,12 @@ const createCorrectAlgorithmVersionTestCase = () => {
                       await crrrngCoordinator.getDisputeEndTimeOfOperator(
                           thirdSmallestHashSigner.address,
                       )
+                  const getValidCommitCount =
+                      await crrrngCoordinator.getValidCommitCountAtRound(round)
 
                   // ** assert
-                  await expect(valuesAtRound.commitCounts).to.equal(3)
+                  await expect(getValidCommitCount).to.equal(3)
                   await expect(valuesAtRound.isRecovered).to.equal(true)
-                  await expect(valuesAtRound.stage).to.equal(0)
                   await expect(valuesAtRound.omega.val).to.equal(recoverParams.x.val)
                   await expect(valuesAtRound.omega.bitlen).to.equal(recoverParams.x.bitlen)
                   await expect(valuesAtRound.isVerified).to.equal(false)
@@ -479,10 +512,10 @@ const createCorrectAlgorithmVersionTestCase = () => {
                   const round = (await crrrngCoordinator.getNextRound()) - 1n
                   await expect(
                       crrrngCoordinator.commit(round, commitParams[0]),
-                  ).to.be.revertedWithCustomError(crrrngCoordinator, "FunctionInvalidAtThisStage")
+                  ).to.be.revertedWithCustomError(crrrngCoordinator, "CommitPhaseEnded")
                   await expect(
                       crrrngCoordinator.recover(round, recoverParams.y),
-                  ).to.be.revertedWithCustomError(crrrngCoordinator, "FunctionInvalidAtThisStage")
+                  ).to.be.revertedWithCustomError(crrrngCoordinator, "OmegaAlreadyCompleted")
                   await expect(
                       crrrngCoordinator.fulfillRandomness(round),
                   ).to.be.revertedWithCustomError(
@@ -529,11 +562,12 @@ const createCorrectAlgorithmVersionTestCase = () => {
                       await crrrngCoordinator.getDisputeEndTimeOfOperator(
                           secondSmallestHashSigner.address,
                       )
+                  const getValidCommitCount =
+                      await crrrngCoordinator.getValidCommitCountAtRound(round)
 
                   // ** assert
-                  await expect(valuesAtRound.commitCounts).to.equal(3)
+                  await expect(getValidCommitCount).to.equal(3)
                   await expect(valuesAtRound.isRecovered).to.equal(true)
-                  await expect(valuesAtRound.stage).to.equal(0)
                   await expect(valuesAtRound.omega.val).to.equal(recoverParams.y.val)
                   await expect(valuesAtRound.omega.bitlen).to.equal(recoverParams.y.bitlen)
                   await expect(valuesAtRound.isVerified).to.equal(true)
@@ -541,7 +575,9 @@ const createCorrectAlgorithmVersionTestCase = () => {
                   await expect(getDisputeEndTimeAndLeaderAtRound[1]).to.equal(
                       secondSmallestHashSigner.address,
                   )
-                  await expect(getDisputeEndTimeOfOperatorThird).to.equal(0n)
+                  await expect(getDisputeEndTimeOfOperatorThird).to.equal(
+                      getDisputeEndTimeAndLeaderAtRound[0],
+                  )
                   await expect(getDisputeEndTimeOfOperatorSecond).to.equal(
                       getDisputeEndTimeAndLeaderAtRound[0],
                   )

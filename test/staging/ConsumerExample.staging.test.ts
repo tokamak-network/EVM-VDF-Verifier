@@ -30,7 +30,7 @@ interface ValueAtRound {
     commitsString: BytesLike
     omega: BigNumber
     stage: BigNumberish
-    isCompleted: boolean
+    isRecovered: boolean
 }
 function getLength(value: number): number {
     let length: number = 32
@@ -281,7 +281,7 @@ const createCorrectAlgorithmVersionTestCase = () => {
                   const consumerAddress = await consumerExample.getAddress()
                   expect(valueAtRound.consumer).to.equal(consumerAddress)
                   expect(valueAtRound.commitCounts).to.equal(3)
-                  expect(valueAtRound.isCompleted).to.equal(true)
+                  expect(valueAtRound.isRecovered).to.equal(true)
 
                   const provider = ethers.provider
                   const serviceValueAtRound =

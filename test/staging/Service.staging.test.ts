@@ -35,7 +35,7 @@ import { CRRNGCoordinator, CryptoDice, TonToken } from "../../typechain-types"
     bytes commitsString; // concatenated string of commits
     BigNumber omega; // the random number
     Stages stage; // stage of the contract
-    bool isCompleted; // omega is finialized when this is true
+    bool isRecovered; // omega is finialized when this is true
 }
  */
 interface BigNumber {
@@ -49,7 +49,7 @@ interface ValueAtRound {
     commitsString: BytesLike
     omega: BigNumber
     stage: BigNumberish
-    isCompleted: boolean
+    isRecovered: boolean
 }
 function getLength(value: number): number {
     let length: number = 32
@@ -404,7 +404,7 @@ const createCorrectAlgorithmVersionTestCase = () => {
                   expect(valueAtRound.omega.val).to.equal(recoverParams.y.val)
                   expect(valueAtRound.omega.bitlen).to.equal(recoverParams.y.bitlen)
                   expect(valueAtRound.consumer).to.equal(cryptoDiceAddress)
-                  expect(valueAtRound.isCompleted).to.equal(true)
+                  expect(valueAtRound.isRecovered).to.equal(true)
                   expect(valueAtRound.commitCounts).to.equal(3)
 
                   const provider = ethers.provider
@@ -561,5 +561,5 @@ async function assertValuesAtRequestRandomWord(
     expect(valuesAtRound.omega.val).to.equal(ethers.ZeroHash)
     expect(valuesAtRound.omega.bitlen).to.equal(0)
     expect(valuesAtRound.stage).to.equal(1)
-    expect(valuesAtRound.isCompleted).to.equal(false)
+    expect(valuesAtRound.isRecovered).to.equal(false)
 }

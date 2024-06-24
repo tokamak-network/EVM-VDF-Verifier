@@ -31,7 +31,7 @@ interface ValueAtRound {
     consumer: AddressLike
     omega: BigNumber
     stage: BigNumberish
-    isCompleted: boolean
+    isRecovered: boolean
     isVerified: boolean
 }
 function getLength(value: number): number {
@@ -296,7 +296,7 @@ const createCorrectAlgorithmVersionTestCase = () => {
                   await expect(consumerAddress).to.be.equal(await consumerExample.getAddress())
                   await expect(valuesAtRound.omega.val).to.be.equal("0x")
                   await expect(valuesAtRound.stage).to.be.equal(1n)
-                  await expect(valuesAtRound.isCompleted).to.be.equal(false)
+                  await expect(valuesAtRound.isRecovered).to.be.equal(false)
                   await expect(valuesAtRound.isVerified).to.be.equal(false)
               })
               it("3 operators commit to CRRNGCoordinator", async () => {
@@ -400,7 +400,7 @@ const createCorrectAlgorithmVersionTestCase = () => {
 
                   // ** assert
                   await expect(valuesAtRound.commitCounts).to.equal(3)
-                  await expect(valuesAtRound.isCompleted).to.equal(true)
+                  await expect(valuesAtRound.isRecovered).to.equal(true)
                   await expect(valuesAtRound.stage).to.equal(0)
                   await expect(valuesAtRound.omega.val).to.equal(recoverParams.x.val)
                   await expect(valuesAtRound.omega.bitlen).to.equal(recoverParams.x.bitlen)
@@ -477,7 +477,7 @@ const createCorrectAlgorithmVersionTestCase = () => {
 
                   // ** assert
                   await expect(valuesAtRound.commitCounts).to.equal(3)
-                  await expect(valuesAtRound.isCompleted).to.equal(true)
+                  await expect(valuesAtRound.isRecovered).to.equal(true)
                   await expect(valuesAtRound.stage).to.equal(0)
                   await expect(valuesAtRound.omega.val).to.equal(recoverParams.y.val)
                   await expect(valuesAtRound.omega.bitlen).to.equal(recoverParams.y.bitlen)
@@ -553,7 +553,7 @@ const createCorrectAlgorithmVersionTestCase = () => {
 
               //       // ** assert
               //       await expect(valuesAtRound.commitCounts).to.equal(3)
-              //       await expect(valuesAtRound.isCompleted).to.equal(true)
+              //       await expect(valuesAtRound.isRecovered).to.equal(true)
               //       await expect(valuesAtRound.stage).to.equal(0)
               //       await expect(valuesAtRound.omega.val).to.equal(recoverParams.y.val)
               //       await expect(valuesAtRound.omega.bitlen).to.equal(recoverParams.y.bitlen)
@@ -705,7 +705,7 @@ const createCorrectAlgorithmVersionTestCase = () => {
         bytes commitsString; // concatenated string of commits
         BigNumber omega; // the random number
         Stages stage; // stage of the contract
-        bool isCompleted; // the flag to check if the round is completed
+        bool isRecovered; // the flag to check if the round is completed
         bool isVerified; // omega is verified when this is true
     }
  */

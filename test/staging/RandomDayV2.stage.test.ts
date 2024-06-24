@@ -25,7 +25,7 @@ import {
 } from "ethers"
 import fs from "fs"
 import { ethers, network } from "hardhat"
-import { CRRNGCoordinatorPoF, RandomDayTest, TonToken } from "../../typechain-types"
+import { CRRNGCoordinatorPoFV2, RandomDayTest, TonToken } from "../../typechain-types"
 import OVM_GasPriceOracleABI from "../shared/OVM_GasPriceOracle.json"
 const getBitLenth2 = (num: string): BigNumberish => {
     return BigInt(num).toString(2).length
@@ -35,12 +35,10 @@ interface BigNumber {
     bitlen: BigNumberish
 }
 interface ValueAtRound {
-    startTime: BigNumberish
     requestedTime: BigNumberish
-    commitCounts: BigNumberish
+    commitEndTime: BigNumberish
     consumer: AddressLike
     omega: BigNumber
-    stage: BigNumberish
     isRecovered: boolean
     isVerified: boolean
 }
@@ -82,7 +80,7 @@ async function getL1GasUsed(encodedFuncData: BytesLike) {
     return (await getTitanL1GasUsed(encodedFuncData)) - 4000n
 }
 
-describe("RandomDay", function () {
+describe("RandomDayV2", function () {
     const L1_FEE_DATA_PADDING =
         "0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
     let callback_gaslimit: BigNumberish = 210000n
@@ -107,7 +105,7 @@ describe("RandomDay", function () {
     }
     let testCaseJson
     let signers: SignerWithAddress[]
-    let crrrngCoordinator: CRRNGCoordinatorPoF
+    let crrrngCoordinator: CRRNGCoordinatorPoFV2
     let crrngCoordinatorAddress: string
     let randomDay: RandomDayTest
     let randomDayAddress: string
@@ -172,7 +170,7 @@ describe("RandomDay", function () {
                 ],
             })
             const CRRNGCoordinator = await ethers.getContractFactory("CRRNGCoordinatorPoFForTitan")
-            crrrngCoordinator = await CRRNGCoordinator.deploy(
+            const crrrngCoordinator = await CRRNGCoordinator.deploy(
                 coordinatorConstructorParams.disputePeriod,
                 coordinatorConstructorParams.minimumDepositAmount,
                 coordinatorConstructorParams.avgL2GasUsed,
@@ -203,7 +201,7 @@ describe("RandomDay", function () {
             await expect(signers.length).to.eq(500)
         })
         it("deploy CRRRRNGCoordinator", async function () {
-            const CRRNGCoordinator = await ethers.getContractFactory("CRRNGCoordinatorPoF")
+            const CRRNGCoordinator = await ethers.getContractFactory("CRRNGCoordinatorPoFV2")
             crrrngCoordinator = await CRRNGCoordinator.deploy(
                 coordinatorConstructorParams.disputePeriod,
                 coordinatorConstructorParams.minimumDepositAmount,
@@ -450,12 +448,11 @@ describe("RandomDay", function () {
                 const consumerAddress = await crrrngCoordinator.getConsumerAtRound(round)
 
                 // ** assert
-                await expect(valuesAtRound.startTime).to.be.equal(0n)
+                await expect(valuesAtRound.commitEndTime).to.be.equal(0n)
                 await expect(valuesAtRound.commitCounts).to.be.equal(0n)
                 await expect(valuesAtRound.consumer).to.be.equal(await randomDay.getAddress())
                 await expect(consumerAddress).to.be.equal(await randomDay.getAddress())
                 await expect(valuesAtRound.omega.val).to.be.equal("0x")
-                await expect(valuesAtRound.stage).to.be.equal(1n)
                 await expect(valuesAtRound.isRecovered).to.be.equal(false)
                 await expect(valuesAtRound.isVerified).to.be.equal(false)
             }
@@ -475,7 +472,11 @@ describe("RandomDay", function () {
                     const receipt = await tx.wait()
                     const valuesAtRound: ValueAtRound =
                         await crrrngCoordinator.getValuesAtRound(round)
-                    await expect(valuesAtRound.commitCounts).to.equal(i + 1)
+                    const commitCount = await crrrngCoordinator.getCommitCountAtRound(round)
+                    const validCommitCount =
+                        await crrrngCoordinator.getValidCommitCountAtRound(round)
+                    await expect(commitCount).to.equal(validCommitCount)
+                    await expect(commitCount).to.equal(i + 1)
                     const gasUsed = receipt?.gasUsed as bigint
                     const titanGasCost = await getTotalTitanGasCost(tx.data as BytesLike, gasUsed)
                     _commitAvgGas += titanGasCost
@@ -486,7 +487,7 @@ describe("RandomDay", function () {
                     )
                     await expect(userStatusAtRound.committed).to.equal(true)
                     await expect(userStatusAtRound.commitIndex).to.equal(i)
-                    const getCommitValues = await crrrngCoordinator.getCommitValue(
+                    const getCommitValues = await crrrngCoordinator.getOneCommitValueAtRound(
                         round,
                         userStatusAtRound.commitIndex,
                     )
@@ -496,11 +497,10 @@ describe("RandomDay", function () {
                     if (i == 0) {
                         const blockNumber = receipt?.blockNumber as number
                         const provider = ethers.provider
-                        const blockTimestamp = (await provider.getBlock(blockNumber))?.timestamp
+                        const blockTimestamp = (await provider.getBlock(blockNumber))?.timestamp!
                         const valuesAtRound = await crrrngCoordinator.getValuesAtRound(round)
-                        await expect(valuesAtRound.stage).to.equal(1)
                         await expect(valuesAtRound.commitCounts).to.equal(1)
-                        await expect(valuesAtRound.startTime).to.equal(blockTimestamp)
+                        await expect(valuesAtRound.commitEndTime).to.equal(blockTimestamp + 120)
                     }
                 }
                 _commitAvgGas /= 3n
@@ -538,7 +538,6 @@ describe("RandomDay", function () {
                 // ** assert
                 await expect(valuesAtRound.commitCounts).to.equal(3)
                 await expect(valuesAtRound.isRecovered).to.equal(true)
-                await expect(valuesAtRound.stage).to.equal(0)
                 await expect(valuesAtRound.isVerified).to.equal(false)
 
                 await expect(getDisputeEndTimeAndLeaderAtRound[0]).to.equal(

@@ -31,7 +31,7 @@ interface ValueAtRound {
     commitsString: BytesLike
     omega: BigNumber
     stage: BigNumberish
-    isCompleted: boolean
+    isRecovered: boolean
 }
 function getLength(value: number): number {
     let length: number = 32
