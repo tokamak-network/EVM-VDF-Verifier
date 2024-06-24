@@ -120,7 +120,7 @@ contract CRRNGCoordinatorPoFForTitan is ICRRRNGCoordinator, Ownable, VDFCRRNGPoF
         if (s_operatorCount < 2) revert NotEnoughOperators();
         if (s_valuesAtRound[round].startTime == 0) revert CommitNotStarted();
         if (block.timestamp < s_valuesAtRound[round].startTime + COMMITDURATION)
-            revert StillInCommitStage();
+            revert StillInCommitPhase();
         uint256 count = s_valuesAtRound[round].commitCounts - s_ignoredCounts[round];
         if (count > 1) revert TwoOrMoreCommittedPleaseRecover();
         if (count == 1) {
@@ -141,7 +141,7 @@ contract CRRNGCoordinatorPoFForTitan is ICRRRNGCoordinator, Ownable, VDFCRRNGPoF
         if (s_valuesAtRound[round].requestedTime + 180 < block.timestamp && count == 0)
             _refund(round);
         if (block.timestamp < s_valuesAtRound[round].startTime + COMMITDURATION)
-            revert StillInCommitStage();
+            revert StillInCommitPhase();
         if (count < 2) _refund(round);
     }
 
@@ -157,11 +157,11 @@ contract CRRNGCoordinatorPoFForTitan is ICRRRNGCoordinator, Ownable, VDFCRRNGPoF
     function operatorDeposit() external payable {
         uint256 sumAmount = s_depositedAmount[msg.sender] + msg.value;
         if (sumAmount < s_minimumDepositAmount) revert CRRNGCoordinator_InsufficientDepositAmount();
-        if (!s_operators[msg.sender]) {
+        if (!s_isOperators[msg.sender]) {
             unchecked {
                 ++s_operatorCount;
             }
-            s_operators[msg.sender] = true;
+            s_isOperators[msg.sender] = true;
         }
         unchecked {
             s_depositedAmount[msg.sender] = sumAmount;
@@ -187,8 +187,8 @@ contract CRRNGCoordinatorPoFForTitan is ICRRRNGCoordinator, Ownable, VDFCRRNGPoF
         if (s_disputeEndTimeForOperator[msg.sender] > block.timestamp)
             revert DisputePeriodNotEnded();
         if (depositAmount < amount) revert CRRNGCoordinator_InsufficientDepositAmount();
-        if (depositAmount - amount < s_minimumDepositAmount && s_operators[msg.sender]) {
-            s_operators[msg.sender] = false;
+        if (depositAmount - amount < s_minimumDepositAmount && s_isOperators[msg.sender]) {
+            s_isOperators[msg.sender] = false;
             unchecked {
                 s_operatorCount--;
             }
@@ -319,7 +319,7 @@ contract CRRNGCoordinatorPoFForTitan is ICRRRNGCoordinator, Ownable, VDFCRRNGPoF
      * - [4]: bStar -> The bStar value of the round. This is updated on recovery stage.
      * - [6]: omega -> The omega value of the round. This is updated after recovery.
      * - [7]: stage -> The stage of the round. 0 is Recovered or NotStarted, 1 is Commit
-     * - [8]: isCompleted -> The flag to check if the round is completed. This is updated after recovery.
+     * - [8]: isRecovered -> The flag to check if the round is completed. This is updated after recovery.
      */
     function getValuesAtRound(uint256 _round) external view returns (ValueAtRound memory) {
         return s_valuesAtRound[_round];
@@ -346,7 +346,7 @@ contract CRRNGCoordinatorPoFForTitan is ICRRRNGCoordinator, Ownable, VDFCRRNGPoF
     }
 
     function isOperator(address operator) external view returns (bool) {
-        return s_operators[operator];
+        return s_isOperators[operator];
     }
 
     function isInitialized() external view returns (bool) {
@@ -426,7 +426,7 @@ contract CRRNGCoordinatorPoFForTitan is ICRRRNGCoordinator, Ownable, VDFCRRNGPoF
 
     function _refund(uint256 round) private {
         s_valuesAtRound[round].stage = Stages.Finished;
-        s_valuesAtRound[round].isCompleted = true;
+        s_valuesAtRound[round].isRecovered = true;
 
         // interaction
         uint256 refundAmount = s_cost[round];

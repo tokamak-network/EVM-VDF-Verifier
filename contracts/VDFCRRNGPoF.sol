@@ -30,7 +30,7 @@ contract VDFCRRNGPoF is ReentrancyGuardTransient, GetL1Fee {
      * - [2]: consumer -> The address of the consumer of the round
      * - [4]: omega -> The omega value of the round. This is updated after recovery.
      * - [5]: stage -> The stage of the round. 0 is Recovered or NotStarted, 1 is Commit
-     * - [6]: isCompleted -> The flag to check if the round is completed. This is updated after recovery.
+     * - [6]: isRecovered -> The flag to check if the round is completed. This is updated after recovery.
      */
     struct ValueAtRound {
         uint256 startTime;
@@ -39,7 +39,7 @@ contract VDFCRRNGPoF is ReentrancyGuardTransient, GetL1Fee {
         address consumer;
         BigNumber omega; // the random number
         Stages stage; // stage of the contract
-        bool isCompleted; // the flag to check if the round is completed
+        bool isRecovered; // the flag to check if the round is completed
         bool isVerified; // omega is verified when this is true
     }
 
@@ -85,7 +85,7 @@ contract VDFCRRNGPoF is ReentrancyGuardTransient, GetL1Fee {
     /// @dev The dispute period
     uint256 internal s_disputePeriod;
     /// @dev The mapping of the operators
-    mapping(address operators => bool) internal s_operators;
+    mapping(address operators => bool) internal s_isOperators;
     mapping(uint256 round => address[] committedOperators) internal s_committedOperatorsAtRound;
     /// @dev The mapping of the cost of the round. The cost includes _callbackGasLimit, recoveryGasOverhead, and flatFee
     mapping(uint256 round => uint256 cost) internal s_cost;
@@ -157,7 +157,7 @@ contract VDFCRRNGPoF is ReentrancyGuardTransient, GetL1Fee {
     error TwoOrMoreCommittedPleaseRecover();
     error NotStartedRound();
     error NotVerified();
-    error StillInCommitStage();
+    error StillInCommitPhase();
     error OmegaNotCompleted();
     error NotLeader();
     error CommitNotStarted();
@@ -184,7 +184,7 @@ contract VDFCRRNGPoF is ReentrancyGuardTransient, GetL1Fee {
      * @dev This modifier is used for the operator-only functions
      */
     modifier onlyOperator() {
-        if (!s_operators[msg.sender]) revert CRRNGCoordinator_NotOperator();
+        if (!s_isOperators[msg.sender]) revert CRRNGCoordinator_NotOperator();
         _;
     }
 
@@ -208,7 +208,7 @@ contract VDFCRRNGPoF is ReentrancyGuardTransient, GetL1Fee {
                     previousRound = round - BigNumbers.UINTONE;
                 }
                 if (s_valuesAtRound[previousRound].requestedTime > 0) {
-                    if (s_valuesAtRound[previousRound].isCompleted)
+                    if (s_valuesAtRound[previousRound].isRecovered)
                         s_valuesAtRound[round].startTime = block.timestamp;
                     else revert PreviousRoundNotRecovered();
                 } else s_valuesAtRound[round].startTime = block.timestamp;
@@ -297,9 +297,9 @@ contract VDFCRRNGPoF is ReentrancyGuardTransient, GetL1Fee {
         uint256 _commitCounts = s_valuesAtRound[round].commitCounts;
         if (_commitCounts - s_ignoredCounts[round] < BigNumbers.UINTTWO)
             revert NotEnoughParticipated();
-        if (s_valuesAtRound[round].isCompleted) revert OmegaAlreadyCompleted();
+        if (s_valuesAtRound[round].isRecovered) revert OmegaAlreadyCompleted();
         // effect
-        s_valuesAtRound[round].isCompleted = true;
+        s_valuesAtRound[round].isRecovered = true;
         s_valuesAtRound[round].omega = y;
         s_valuesAtRound[round].stage = Stages.Finished;
         s_disputeEndTimeAtRound[round] = block.timestamp + s_disputePeriod;
@@ -319,7 +319,7 @@ contract VDFCRRNGPoF is ReentrancyGuardTransient, GetL1Fee {
     ) external onlyOperator {
         if (s_valuesAtRound[round].isVerified) revert AlreadyVerified();
         if (BigNumbers.eq(s_valuesAtRound[round].omega, y)) revert SubmittedSameOmega();
-        if (!s_valuesAtRound[round].isCompleted) revert OmegaNotCompleted();
+        if (!s_valuesAtRound[round].isRecovered) revert OmegaNotCompleted();
         if (!s_operatorStatusAtRound[round][msg.sender].committed) revert NotCommittedParticipant();
         if (s_disputeEndTimeAtRound[round] < block.timestamp) revert DisputePeriodEnded();
         BigNumber memory _n = BigNumber(NVAL, NBITLEN);
@@ -353,7 +353,7 @@ contract VDFCRRNGPoF is ReentrancyGuardTransient, GetL1Fee {
         s_depositedAmount[msg.sender] += _penaltyAmount;
         s_depositedAmount[previousLeader] -= _penaltyAmount;
         if (s_depositedAmount[previousLeader] < s_minimumDepositAmount) {
-            s_operators[previousLeader] = false;
+            s_isOperators[previousLeader] = false;
             unchecked {
                 s_operatorCount--;
             }
@@ -383,7 +383,7 @@ contract VDFCRRNGPoF is ReentrancyGuardTransient, GetL1Fee {
         if (!s_operatorStatusAtRound[round][msg.sender].committed) revert NotCommittedParticipant();
         if (s_disputeEndTimeAtRound[round] >= block.timestamp)
             revert DisputePeriodNotEndedOrStarted();
-        if (!s_valuesAtRound[round].isCompleted) revert OmegaNotCompleted();
+        if (!s_valuesAtRound[round].isRecovered) revert OmegaNotCompleted();
         s_depositedAmount[msg.sender] += s_cost[round];
         s_leaderAtRound[round] = msg.sender;
 

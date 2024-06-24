@@ -114,7 +114,7 @@ contract CRRNGCoordinator is ICRRRNGCoordinator, Ownable, VDFCRRNG {
         // check
         if (s_operatorCount < 2) revert NotEnoughOperators();
         if (block.timestamp < s_valuesAtRound[round].startTime + COMMITDURATION)
-            revert StillInCommitStage();
+            revert StillInCommitPhase();
         if (s_valuesAtRound[round].commitCounts > 1) revert TwoOrMoreCommittedPleaseRecover();
         s_valuesAtRound[round].stage = Stages.Commit;
         s_valuesAtRound[round].startTime = block.timestamp;
@@ -133,11 +133,11 @@ contract CRRNGCoordinator is ICRRRNGCoordinator, Ownable, VDFCRRNG {
     function operatorDeposit() external payable {
         if (s_depositAmount[msg.sender] + msg.value < s_minimumDepositAmount)
             revert CRRNGCoordinator_InsufficientDepositAmount();
-        if (!s_operators[msg.sender]) {
+        if (!s_isOperators[msg.sender]) {
             unchecked {
                 ++s_operatorCount;
             }
-            s_operators[msg.sender] = true;
+            s_isOperators[msg.sender] = true;
         }
         unchecked {
             s_depositAmount[msg.sender] += msg.value;
@@ -164,7 +164,7 @@ contract CRRNGCoordinator is ICRRRNGCoordinator, Ownable, VDFCRRNG {
             revert DisputePeriodNotEnded();
         if (depositAmount < amount) revert CRRNGCoordinator_InsufficientDepositAmount();
         if (depositAmount - amount < s_minimumDepositAmount) {
-            s_operators[msg.sender] = false;
+            s_isOperators[msg.sender] = false;
             unchecked {
                 s_operatorCount--;
             }
@@ -193,7 +193,7 @@ contract CRRNGCoordinator is ICRRRNGCoordinator, Ownable, VDFCRRNG {
         // check if committed
         if (!s_operatorStatusAtRound[round][msg.sender].committed) revert NotCommittedParticipant();
         if (s_disputeEndTimeAtRound[round] < block.timestamp) revert DisputePeriodEnded();
-        if (!s_valuesAtRound[round].isCompleted) revert OmegaNotCompleted();
+        if (!s_valuesAtRound[round].isRecovered) revert OmegaNotCompleted();
         bytes memory _omega = s_valuesAtRound[round].omega.val;
         address _leader = s_leaderAtRound[round];
         if (_leader == msg.sender) revert AlreadyLeader();
@@ -311,7 +311,7 @@ contract CRRNGCoordinator is ICRRRNGCoordinator, Ownable, VDFCRRNG {
      * - [5]: commitsString -> The concatenated string of the commits of the operators. This is updated when commit
      * - [6]: omega -> The omega value of the round. This is updated after recovery.
      * - [7]: stage -> The stage of the round. 0 is Recovered or NotStarted, 1 is Commit
-     * - [8]: isCompleted -> The flag to check if the round is completed. This is updated after recovery.
+     * - [8]: isRecovered -> The flag to check if the round is completed. This is updated after recovery.
      */
     function getValuesAtRound(uint256 _round) external view returns (ValueAtRound memory) {
         return s_valuesAtRound[_round];

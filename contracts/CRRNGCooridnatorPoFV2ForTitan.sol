@@ -2,7 +2,7 @@
 pragma solidity ^0.8.24;
 
 import {ICRRRNGCoordinator} from "./interfaces/ICRRRNGCoordinator.sol";
-import {VDFCRRNGPoF} from "./VDFCRRNGPoF.sol";
+import {VDFCRRNGPoFV2ForTitan} from "./VDFCRRNGPoFV2ForTitan.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {IOVM_GasPriceOracle} from "./interfaces/IOVM_GasPriceOracle.sol";
 
@@ -10,7 +10,7 @@ import {IOVM_GasPriceOracle} from "./interfaces/IOVM_GasPriceOracle.sol";
 /// @author Justin G
 /// @notice This contract is not audited
 /// @notice  This contract is for generating random number
-contract CRRNGCoordinatorPoF is ICRRRNGCoordinator, Ownable, VDFCRRNGPoF {
+contract CRRNGCoordinatorPoFV2ForTitan is ICRRRNGCoordinator, Ownable, VDFCRRNGPoFV2ForTitan {
     // *** State variables
     // * private
     uint256 private s_avgL2GasUsed;
@@ -94,12 +94,11 @@ contract CRRNGCoordinatorPoF is ICRRRNGCoordinator, Ownable, VDFCRRNGPoF {
         uint256 cost = _calculateDirectFundingPrice(callbackGasLimit, tx.gasprice);
         if (msg.value < cost) revert InsufficientAmount();
         uint256 _round = s_nextRound++;
-        s_valuesAtRound[_round].stage = Stages.Commit;
         s_valuesAtRound[_round].consumer = msg.sender;
         s_valuesAtRound[_round].requestedTime = block.timestamp;
         s_cost[_round] = msg.value;
         s_callbackGasLimit[_round] = callbackGasLimit;
-        emit RandomWordsRequested(_round, msg.sender);
+        emit RandomWordsRequested(_round);
         return _round;
     }
 
@@ -114,34 +113,29 @@ contract CRRNGCoordinatorPoF is ICRRRNGCoordinator, Ownable, VDFCRRNGPoF {
      * 2. Resets the start time of the round
      * 3. ReEmits a RandomWordsRequested(round, msg.sender) event
      */
-    function reRequestRandomWordAtRound(uint256 round) external nonReentrant {
+    function reRequestRandomWordAtRound(uint256 round) external startedRound(round) nonReentrant {
         // check
-        if (round >= s_nextRound) revert NotStartedRound();
         if (s_operatorCount < 2) revert NotEnoughOperators();
-        if (s_valuesAtRound[round].startTime == 0) revert CommitNotStarted();
-        if (block.timestamp < s_valuesAtRound[round].startTime + COMMITDURATION)
-            revert StillInCommitPhase();
-        uint256 count = s_valuesAtRound[round].commitCounts - s_ignoredCounts[round];
+        if (s_valuesAtRound[round].commitEndTime == 0) revert CommitNotStarted();
+        if (block.timestamp < s_valuesAtRound[round].commitEndTime) revert StillInCommitPhase();
+        uint256 count = s_commitValues[round].length - s_ignoredCounts[round];
         if (count > 1) revert TwoOrMoreCommittedPleaseRecover();
         if (count == 1) {
             unchecked {
                 ++s_ignoredCounts[round];
             }
         }
-        s_valuesAtRound[round].stage = Stages.Commit;
-        s_valuesAtRound[round].startTime = 0;
-        emit RandomWordsRequested(round, s_valuesAtRound[round].consumer);
+        s_valuesAtRound[round].commitEndTime = 0;
+        emit RandomWordsRequested(round);
     }
 
-    function refundAtRound(uint256 round) external nonReentrant {
+    function refundAtRound(uint256 round) external startedRound(round) nonReentrant {
         // check
-        if (round >= s_nextRound) revert NotStartedRound();
         if (s_valuesAtRound[round].consumer != msg.sender) revert NotConsumer();
-        uint256 count = s_valuesAtRound[round].commitCounts - s_ignoredCounts[round];
+        uint256 count = s_commitValues[round].length - s_ignoredCounts[round];
         if (s_valuesAtRound[round].requestedTime + 180 < block.timestamp && count == 0)
             _refund(round);
-        if (block.timestamp < s_valuesAtRound[round].startTime + COMMITDURATION)
-            revert StillInCommitPhase();
+        if (block.timestamp < s_valuesAtRound[round].commitEndTime) revert StillInCommitPhase();
         if (count < 2) _refund(round);
     }
 
@@ -158,10 +152,8 @@ contract CRRNGCoordinatorPoF is ICRRRNGCoordinator, Ownable, VDFCRRNGPoF {
         uint256 sumAmount = s_depositedAmount[msg.sender] + msg.value;
         if (sumAmount < s_minimumDepositAmount) revert CRRNGCoordinator_InsufficientDepositAmount();
         if (!s_isOperators[msg.sender]) {
-            unchecked {
-                ++s_operatorCount;
-            }
             s_isOperators[msg.sender] = true;
+            emit OperatorNumberChanged(++s_operatorCount, msg.sender, true);
         }
         unchecked {
             s_depositedAmount[msg.sender] = sumAmount;
@@ -189,9 +181,7 @@ contract CRRNGCoordinatorPoF is ICRRRNGCoordinator, Ownable, VDFCRRNGPoF {
         if (depositAmount < amount) revert CRRNGCoordinator_InsufficientDepositAmount();
         if (depositAmount - amount < s_minimumDepositAmount && s_isOperators[msg.sender]) {
             s_isOperators[msg.sender] = false;
-            unchecked {
-                s_operatorCount--;
-            }
+            emit OperatorNumberChanged(--s_operatorCount, msg.sender, false);
         }
         s_depositedAmount[msg.sender] -= amount;
         bool success = _send(msg.sender, gasleft(), amount);
@@ -261,6 +251,14 @@ contract CRRNGCoordinatorPoF is ICRRRNGCoordinator, Ownable, VDFCRRNGPoF {
         return s_cost[round];
     }
 
+    function getCommitCountAtRound(uint256 round) external view returns (uint256) {
+        return s_commitValues[round].length;
+    }
+
+    function getValidCommitCountAtRound(uint256 round) external view returns (uint256) {
+        return s_commitValues[round].length - s_ignoredCounts[round];
+    }
+
     /**
      * @param operator The operator address
      * @return depositAmount The deposit amount of the operator
@@ -312,7 +310,7 @@ contract CRRNGCoordinatorPoF is ICRRRNGCoordinator, Ownable, VDFCRRNGPoF {
      * @param _round The round ID of the request
      * @return The values of the round that are used for commit and recovery stages. The return value is struct ValueAtRound
      * @notice This getter function is for anyone to get the values of the round that are used for commit and recovery stages
-     * - [0]: startTime -> The start time of the round
+     * - [0]: commitEndTime -> The start time of the round
      * - [1]:numOfPariticipants -> This is the number of operators who have committed to the round. And this is updated on the recovery stage.
      * - [2]: count -> The number of operators who have committed to the round. And this is updated real-time.
      * - [3]: consumer -> The address of the consumer of the round
@@ -353,22 +351,15 @@ contract CRRNGCoordinatorPoF is ICRRRNGCoordinator, Ownable, VDFCRRNGPoF {
         return s_initialized;
     }
 
-    /**
-     * @param _round The round ID of the request
-     * @return The commit value and the operator address of the round. The return value is struct CommitValue
-     * @notice This getter function is for anyone to get the commit value and the operator address of the round
-     * - [0]: commit -> The commit value of the operator
-     * - [2]: operator -> The operator address
-     */
-    function getCommitValue(
-        uint256 _round,
-        uint256 _index
-    ) external view returns (CommitValue memory) {
-        return s_commitValues[_round][_index];
-    }
-
     function getCommittedOperatorsAtRound(uint256 round) external view returns (address[] memory) {
         return s_committedOperatorsAtRound[round];
+    }
+
+    function getOneCommittedOperatorAtRound(
+        uint256 round,
+        uint256 index
+    ) external view returns (address) {
+        return s_committedOperatorsAtRound[round][index];
     }
 
     /**
@@ -425,9 +416,7 @@ contract CRRNGCoordinatorPoF is ICRRRNGCoordinator, Ownable, VDFCRRNGPoF {
     }
 
     function _refund(uint256 round) private {
-        s_valuesAtRound[round].stage = Stages.Finished;
         s_valuesAtRound[round].isRecovered = true;
-
         // interaction
         uint256 refundAmount = s_cost[round];
         bool success = _send(msg.sender, gasleft(), refundAmount);
