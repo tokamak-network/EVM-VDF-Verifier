@@ -18,7 +18,7 @@ import { DeployFunction } from "hardhat-deploy/types"
 import { HardhatRuntimeEnvironment } from "hardhat/types"
 import { VERIFICATION_BLOCK_CONFIRMATIONS } from "../helper-hardhat-config"
 import verify from "../utils/verify"
-const deployCRRRNGCoordinator: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
+const deployCRRRNGCoordinatorV2: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
     const { deployments, getNamedAccounts, network } = hre
     const { deploy, log } = deployments
     const { deployer } = await getNamedAccounts()
@@ -28,14 +28,18 @@ const deployCRRRNGCoordinator: DeployFunction = async (hre: HardhatRuntimeEnviro
         disputePeriod: BigNumberish
         minimumDepositAmount: BigNumberish
         avgL2GasUsed: BigNumberish
+        avgL1GasUsed: BigNumberish
         premiumPercentage: BigNumberish
+        penaltyPercentage: BigNumberish
         flatFee: BigNumberish
     } = {
         disputePeriod: 180n,
-        minimumDepositAmount: ethers.parseEther("0.01"),
-        avgL2GasUsed: 2297700n,
+        minimumDepositAmount: ethers.parseEther("0.005"),
+        avgL2GasUsed: 2101449n,
+        avgL1GasUsed: 27824n,
         premiumPercentage: 0n,
-        flatFee: ethers.parseEther("0.0013"),
+        penaltyPercentage: 20n,
+        flatFee: ethers.parseEther("0.001"),
     }
 
     const waitBlockConfirmations =
@@ -43,31 +47,44 @@ const deployCRRRNGCoordinator: DeployFunction = async (hre: HardhatRuntimeEnviro
             ? 1
             : VERIFICATION_BLOCK_CONFIRMATIONS
     log("----------------------------------------------------")
-    const crrRngCoordinator = await deploy("CRRNGCoordinator", {
+    const crrRngCoordinator = await deploy("CRRNGCoordinatorPoFV2", {
         from: deployer,
         log: true,
         args: [
             coordinatorConstructorParams.disputePeriod,
             coordinatorConstructorParams.minimumDepositAmount,
             coordinatorConstructorParams.avgL2GasUsed,
+            coordinatorConstructorParams.avgL1GasUsed,
             coordinatorConstructorParams.premiumPercentage,
+            coordinatorConstructorParams.penaltyPercentage,
             coordinatorConstructorParams.flatFee,
         ],
         waitConfirmations: waitBlockConfirmations,
     })
     // deploy result
-    log("CRRNGCoordinator deployed at:", crrRngCoordinator.address)
+    log("CRRNGCoordinatorPoFV2 deployed at:", crrRngCoordinator.address)
     if (chainId !== 31337 && process.env.ETHERSCAN_API_KEY) {
         log("Verifying...")
         await verify(crrRngCoordinator.address, [
             coordinatorConstructorParams.disputePeriod,
             coordinatorConstructorParams.minimumDepositAmount,
             coordinatorConstructorParams.avgL2GasUsed,
+            coordinatorConstructorParams.avgL1GasUsed,
             coordinatorConstructorParams.premiumPercentage,
+            coordinatorConstructorParams.penaltyPercentage,
             coordinatorConstructorParams.flatFee,
         ])
     }
     log("----------------------------------------------------")
 }
-export default deployCRRRNGCoordinator
-deployCRRRNGCoordinator.tags = ["all", "CRRNGCoordinator"]
+export default deployCRRRNGCoordinatorV2
+deployCRRRNGCoordinatorV2.tags = [
+    "all",
+    "sepolia",
+    "anvil",
+    "v2",
+    "crr",
+    "opSepolia",
+    "opSepoliaRandom",
+    "PoFV2",
+]

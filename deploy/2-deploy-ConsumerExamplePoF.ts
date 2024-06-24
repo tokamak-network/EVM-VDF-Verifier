@@ -21,14 +21,19 @@ const deployConsumerExample: DeployFunction = async (hre: HardhatRuntimeEnvironm
     const { deploy, log } = deployments
     const { deployer } = await getNamedAccounts()
     const chainId = network.config.chainId
-    const crrRngCoordinatorAddress = (await deployments.get("CRRNGCoordinatorPoF")).address
+    const crrRngCoordinatorAddress = (await deployments.get("CRRNGCoordinatorPoFV2ForTitan"))
+        .address
     const waitBlockConfirmations =
-        chainId === 31337 || chainId === 5050 || chainId === 55004 || chainId === 111551115050
+        chainId === 31337 ||
+        chainId === 5050 ||
+        chainId === 55004 ||
+        chainId === 111551115050 ||
+        chainId === 55007
             ? 1
             : VERIFICATION_BLOCK_CONFIRMATIONS
 
     log("----------------------------------------------------")
-    const consumerExample = await deploy("ConsumerExample", {
+    const consumerExample = await deploy("ConsumerExampleForTitan", {
         from: deployer,
         log: true,
         args: [crrRngCoordinatorAddress],
@@ -44,4 +49,12 @@ const deployConsumerExample: DeployFunction = async (hre: HardhatRuntimeEnvironm
     log("----------------------------------------------------")
 }
 export default deployConsumerExample
-deployConsumerExample.tags = ["all", "consumerexample", "sepolia", "v2", "consume", "opSepolia"]
+deployConsumerExample.tags = [
+    "all",
+    "consumerexample",
+    "sepolia",
+    "v2",
+    "consume",
+    "opSepolia",
+    "consumerTitan",
+]

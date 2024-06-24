@@ -16,7 +16,7 @@ import { BytesLike } from "ethers"
 import fs from "fs"
 import { DeployFunction } from "hardhat-deploy/types"
 import { HardhatRuntimeEnvironment } from "hardhat/types"
-import { VERIFICATION_BLOCK_CONFIRMATIONS } from "../helper-hardhat-config"
+import { VERIFICATION_BLOCK_CONFIRMATIONS } from "../../helper-hardhat-config"
 
 interface BigNumber {
     val: BytesLike
@@ -28,14 +28,20 @@ function getLength(value: number): number {
     return length
 }
 
-const deployCRRRNGCoordinator: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
+const deployCRRRNGCoordinatorV2ForTitan: DeployFunction = async (
+    hre: HardhatRuntimeEnvironment,
+) => {
     const { deployments, getNamedAccounts, network, ethers } = hre
     const { deploy, log } = deployments
     const { deployer } = await getNamedAccounts()
     const chainId = network.config.chainId
 
     const waitBlockConfirmations =
-        chainId === 31337 || chainId === 5050 || chainId === 55004 || chainId === 111551115050
+        chainId === 31337 ||
+        chainId === 5050 ||
+        chainId === 55004 ||
+        chainId === 111551115050 ||
+        chainId == 55007
             ? 1
             : VERIFICATION_BLOCK_CONFIRMATIONS
     log("----------------------------------------------------")
@@ -61,9 +67,10 @@ const deployCRRRNGCoordinator: DeployFunction = async (hre: HardhatRuntimeEnviro
         initializeParams.v.push(testCaseJson.setupProofs[i].v)
     }
 
-    const crrrngCoordinatorAddress = (await deployments.get("CRRNGCoordinator")).address
+    const crrrngCoordinatorAddress = (await deployments.get("CRRNGCoordinatorPoFV2ForTitan"))
+        .address
     const crrngCoordinatorContract = await ethers.getContractAt(
-        "CRRNGCoordinator",
+        "CRRNGCoordinatorPoFV2ForTitan",
         crrrngCoordinatorAddress,
     )
     const tx = await crrngCoordinatorContract.initialize(
@@ -78,12 +85,22 @@ const deployCRRRNGCoordinator: DeployFunction = async (hre: HardhatRuntimeEnviro
     log("initialized!")
     log("----------------------------------------------------")
 }
-export default deployCRRRNGCoordinator
-deployCRRRNGCoordinator.tags = ["all", "CRRRNGCoordinatorInitialize", "testnet", "anvil"]
+export default deployCRRRNGCoordinatorV2ForTitan
+deployCRRRNGCoordinatorV2ForTitan.tags = [
+    "all",
+    "sepolia",
+    "testnet",
+    "anvil",
+    "v2",
+    "init",
+    "opSepolia",
+    "opSepoliaRandom",
+    "PoFV2ForTitan",
+]
 
 const createCorrectAlgorithmVersionTestCase = () => {
     const testCaseJson = JSON.parse(
-        fs.readFileSync(__dirname + "/../test/shared/correct.json", "utf-8"),
+        fs.readFileSync(__dirname + "/../../test/shared/correct.json", "utf-8"),
     )
     return testCaseJson
 }

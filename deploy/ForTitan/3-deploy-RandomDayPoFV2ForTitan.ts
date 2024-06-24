@@ -14,34 +14,50 @@
 
 import { DeployFunction } from "hardhat-deploy/types"
 import { HardhatRuntimeEnvironment } from "hardhat/types"
-import { VERIFICATION_BLOCK_CONFIRMATIONS } from "../helper-hardhat-config"
-import verify from "../utils/verify"
-const deployConsumerExample: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
+import { VERIFICATION_BLOCK_CONFIRMATIONS } from "../../helper-hardhat-config"
+import verify from "../../utils/verify"
+const deployRandomDayV2: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
     const { deployments, getNamedAccounts, network } = hre
     const { deploy, log } = deployments
     const { deployer } = await getNamedAccounts()
     const chainId = network.config.chainId
-    const crrRngCoordinatorAddress = (await deployments.get("CRRNGCoordinator")).address
+    const crrRngCoordinatorAddress = (await deployments.get("CRRNGCoordinatorPoFV2ForTitan"))
+        .address
+    const tonTokenAddress = "0x7c6b91D9Be155A6Db01f749217d76fF02A7227F2"
     const waitBlockConfirmations =
-        chainId === 31337 || chainId === 5050 || chainId === 55004 || chainId === 111551115050
+        chainId === 31337 ||
+        chainId === 5050 ||
+        chainId === 55004 ||
+        chainId === 111551115050 ||
+        chainId == 55007
             ? 1
             : VERIFICATION_BLOCK_CONFIRMATIONS
 
     log("----------------------------------------------------")
-    const consumerExample = await deploy("ConsumerExample", {
+    const randomDay = await deploy("RandomDayForTitan", {
         from: deployer,
         log: true,
-        args: [crrRngCoordinatorAddress],
+        args: [crrRngCoordinatorAddress, tonTokenAddress],
         waitConfirmations: waitBlockConfirmations,
     })
     // deploy result
-    log("consumerExample deployed at:", consumerExample.address)
+    log("randomDay deployed at:", randomDay.address)
 
     if (chainId !== 31337 && process.env.ETHERSCAN_API_KEY) {
         log("Verifying...")
-        await verify(consumerExample.address, [crrRngCoordinatorAddress])
+        await verify(randomDay.address, [crrRngCoordinatorAddress, tonTokenAddress])
     }
     log("----------------------------------------------------")
 }
-export default deployConsumerExample
-deployConsumerExample.tags = ["all", "consumerexample", "testnet"]
+export default deployRandomDayV2
+deployRandomDayV2.tags = [
+    "all",
+    "randomDay",
+    "testnet",
+    "v2",
+    "anvil",
+    "randV2",
+    "opSepoliaRandom",
+    "PoFV2ForTitan",
+    "PoFV2ForTitanRandom",
+]
