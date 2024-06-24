@@ -931,7 +931,7 @@ contract CRRNGCoordinator is ICRRRNGCoordinator, Ownable, VDFCRRNG {
         // check
 <span class="cstat-no" title="statement not covered" >        if (s_operatorCount &lt; 2) revert NotEnoughOperators();</span>
 <span class="cstat-no" title="statement not covered" >        if (block.timestamp &lt; s_valuesAtRound[round].startTime + COMMITDURATION)</span>
-            revert StillInCommitStage();
+            revert StillInCommitPhase();
 <span class="cstat-no" title="statement not covered" >        if (s_valuesAtRound[round].commitCounts &gt; 1) revert TwoOrMoreCommittedPleaseRecover();</span>
         s_valuesAtRound[round].stage = Stages.Commit;
         s_valuesAtRound[round].startTime = block.timestamp;
@@ -950,11 +950,11 @@ contract CRRNGCoordinator is ICRRRNGCoordinator, Ownable, VDFCRRNG {
     function operatorDeposit() external payable {
         <span class="missing-if-branch" title="if path not taken" >I</span>if (s_depositAmount[msg.sender] + msg.value &lt; s_minimumDepositAmount)
             revert CRRNGCoordinator_InsufficientDepositAmount();
-        <span class="missing-if-branch" title="else path not taken" >E</span>if (!s_operators[msg.sender]) {
+        <span class="missing-if-branch" title="else path not taken" >E</span>if (!s_isOperators[msg.sender]) {
             unchecked {
                 ++s_operatorCount;
             }
-            s_operators[msg.sender] = true;
+            s_isOperators[msg.sender] = true;
         }
         unchecked {
             s_depositAmount[msg.sender] += msg.value;
@@ -981,7 +981,7 @@ contract CRRNGCoordinator is ICRRRNGCoordinator, Ownable, VDFCRRNG {
             revert DisputePeriodNotEnded();
 <span class="cstat-no" title="statement not covered" >        if (depositAmount &lt; amount) revert CRRNGCoordinator_InsufficientDepositAmount();</span>
 <span class="cstat-no" title="statement not covered" >        if (depositAmount - amount &lt; s_minimumDepositAmount) {</span>
-            s_operators[msg.sender] = false;
+            s_isOperators[msg.sender] = false;
             unchecked {
                 s_operatorCount--;
             }
@@ -1010,7 +1010,7 @@ contract CRRNGCoordinator is ICRRRNGCoordinator, Ownable, VDFCRRNG {
         // check if committed
         <span class="missing-if-branch" title="if path not taken" >I</span>if (!s_operatorStatusAtRound[round][msg.sender].committed) revert NotCommittedParticipant();
         <span class="missing-if-branch" title="if path not taken" >I</span>if (s_disputeEndTimeAtRound[round] &lt; block.timestamp) revert DisputePeriodEnded();
-        <span class="missing-if-branch" title="if path not taken" >I</span>if (!s_valuesAtRound[round].isCompleted) revert OmegaNotCompleted();
+        <span class="missing-if-branch" title="if path not taken" >I</span>if (!s_valuesAtRound[round].isRecovered) revert OmegaNotCompleted();
         bytes memory _omega = s_valuesAtRound[round].omega.val;
         address _leader = s_leaderAtRound[round];
         <span class="missing-if-branch" title="if path not taken" >I</span>if (_leader == msg.sender) revert AlreadyLeader();
@@ -1128,7 +1128,7 @@ contract CRRNGCoordinator is ICRRRNGCoordinator, Ownable, VDFCRRNG {
      * - [5]: commitsString -&gt; The concatenated string of the commits of the operators. This is updated when commit
      * - [6]: omega -&gt; The omega value of the round. This is updated after recovery.
      * - [7]: stage -&gt; The stage of the round. 0 is Recovered or NotStarted, 1 is Commit
-     * - [8]: isCompleted -&gt; The flag to check if the round is completed. This is updated after recovery.
+     * - [8]: isRecovered -&gt; The flag to check if the round is completed. This is updated after recovery.
      */
     function getValuesAtRound(uint256 _round) external view returns (ValueAtRound memory) {
         return s_valuesAtRound[_round];

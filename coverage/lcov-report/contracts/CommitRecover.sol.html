@@ -838,7 +838,7 @@ contract CommitRecover {
         bytes commitsString; // concatenated string of commits
         BigNumber omega; // the random number
         Stages stage; // stage of the contract
-        bool isCompleted; // omega is finialized when this is true
+        bool isRecovered; // omega is finialized when this is true
         bool isAllRevealed; // true when all participants have revealed
     }
     struct CommitRevealValue {
@@ -968,7 +968,7 @@ contract CommitRecover {
 &nbsp;
     function calculateOmega(uint256 _round) public returns (BigNumber memory) {
         <span class="missing-if-branch" title="if path not taken" >I</span>if (!valuesAtRound[_round].isAllRevealed) revert NotAllRevealed();
-        <span class="missing-if-branch" title="if path not taken" >I</span>if (valuesAtRound[_round].isCompleted) <span class="cstat-no" title="statement not covered" >return valuesAtRound[_round].omega;</span>
+        <span class="missing-if-branch" title="if path not taken" >I</span>if (valuesAtRound[_round].isRecovered) <span class="cstat-no" title="statement not covered" >return valuesAtRound[_round].omega;</span>
         checkStage(_round);
         equalStage(_round, Stages.Finished);
         uint256 _numOfParticipants = valuesAtRound[_round].numOfParticipants;
@@ -987,7 +987,7 @@ contract CommitRecover {
             );
         }
         valuesAtRound[_round].omega = _omega;
-        valuesAtRound[_round].isCompleted = true; //false when not all participants have revealed
+        valuesAtRound[_round].isRecovered = true; //false when not all participants have revealed
         valuesAtRound[_round].stage = Stages.Finished;
         emit CalculatedOmega(_round, _omega, block.timestamp);
         return _omega;
@@ -1011,7 +1011,7 @@ contract CommitRecover {
             valuesAtRound[_round].numOfParticipants == 0
         ) revert NoneParticipated();
         bytes memory _bStar = valuesAtRound[_round].bStar;
-        <span class="missing-if-branch" title="if path not taken" >I</span>if (valuesAtRound[_round].isCompleted) revert OmegaAlreadyCompleted();
+        <span class="missing-if-branch" title="if path not taken" >I</span>if (valuesAtRound[_round].isRecovered) revert OmegaAlreadyCompleted();
         <span class="missing-if-branch" title="if path not taken" >I</span>if (setUpValuesAtRound[_round].T != proofs[0].T) revert TNotMatched();
         <span class="missing-if-branch" title="if path not taken" >I</span>if (!verifyRecursiveHalvingProof(proofs, _n)) revert NotVerified();
         for (uint256 i = 0; i &lt; valuesAtRound[_round].numOfParticipants; i = unchecked_inc(i)) {
@@ -1020,7 +1020,7 @@ contract CommitRecover {
             recov = recov.modmul(temp, _n);
         }
         <span class="missing-if-branch" title="if path not taken" >I</span>if (!recov.eq(proofs[0].x)) revert RecovNotMatchX();
-        valuesAtRound[_round].isCompleted = true;
+        valuesAtRound[_round].isRecovered = true;
         valuesAtRound[_round].omega = proofs[0].y;
         valuesAtRound[_round].stage = Stages.Finished;
         emit Recovered(msg.sender, recov, proofs[0].y, block.timestamp);
