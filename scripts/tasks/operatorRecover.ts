@@ -32,10 +32,10 @@ task("recoverAtRound", "Operator recover")
     .setAction(async ({ round }, { deployments, ethers, getNamedAccounts }) => {
         const { deployer } = await getNamedAccounts()
         console.log("EOA address:", deployer)
-        const crrrngCoordinatorAddress = (await deployments.get("CRRNGCoordinatorPoF")).address
+        const crrrngCoordinatorAddress = (await deployments.get("CRRNGCoordinatorPoFV2")).address
         console.log("CRRRNGCoordinator address:", crrrngCoordinatorAddress)
         const crrngCoordinatorContract = await ethers.getContractAt(
-            "CRRNGCoordinatorPoF",
+            "CRRNGCoordinatorPoFV2",
             crrrngCoordinatorAddress,
         )
 

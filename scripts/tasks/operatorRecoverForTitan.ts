@@ -11,7 +11,6 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-import { time } from "@nomicfoundation/hardhat-network-helpers"
 import { BigNumberish, BytesLike } from "ethers"
 import { task } from "hardhat/config"
 
@@ -28,17 +27,16 @@ export const getBitLenth2 = (num: string): BigNumberish => {
     return BigInt(num).toString(2).length
 }
 
-task("recoverAtRoundForTitan", "Operator recover For Titan")
+task("recoverForTitan", "Operator recover")
     .addParam("round", "The round to recover")
-    .setAction(async ({ round }, { getChainId, deployments, ethers, getNamedAccounts }) => {
-        const chainId = await getChainId()
+    .setAction(async ({ round }, { deployments, ethers, getNamedAccounts }) => {
         const { deployer } = await getNamedAccounts()
         console.log("EOA address:", deployer)
-        const crrrngCoordinatorAddress = (await deployments.get("CRRNGCoordinatorPoFForTitan"))
+        const crrrngCoordinatorAddress = (await deployments.get("CRRNGCoordinatorPoFV2ForTitan"))
             .address
         console.log("CRRRNGCoordinator address:", crrrngCoordinatorAddress)
         const crrngCoordinatorContract = await ethers.getContractAt(
-            "CRRNGCoordinatorPoFForTitan",
+            "CRRNGCoordinatorPoFV2ForTitan",
             crrrngCoordinatorAddress,
         )
 
@@ -51,10 +49,7 @@ task("recoverAtRoundForTitan", "Operator recover For Titan")
         }
         console.log(recover)
         try {
-            if (chainId == "31337") {
-                await time.increase(121)
-            }
-            let tx = await crrngCoordinatorContract.recover(round, recover)
+            let tx = await crrngCoordinatorContract.recover(round, recover, { gasLimit: 500000 })
             const receipt = await tx.wait()
             console.log("Transaction receipt", receipt)
             console.log("Recovered")

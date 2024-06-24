@@ -13,39 +13,26 @@
 // limitations under the License.
 import { deployments, ethers, getNamedAccounts, network } from "hardhat"
 
-async function requestRandomWord() {
+async function startEventForTitan() {
     const chainId: number = network.config.chainId as number
     const { deployer } = await getNamedAccounts()
-    const registrationDuration = 86400n
-    const totalPrizeAmount = 1000n * 10n ** 18n
     console.log("EOA address:", deployer)
-    const crrrngCoordinatorAddress = (await deployments.get("CRRNGCoordinatorPoFV2")).address
-    console.log("CRRNGCoordinatorPoFV2 address:", crrrngCoordinatorAddress)
-    const crrngCoordinatorContract = await ethers.getContractAt(
-        "CRRNGCoordinatorPoFV2",
-        crrrngCoordinatorAddress,
-    )
+    const randomDayAddress = (await deployments.get("RandomDayForTitan")).address
+    console.log("randomDay address:", randomDayAddress)
+    const cryptoDiceConsumerContract = await ethers.getContractAt("RandomDay", randomDayAddress)
     try {
-        //const round = (await crrngCoordinatorContract.getNextRound()) - 1n
-        const round = 2n
-        console.log("Round:", round.toString())
-        console.log("ReRequesting random word...")
-        let tx
-        if (chainId == 5050 || chainId == 55004)
-            tx = await crrngCoordinatorContract.reRequestRandomWordAtRound(round, {
-                gasLimit: 810000,
-            })
-        else tx = await crrngCoordinatorContract.reRequestRandomWordAtRound(round)
+        console.log("Starting Event...")
+        const tx = await cryptoDiceConsumerContract.startEvent()
         const receipt = await tx.wait()
         console.log("Transaction receipt", receipt)
-        console.log("Random word reRequested")
+        console.log("Event started")
         console.log("----------------------")
     } catch (error) {
         console.error(error)
     }
 }
 
-requestRandomWord()
+startEventForTitan()
     .then(() => process.exit(0))
     .catch((error) => {
         console.error(error)

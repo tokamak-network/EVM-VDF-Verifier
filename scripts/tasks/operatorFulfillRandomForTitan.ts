@@ -11,7 +11,6 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-import { time } from "@nomicfoundation/hardhat-network-helpers"
 import { BigNumberish, BytesLike } from "ethers"
 import fs from "fs"
 import { task } from "hardhat/config"
@@ -29,24 +28,20 @@ export const getBitLenth2 = (num: string): BigNumberish => {
     return BigInt(num).toString(2).length
 }
 
-task("fulfillAtRoundForTitan", "Operator fulfillRandomWord For Titan")
+task("fulfillForTitan", "Operator fulfillRandomWord")
     .addParam("round", "The round to fulfill")
-    .setAction(async ({ round }, { getChainId, deployments, ethers, getNamedAccounts }) => {
-        const chainId = await getChainId()
+    .setAction(async ({ round }, { deployments, ethers, getNamedAccounts }) => {
         const { deployer } = await getNamedAccounts()
         console.log("EOA address:", deployer)
-        const crrrngCoordinatorAddress = (await deployments.get("CRRNGCoordinatorPoFForTitan"))
+        const crrrngCoordinatorAddress = (await deployments.get("CRRNGCoordinatorPoFV2ForTitan"))
             .address
         console.log("CRRRNGCoordinator address:", crrrngCoordinatorAddress)
         const crrngCoordinatorContract = await ethers.getContractAt(
-            "CRRNGCoordinatorPoFForTitan",
+            "CRRNGCoordinatorPoFV2ForTitan",
             crrrngCoordinatorAddress,
         )
         console.log("Fulfill...")
-        if (chainId == "31337") {
-            await time.increase(181)
-        }
-        const tx = await crrngCoordinatorContract.fulfillRandomness(round)
+        const tx = await crrngCoordinatorContract.fulfillRandomness(round, { gasLimit: 500000 })
         const receipt = await tx.wait()
         console.log("Transaction receipt", receipt)
         console.log("Fulfilled successfully")

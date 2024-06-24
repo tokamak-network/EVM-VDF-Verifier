@@ -27,19 +27,18 @@ export const getBitLenth2 = (num: string): BigNumberish => {
     return BigInt(num).toString(2).length
 }
 
-task("commitAtRoundForTitan", "Operator commits For Titan")
+task("commitForTitan", "Operator commits")
     .addParam("round", "The round to commit")
     .setAction(async ({ round }, { deployments, ethers, getNamedAccounts }) => {
         const { deployer } = await getNamedAccounts()
-        console.log("EOA address:", deployer)
-        const crrrngCoordinatorAddress = (await deployments.get("CRRNGCoordinatorPoFForTitan"))
+        const crrrngCoordinatorAddress = (await deployments.get("CRRNGCoordinatorPoFV2ForTitan"))
             .address
-        console.log("CRRNGCoordinatorPoFForTitan address:", crrrngCoordinatorAddress)
+        console.log("CRRRNGCoordinator address:", crrrngCoordinatorAddress)
         const crrngCoordinatorContract = await ethers.getContractAt(
-            "CRRNGCoordinatorPoFForTitan",
+            "CRRNGCoordinatorPoFV2ForTitan",
             crrrngCoordinatorAddress,
         )
-        const commitCount = (await crrngCoordinatorContract.getValuesAtRound(round)).commitCounts
+        const commitCount = await crrngCoordinatorContract.getValidCommitCountAtRound(round)
         const signer = (await ethers.getSigners())[Number(commitCount)]
         let rand = crypto.getRandomValues(new Uint8Array(2048 / 8))
         const bytesHex = "0x" + rand.reduce((o, v) => o + ("00" + v.toString(16)).slice(-2), "")
@@ -49,8 +48,10 @@ task("commitAtRoundForTitan", "Operator commits For Titan")
             bitlen: getBitLenth2(bytesHex),
         }
         console.log(commitData)
-
-        const tx = await crrngCoordinatorContract.connect(signer).commit(round, commitData)
+        console.log("Operator address:", signer?.address)
+        const tx = await crrngCoordinatorContract
+            .connect(signer)
+            .commit(round, commitData, { gasLimit: 500000 })
         await tx.wait()
         console.log(`Operator ${commitCount} committed successfully`)
     })
