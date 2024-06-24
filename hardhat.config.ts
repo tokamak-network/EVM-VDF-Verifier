@@ -17,6 +17,8 @@ import "./scripts/tasks/operatorFulfillRandom.ts"
 import "./scripts/tasks/operatorFulfillRandomForTitan.ts"
 import "./scripts/tasks/operatorRecover.ts"
 import "./scripts/tasks/operatorRecoverForTitan.ts"
+import "./scripts/tasks/reRequestRandomWord.ts"
+import "./scripts/tasks/reRequestRandomWordForTitan.ts"
 /** @type import('hardhat/config').HardhatUserConfig */
 
 const optimizerSettings = {
@@ -130,7 +132,7 @@ const config: HardhatUserConfig = {
             chainId: 55007,
             url: "https://rpc.titan-sepolia.tokamak.network",
             saveDeployments: true,
-            accounts: [`${process.env.PRIVATE_KEY}`],
+            accounts: PRIVATE_KEY !== undefined ? [PRIVATE_KEY, PRIVATE_KEY2!] : [],
         },
         titan: {
             url: "https://rpc.titan.tokamak.network",
@@ -235,6 +237,9 @@ const config: HardhatUserConfig = {
         compilers: [NEW_COMPILER_SETTINGS],
         overrides: {
             "contracts/CRRNGCooridnatorPoFForTitan.sol": PARIS_COMPILER_SETTINGS,
+            "contracts/CRRNGCooridnatorPoFV2ForTitan.sol": PARIS_COMPILER_SETTINGS,
+            "contracts/RandomDayForTitan.sol": PARIS_COMPILER_SETTINGS,
+            "contracts/ConsumerExampleForTitan.sol": PARIS_COMPILER_SETTINGS,
         },
     },
     mocha: {

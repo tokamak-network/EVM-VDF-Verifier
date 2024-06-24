@@ -369,7 +369,7 @@ This getter function is for anyone to get the values of the round that are used 
 -   [5]: commitsString -> The concatenated string of the commits of the operators. This is updated when commit
 -   [6]: omega -> The omega value of the round. This is updated after recovery.
 -   [7]: stage -> The stage of the round. 0 is Recovered or NotStarted, 1 is Commit
--   [8]: isCompleted -> The flag to check if the round is completed. This is updated after recovery.
+-   [8]: isRecovered -> The flag to check if the round is completed. This is updated after recovery.
 
 #### Parameters
 
@@ -480,7 +480,7 @@ enum Stages {
 -   [3]: commitsString -> The concatenated string of the commits of the operators. This is updated when commit
 -   [4]: omega -> The omega value of the round. This is updated after recovery.
 -   [5]: stage -> The stage of the round. 0 is Recovered or NotStarted, 1 is Commit
--   [6]: isCompleted -> The flag to check if the round is completed. This is updated after recovery.
+-   [6]: isRecovered -> The flag to check if the round is completed. This is updated after recovery.
 
 ```solidity
 struct ValueAtRound {
@@ -490,7 +490,7 @@ struct ValueAtRound {
   bytes commitsString;
   struct BigNumber omega;
   enum VDFCRRNG.Stages stage;
-  bool isCompleted;
+  bool isRecovered;
 }
 ```
 
@@ -546,10 +546,10 @@ uint256 s_disputePeriod
 
 _The dispute period_
 
-### s_operators
+### s_isOperators
 
 ```solidity
-mapping(address => bool) s_operators
+mapping(address => bool) s_isOperators
 ```
 
 _The mapping of the operators_
@@ -746,10 +746,10 @@ error NotStartedRound()
 error NotVerified()
 ```
 
-### StillInCommitStage
+### StillInCommitPhase
 
 ```solidity
-error StillInCommitStage()
+error StillInCommitPhase()
 ```
 
 ### OmegaNotCompleted
