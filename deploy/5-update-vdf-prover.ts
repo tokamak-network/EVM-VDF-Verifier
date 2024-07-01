@@ -27,17 +27,8 @@ export default async function updateVDFProver() {
     }
 }
 async function updateContractAddress() {
-    // cryptoDice
-    const cryptoDice = await ethers.getContract("CryptoDice")
     const chainId = network.config.chainId?.toString()
     const currentAddress = JSON.parse(fs.readFileSync(VDF_PROVER_ADDRESS_FILE_CONSUMER, "utf8"))
-    if (chainId! in currentAddress) {
-        if (!currentAddress[chainId!].includes(await cryptoDice.getAddress())) {
-            currentAddress[chainId!].push(await cryptoDice.getAddress())
-        }
-    } else {
-        currentAddress[chainId!] = [await cryptoDice.getAddress()]
-    }
     fs.writeFileSync(VDF_PROVER_ADDRESS_FILE_CONSUMER, JSON.stringify(currentAddress))
     // CRRNGCoordinatorPoF
     const CRRNGCoordinatorPoF = await ethers.getContract("CRRNGCoordinatorPoF")
@@ -55,8 +46,6 @@ async function updateContractAddress() {
 }
 
 async function updateAbi() {
-    const cryptoDice = await ethers.getContract("CryptoDice")
-    fs.writeFileSync(VDF_PROVER_ABI_FILE_CONSUMER, cryptoDice.interface.formatJson())
     const CRRNGCoordinatorPoF = await ethers.getContract("CRRNGCoordinatorPoF")
     fs.writeFileSync(VDF_PROVER_ABI_FILE_COORDINATOR, CRRNGCoordinatorPoF.interface.formatJson())
 }

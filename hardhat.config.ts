@@ -53,12 +53,11 @@ const PARIS_COMPILER_SETTINGS = {
     version: "0.8.24",
     settings: parisSettings,
 }
-const MAINNET_RPC_URL = process.env.MAINNET_RPC_URL
-const SEPOLIA_RPC_URL = process.env.SEPOLIA_RPC_URL
-const POLYGON_MAINNET_RPC_URL = process.env.POLYGON_MAINNET_RPC_URL
+const MAINNET_RPC_URL = `https://mainnet.infura.io/v3/${process.env.INFURA_API_KEY}`
+const SEPOLIA_RPC_URL = `https://sepolia.infura.io/v3/${process.env.INFURA_API_KEY}`
 const PRIVATE_KEY = process.env.PRIVATE_KEY
 const PRIVATE_KEY2 = process.env.PRIVATE_KEY2
-const OP_SEPOLIA_RPC_URL = process.env.OP_SEPOLIA_RPC_URL
+const OP_SEPOLIA_RPC_URL = `https://optimism-sepolia.infura.io/v3/${process.env.INFURA_API_KEY}`
 const OP_ETHERSCAN_API_KEY = process.env.OP_ETHERSCAN_API_KEY || "Your etherscan API key"
 
 // Your API key for Etherscan, obtain one at https://etherscan.io/
@@ -74,7 +73,7 @@ const config: HardhatUserConfig = {
             //   url: MAINNET_RPC_URL
             // }
             chainId: 31337,
-            allowUnlimitedContractSize: false,
+            allowUnlimitedContractSize: true,
             accounts: {
                 count: 500,
             },
@@ -109,24 +108,13 @@ const config: HardhatUserConfig = {
         mainnet: {
             url: MAINNET_RPC_URL,
             accounts: PRIVATE_KEY !== undefined ? [PRIVATE_KEY] : [],
-            //   accounts: {
-            //     mnemonic: MNEMONIC,
-            //   },
             saveDeployments: true,
             chainId: 1,
-        },
-        polygon: {
-            url: POLYGON_MAINNET_RPC_URL,
-            accounts: PRIVATE_KEY !== undefined ? [PRIVATE_KEY] : [],
-            saveDeployments: true,
-            chainId: 137,
         },
         titangoerli: {
             url: "https://rpc.titan-goerli.tokamak.network",
             accounts: [`${process.env.PRIVATE_KEY}`],
             chainId: 5050,
-            //gasPrice: 250000,
-            //deploy: ['deploy_titan_goerli']
         },
         titansepolia: {
             chainId: 55007,
@@ -139,8 +127,6 @@ const config: HardhatUserConfig = {
             accounts: [`${process.env.PRIVATE_KEY}`],
             chainId: 55004,
             saveDeployments: true,
-            //gasPrice: 250000,
-            //deploy: ["deploy_titan"],
         },
         thanossepolia: {
             chainId: 111551118080,

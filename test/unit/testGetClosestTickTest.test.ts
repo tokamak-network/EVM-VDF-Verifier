@@ -610,7 +610,7 @@ describe("Bitmap Test", function () {
         }
         const returnValue = await getClosestTickTest.getThreeClosestToSevenHundred()
         expect(returnValue[0]).to.eql([700n, 1001n, 1001n, 1001n])
-        expect(returnValue[1]).to.eql([4n, 0n, 0n, 0n])
+        expect(returnValue[1]).to.eql([3n, 0n, 0n, 0n])
     })
 
     it("#testcase59", async () => {

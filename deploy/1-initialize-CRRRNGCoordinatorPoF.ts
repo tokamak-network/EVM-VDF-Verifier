@@ -73,23 +73,12 @@ const deployCRRRNGCoordinator: DeployFunction = async (hre: HardhatRuntimeEnviro
         { from: deployer, gasLimit: 3000000 },
     )
     const receipt = await tx.wait()
-    log("Transaction receipt")
-    log(receipt)
+    log("initialize gas used:", receipt!.gasUsed.toString())
     log("initialized!")
     log("----------------------------------------------------")
 }
 export default deployCRRRNGCoordinator
-deployCRRRNGCoordinator.tags = [
-    "all",
-    "sepolia",
-    "testnet",
-    "anvil",
-    "",
-    "init",
-    "opSepolia",
-    "opSepoliaRandom",
-    "PoF",
-]
+deployCRRRNGCoordinator.tags = ["all", "cancun"]
 
 const createCorrectAlgorithmVersionTestCase = () => {
     const testCaseJson = JSON.parse(

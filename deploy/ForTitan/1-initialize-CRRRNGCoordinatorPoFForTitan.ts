@@ -77,23 +77,12 @@ const deployCRRRNGCoordinatorForTitan: DeployFunction = async (hre: HardhatRunti
         { from: deployer, gasLimit: 3000000 },
     )
     const receipt = await tx.wait()
-    log("Transaction receipt")
-    log(receipt)
+    log("initialize gas used:", receipt!.gasUsed.toString())
     log("initialized!")
     log("----------------------------------------------------")
 }
 export default deployCRRRNGCoordinatorForTitan
-deployCRRRNGCoordinatorForTitan.tags = [
-    "all",
-    "sepolia",
-    "testnet",
-    "anvil",
-    "",
-    "init",
-    "opSepolia",
-    "opSepoliaRandom",
-    "PoFForTitan",
-]
+deployCRRRNGCoordinatorForTitan.tags = ["all", "paris", "titan"]
 
 const createCorrectAlgorithmVersionTestCase = () => {
     const testCaseJson = JSON.parse(

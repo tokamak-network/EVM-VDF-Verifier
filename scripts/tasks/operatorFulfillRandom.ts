@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 import { BigNumberish, BytesLike } from "ethers"
-import fs from "fs"
 import { task } from "hardhat/config"
 
 interface BigNumber {
@@ -46,7 +45,3 @@ task("fulfillAtRound", "Operator fulfillRandomWord")
         console.log("Fulfilled successfully")
         console.log("----------------------")
     })
-const createCorrectAlgorithmVersionTestCase = () => {
-    const testCaseJson = JSON.parse(fs.readFileSync(__dirname + "/../recover.json", "utf-8"))
-    return testCaseJson
-}

@@ -36,7 +36,7 @@ const deployRandomDayForTitanTON: DeployFunction = async (hre: HardhatRuntimeEnv
         waitConfirmations: waitBlockConfirmations,
     })
     // deploy result
-    log("randomDay deployed at:", randomDay.address)
+    log("randomDay deployed for titan at:", randomDay.address)
 
     if (chainId !== 31337 && process.env.ETHERSCAN_API_KEY) {
         log("Verifying...")
@@ -45,12 +45,4 @@ const deployRandomDayForTitanTON: DeployFunction = async (hre: HardhatRuntimeEnv
     log("----------------------------------------------------")
 }
 export default deployRandomDayForTitanTON
-deployRandomDayForTitanTON.tags = [
-    "all",
-    "randomDay",
-    "testnet",
-    "",
-    "anvil",
-    "anvilTitan",
-    "titan",
-]
+deployRandomDayForTitanTON.tags = ["all", "titan"]

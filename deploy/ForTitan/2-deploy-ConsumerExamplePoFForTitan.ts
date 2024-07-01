@@ -38,7 +38,7 @@ const deployConsumerExample: DeployFunction = async (hre: HardhatRuntimeEnvironm
         waitConfirmations: waitBlockConfirmations,
     })
     // deploy result
-    log("consumerExample deployed at:", consumerExample.address)
+    log("consumerExample fortitan deployed at:", consumerExample.address)
 
     // if (chainId !== 31337 && process.env.ETHERSCAN_API_KEY) {
     //     log("Verifying...")
@@ -47,4 +47,4 @@ const deployConsumerExample: DeployFunction = async (hre: HardhatRuntimeEnvironm
     log("----------------------------------------------------")
 }
 export default deployConsumerExample
-deployConsumerExample.tags = ["all", "consumerexample", "testnet", "titanConsumer"]
+deployConsumerExample.tags = ["all", "paris"]

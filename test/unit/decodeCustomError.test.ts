@@ -14,11 +14,15 @@
 //
 import { SignerWithAddress } from "@nomicfoundation/hardhat-ethers/signers"
 import { expect } from "chai"
-import { AddressLike, BigNumberish, BytesLike, dataLength, toBeHex } from "ethers"
+import { AddressLike, BigNumberish, BytesLike } from "ethers"
 import fs from "fs"
 import { ethers, network } from "hardhat"
 import { developmentChains } from "../../helper-hardhat-config"
-import { CRRNGCoordinatorPoF, RandomDay, TonToken } from "../../typechain-types"
+import { CRRNGCoordinatorPoF, TonToken } from "../../typechain-types"
+import {
+    returnCoordinatorConstructorParams,
+    returnIntializeAndCommitAndRecoverParams,
+} from "../shared/setCRRNGCoordinatorPoF"
 interface BigNumber {
     val: BytesLike
     bitlen: BigNumberish
@@ -48,85 +52,40 @@ const createCorrectAlgorithmVersionTestCase = () => {
 !developmentChains.includes(network.name)
     ? describe.skip
     : describe("Decode Custom Error", function () {
-          const callback_gaslimit = 100000n
-          const coordinatorConstructorParams: {
+          let coordinatorConstructorParams: {
               disputePeriod: BigNumberish
               minimumDepositAmount: BigNumberish
               avgL2GasUsed: BigNumberish
+              avgL1GasUsed: BigNumberish
               premiumPercentage: BigNumberish
+              penaltyPercentage: BigNumberish
               flatFee: BigNumberish
-          } = {
-              disputePeriod: 1800n,
-              minimumDepositAmount: ethers.parseEther("0.1"),
-              avgL2GasUsed: 2297700n,
-              premiumPercentage: 0n,
-              flatFee: ethers.parseEther("0.0013"),
           }
-          const registrationDuration = 86400n
-          const totalPrizeAmount = 1000n * 10n ** 18n
-          const delta: number = 9
-          const twoPowerOfDeltaBytes: BytesLike = toBeHex(
-              2 ** delta,
-              getLength(dataLength(toBeHex(2 ** delta))),
-          )
-          let testCaseJson
           let signers: SignerWithAddress[]
           let crrrngCoordinator: CRRNGCoordinatorPoF
-          let tonToken: TonToken
-          let cryptoDice: RandomDay
           let crrngCoordinatorAddress: string
-          let tonTokenAddress: string
-          let cryptoDiceAddress: string
-          let randomNumbers: number[]
-          let diceNumCount: number[] = [0, 0, 0, 0, 0, 0, 0]
           let initializeParams: {
               v: BigNumber[]
               x: BigNumber
               y: BigNumber
-          } = {
-              v: [],
-              x: { val: "0x0", bitlen: 0 },
-              y: { val: "0x0", bitlen: 0 },
           }
-          let commitParams: BigNumber[] = []
+          let commitParams: BigNumber[]
           let recoverParams: {
               round: number
               v: BigNumber[]
               x: BigNumber
               y: BigNumber
-          } = {
-              round: 0,
-              v: [],
-              x: { val: "0x0", bitlen: 0 },
-              y: { val: "0x0", bitlen: 0 },
           }
-          let smallestHashSigner: SignerWithAddress
-          let secondSmallestHashSigner: SignerWithAddress
-          let thirdSmallestHashSigner: SignerWithAddress
+          let tonToken: TonToken
+          let tonTokenAddress: string
           it("get signers", async () => {
               signers = await ethers.getSigners()
               expect(signers.length).to.eq(500)
           })
           it("Create TestCase And PreProcess Data", async () => {
-              testCaseJson = createCorrectAlgorithmVersionTestCase()
-              //initializeParams
-              initializeParams.x = testCaseJson.setupProofs[0].x
-              initializeParams.y = testCaseJson.setupProofs[0].y
-              if (delta > 0) {
-                  testCaseJson.setupProofs = testCaseJson.setupProofs?.slice(0, -(delta + 1))
-                  testCaseJson.recoveryProofs = testCaseJson.recoveryProofs?.slice(0, -(delta + 1))
-              }
-              for (let i = 0; i < testCaseJson.setupProofs.length; i++) {
-                  initializeParams.v.push(testCaseJson.setupProofs[i].v)
-                  recoverParams.v.push(testCaseJson.recoveryProofs[i].v)
-              }
-              //commitParams
-              for (let i = 0; i < testCaseJson.commitList.length; i++) {
-                  commitParams.push(testCaseJson.commitList[i])
-              }
-              //recoverParams
-              recoverParams.x = testCaseJson.recoveryProofs[0].x
-              recoverParams.y = testCaseJson.recoveryProofs[0].y
+              ;({ initializeParams, commitParams, recoverParams } =
+                  returnIntializeAndCommitAndRecoverParams())
+              coordinatorConstructorParams = returnCoordinatorConstructorParams()
           })
           it("deploy TestERC20", async function () {
               const TonToken = await ethers.getContractFactory("TonToken")
@@ -143,7 +102,9 @@ const createCorrectAlgorithmVersionTestCase = () => {
                   coordinatorConstructorParams.disputePeriod,
                   coordinatorConstructorParams.minimumDepositAmount,
                   coordinatorConstructorParams.avgL2GasUsed,
+                  coordinatorConstructorParams.avgL1GasUsed,
                   coordinatorConstructorParams.premiumPercentage,
+                  coordinatorConstructorParams.penaltyPercentage,
                   coordinatorConstructorParams.flatFee,
               )
               await crrrngCoordinator.waitForDeployment()
@@ -161,25 +122,9 @@ const createCorrectAlgorithmVersionTestCase = () => {
               const gasUsed = receipt?.gasUsed as bigint
               const balanceAfter = await ethers.provider.getBalance(signers[0].address)
           })
-          it("deploy CryptoDice", async () => {
-              const CryptoDice = await ethers.getContractFactory("RandomDay")
-              cryptoDice = (await CryptoDice.deploy(
-                  crrngCoordinatorAddress,
-                  tonTokenAddress,
-              )) as RandomDay
-              await cryptoDice.waitForDeployment()
-              cryptoDiceAddress = await cryptoDice.getAddress()
-              expect(cryptoDiceAddress).to.be.properAddress
-              expect(await cryptoDice.getRNGCoordinator()).to.equal(crrngCoordinatorAddress)
-          })
           describe("decode", function () {
               it("decode 0xa264a954", async function () {
                   console.log(crrrngCoordinator.interface.parseError("0x28a1045e"))
-                  console.log(cryptoDice.interface.parseError("0x28a1045e"))
-                  const currentBlock = await ethers.provider.getBlock("latest")
-                  const currentTimestamp = currentBlock!.timestamp
-                  console.log(currentTimestamp)
-                  console.log(await cryptoDice.eventEndTime())
               })
           })
       })

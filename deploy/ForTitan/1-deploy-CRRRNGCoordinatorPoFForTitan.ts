@@ -82,13 +82,4 @@ const deployCRRRNGCoordinatorForTitan: DeployFunction = async (hre: HardhatRunti
     log("----------------------------------------------------")
 }
 export default deployCRRRNGCoordinatorForTitan
-deployCRRRNGCoordinatorForTitan.tags = [
-    "all",
-    "sepolia",
-    "anvil",
-    "",
-    "crr",
-    "opSepolia",
-    "opSepoliaRandom",
-    "PoFForTitan",
-]
+deployCRRRNGCoordinatorForTitan.tags = ["all", "paris", "titan"]

@@ -19,10 +19,10 @@ async function startEvent() {
     console.log("EOA address:", deployer)
     const randomDayAddress = (await deployments.get("RandomDay")).address
     console.log("randomDay address:", randomDayAddress)
-    const cryptoDiceConsumerContract = await ethers.getContractAt("RandomDay", randomDayAddress)
+    const randomDayConsumerContract = await ethers.getContractAt("RandomDay", randomDayAddress)
     try {
         console.log("Starting Event...")
-        const tx = await cryptoDiceConsumerContract.startEvent()
+        const tx = await randomDayConsumerContract.startEvent()
         const receipt = await tx.wait()
         console.log("Transaction receipt", receipt)
         console.log("Event started")

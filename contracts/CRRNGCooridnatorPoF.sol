@@ -51,7 +51,7 @@ contract CRRNGCoordinatorPoF is ICRRRNGCoordinator, Ownable, VDFCRRNGPoF {
      * @param premiumPercentage The percentage of the premium, will be set to 0
      * @param flatFee The flat fee for the direct funding
      */
-    function setSettings(
+    function setSettingVariables(
         uint256 disputePeriod,
         uint256 minimumDepositAmount,
         uint256 avgL2GasUsed,

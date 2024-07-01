@@ -25,10 +25,10 @@ _no zero checks_
 | premiumPercentage    | uint256 | The percentage of the premium, will be set to 0        |
 | flatFee              | uint256 | The flat fee for the direct funding                    |
 
-### setSettings
+### setSettingVariables
 
 ```solidity
-function setSettings(uint256 disputePeriod, uint256 minimumDepositAmount, uint256 avgRecoveOverhead, uint256 premiumPercentage, uint256 flatFee) external
+function setSettingVariables(uint256 disputePeriod, uint256 minimumDepositAmount, uint256 avgRecoveOverhead, uint256 premiumPercentage, uint256 flatFee) external
 ```
 
 Sets the settings for the contract. The owner will be transfer to mini DAO contract in the future.

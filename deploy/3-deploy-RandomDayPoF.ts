@@ -45,13 +45,4 @@ const deployRandomDay: DeployFunction = async (hre: HardhatRuntimeEnvironment) =
     log("----------------------------------------------------")
 }
 export default deployRandomDay
-deployRandomDay.tags = [
-    "all",
-    "randomDay",
-    "testnet",
-    "",
-    "anvil",
-    "rand",
-    "opSepoliaRandom",
-    "PoF",
-]
+deployRandomDay.tags = ["all", "cancun"]
