@@ -1,0 +1,509 @@
+[
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "coordinator",
+                "type": "address"
+            },
+            {
+                "internalType": "address",
+                "name": "airdropToken",
+                "type": "address"
+            }
+        ],
+        "stateMutability": "nonpayable",
+        "type": "constructor"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "target",
+                "type": "address"
+            }
+        ],
+        "name": "AddressEmptyCode",
+        "type": "error"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "account",
+                "type": "address"
+            }
+        ],
+        "name": "AddressInsufficientBalance",
+        "type": "error"
+    },
+    {
+        "inputs": [],
+        "name": "EventEndedOrNotStarted",
+        "type": "error"
+    },
+    {
+        "inputs": [],
+        "name": "EventStillRunning",
+        "type": "error"
+    },
+    {
+        "inputs": [],
+        "name": "FailedInnerCall",
+        "type": "error"
+    },
+    {
+        "inputs": [],
+        "name": "NotEnoughFunds",
+        "type": "error"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "have",
+                "type": "address"
+            },
+            {
+                "internalType": "address",
+                "name": "want",
+                "type": "address"
+            }
+        ],
+        "name": "OnlyCoordinatorCanFulfill",
+        "type": "error"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "owner",
+                "type": "address"
+            }
+        ],
+        "name": "OwnableInvalidOwner",
+        "type": "error"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "account",
+                "type": "address"
+            }
+        ],
+        "name": "OwnableUnauthorizedAccount",
+        "type": "error"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "token",
+                "type": "address"
+            }
+        ],
+        "name": "SafeERC20FailedOperation",
+        "type": "error"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": true,
+                "internalType": "address",
+                "name": "previousOwner",
+                "type": "address"
+            },
+            {
+                "indexed": true,
+                "internalType": "address",
+                "name": "newOwner",
+                "type": "address"
+            }
+        ],
+        "name": "OwnershipTransferred",
+        "type": "event"
+    },
+    {
+        "inputs": [],
+        "name": "CALLBACK_GAS_LIMIT",
+        "outputs": [
+            {
+                "internalType": "uint32",
+                "name": "",
+                "type": "uint32"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "CENTERTICK",
+        "outputs": [
+            {
+                "internalType": "uint24",
+                "name": "",
+                "type": "uint24"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "EVENTPERIOD",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "FIRSTPRIZE",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "SECONDPRIZE",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "THIRDPRIZE",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "TOTALPRIZE",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "eventEndTime",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "finalizeRankingandSendPrize",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "uint32",
+                "name": "_callbackGasLimit",
+                "type": "uint32"
+            }
+        ],
+        "name": "getCalculatedDirectFundingPrice",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "getRNGCoordinator",
+        "outputs": [
+            {
+                "internalType": "address",
+                "name": "",
+                "type": "address"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "getThreeClosestToSevenHundred",
+        "outputs": [
+            {
+                "internalType": "uint256[4]",
+                "name": "",
+                "type": "uint256[4]"
+            },
+            {
+                "internalType": "uint256[4]",
+                "name": "",
+                "type": "uint256[4]"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "lastRequestId",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "owner",
+        "outputs": [
+            {
+                "internalType": "address",
+                "name": "",
+                "type": "address"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "uint256",
+                "name": "round",
+                "type": "uint256"
+            },
+            {
+                "internalType": "uint256",
+                "name": "hashedOmegaVal",
+                "type": "uint256"
+            }
+        ],
+        "name": "rawFulfillRandomWords",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "renounceOwnership",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "requestCount",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "requestRandomWord",
+        "outputs": [],
+        "stateMutability": "payable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "",
+                "type": "address"
+            }
+        ],
+        "name": "s_deposits",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "requester",
+                "type": "address"
+            }
+        ],
+        "name": "s_requesterIndex",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "index",
+                "type": "uint256"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "requester",
+                "type": "address"
+            }
+        ],
+        "name": "s_requesters",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "avgNum",
+                "type": "uint256"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "uint256",
+                "name": "requestId",
+                "type": "uint256"
+            }
+        ],
+        "name": "s_requests",
+        "outputs": [
+            {
+                "internalType": "bool",
+                "name": "requested",
+                "type": "bool"
+            },
+            {
+                "internalType": "bool",
+                "name": "fulfilled",
+                "type": "bool"
+            },
+            {
+                "internalType": "uint256",
+                "name": "randomWord",
+                "type": "uint256"
+            },
+            {
+                "internalType": "address",
+                "name": "requester",
+                "type": "address"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "uint256",
+                "name": "tick",
+                "type": "uint256"
+            },
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "name": "s_tickRequesters",
+        "outputs": [
+            {
+                "internalType": "address",
+                "name": "requesters",
+                "type": "address"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "startEvent",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "newOwner",
+                "type": "address"
+            }
+        ],
+        "name": "transferOwnership",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "withdraw",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "withdrawAirdropTokenOnlyOwner",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    }
+]
