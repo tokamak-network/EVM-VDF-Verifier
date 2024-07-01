@@ -36,8 +36,8 @@ async function updateAbi() {
     const chainId = network.config.chainId?.toString()
     const cryptoDice = await ethers.getContract("CryptoDice")
     fs.writeFileSync(FRONT_END_ABI_FILE_CONSUMER, cryptoDice.interface.formatJson())
-    const crrngCoordinator = await ethers.getContract("CRRNGCoordinator")
-    fs.writeFileSync(FRONT_END_ABI_FILE_COORDINATOR, crrngCoordinator.interface.formatJson())
+    const CRRNGCoordinatorPoF = await ethers.getContract("CRRNGCoordinatorPoF")
+    fs.writeFileSync(FRONT_END_ABI_FILE_COORDINATOR, CRRNGCoordinatorPoF.interface.formatJson())
     if (chainId == "31337") {
         const tonToken = await ethers.getContract("TonToken")
         fs.writeFileSync(FRONT_END_ABI_FILE_TESTERC20, tonToken.interface.formatJson())
@@ -56,17 +56,17 @@ async function updateContractAddress() {
         currentAddress[chainId!] = [await cryptoDice.getAddress()]
     }
     fs.writeFileSync(FRONT_END_ADDRESS_FILE_CONSUMER, JSON.stringify(currentAddress))
-    // crrngCoordinator
-    const crrngCoordinator = await ethers.getContract("CRRNGCoordinator")
+    // CRRNGCoordinatorPoF
+    const CRRNGCoordinatorPoF = await ethers.getContract("CRRNGCoordinatorPoF")
     const currentAddressCoordinator = JSON.parse(
         fs.readFileSync(FRONT_END_ADDRESS_FILE_COORDINATOR, "utf8"),
     )
     if (chainId! in currentAddressCoordinator) {
-        if (!currentAddressCoordinator[chainId!].includes(await crrngCoordinator.getAddress())) {
-            currentAddressCoordinator[chainId!].push(await crrngCoordinator.getAddress())
+        if (!currentAddressCoordinator[chainId!].includes(await CRRNGCoordinatorPoF.getAddress())) {
+            currentAddressCoordinator[chainId!].push(await CRRNGCoordinatorPoF.getAddress())
         }
     } else {
-        currentAddressCoordinator[chainId!] = [await crrngCoordinator.getAddress()]
+        currentAddressCoordinator[chainId!] = [await CRRNGCoordinatorPoF.getAddress()]
     }
     fs.writeFileSync(FRONT_END_ADDRESS_FILE_COORDINATOR, JSON.stringify(currentAddressCoordinator))
     // tonToken

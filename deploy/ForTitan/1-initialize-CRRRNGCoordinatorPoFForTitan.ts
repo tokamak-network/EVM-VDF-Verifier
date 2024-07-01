@@ -28,7 +28,7 @@ function getLength(value: number): number {
     return length
 }
 
-const deployCRRRNGCoordinator: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
+const deployCRRRNGCoordinatorForTitan: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
     const { deployments, getNamedAccounts, network, ethers } = hre
     const { deploy, log } = deployments
     const { deployer } = await getNamedAccounts()
@@ -82,19 +82,22 @@ const deployCRRRNGCoordinator: DeployFunction = async (hre: HardhatRuntimeEnviro
     log("initialized!")
     log("----------------------------------------------------")
 }
-export default deployCRRRNGCoordinator
-deployCRRRNGCoordinator.tags = [
+export default deployCRRRNGCoordinatorForTitan
+deployCRRRNGCoordinatorForTitan.tags = [
     "all",
-    "CRRRNGCoordinatorInitialize",
+    "sepolia",
     "testnet",
     "anvil",
-    "titan",
-    "anvilTitan",
+    "",
+    "init",
+    "opSepolia",
+    "opSepoliaRandom",
+    "PoFForTitan",
 ]
 
 const createCorrectAlgorithmVersionTestCase = () => {
     const testCaseJson = JSON.parse(
-        fs.readFileSync(__dirname + "/../../test/shared/correct.json", "utf-8"),
+        fs.readFileSync(__dirname + "/../../test/shared/TestCases/currentTestCase.json", "utf-8"),
     )
     return testCaseJson
 }

@@ -31,11 +31,11 @@ task("commitForTitan", "Operator commits")
     .addParam("round", "The round to commit")
     .setAction(async ({ round }, { deployments, ethers, getNamedAccounts }) => {
         const { deployer } = await getNamedAccounts()
-        const crrrngCoordinatorAddress = (await deployments.get("CRRNGCoordinatorPoFV2ForTitan"))
+        const crrrngCoordinatorAddress = (await deployments.get("CRRNGCoordinatorPoFForTitan"))
             .address
         console.log("CRRRNGCoordinator address:", crrrngCoordinatorAddress)
         const crrngCoordinatorContract = await ethers.getContractAt(
-            "CRRNGCoordinatorPoFV2ForTitan",
+            "CRRNGCoordinatorPoFForTitan",
             crrrngCoordinatorAddress,
         )
         const commitCount = await crrngCoordinatorContract.getValidCommitCountAtRound(round)

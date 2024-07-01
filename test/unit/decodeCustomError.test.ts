@@ -18,7 +18,7 @@ import { AddressLike, BigNumberish, BytesLike, dataLength, toBeHex } from "ether
 import fs from "fs"
 import { ethers, network } from "hardhat"
 import { developmentChains } from "../../helper-hardhat-config"
-import { CRRNGCoordinator, RandomDay, TonToken } from "../../typechain-types"
+import { CRRNGCoordinatorPoF, RandomDay, TonToken } from "../../typechain-types"
 interface BigNumber {
     val: BytesLike
     bitlen: BigNumberish
@@ -39,7 +39,9 @@ function getLength(value: number): number {
     return length
 }
 const createCorrectAlgorithmVersionTestCase = () => {
-    const testCaseJson = JSON.parse(fs.readFileSync(__dirname + "/../shared/correct.json", "utf-8"))
+    const testCaseJson = JSON.parse(
+        fs.readFileSync(__dirname + "/../shared/TestCases/currentTestCase.json", "utf-8"),
+    )
     return testCaseJson
 }
 
@@ -69,7 +71,7 @@ const createCorrectAlgorithmVersionTestCase = () => {
           )
           let testCaseJson
           let signers: SignerWithAddress[]
-          let crrrngCoordinator: CRRNGCoordinator
+          let crrrngCoordinator: CRRNGCoordinatorPoF
           let tonToken: TonToken
           let cryptoDice: RandomDay
           let crrngCoordinatorAddress: string
@@ -136,8 +138,8 @@ const createCorrectAlgorithmVersionTestCase = () => {
               expect(tonTokenAddress).to.be.properAddress
           })
           it("deploy CRRRRNGCoordinator", async function () {
-              const CRRNGCoordinator = await ethers.getContractFactory("CRRNGCoordinator")
-              crrrngCoordinator = await CRRNGCoordinator.deploy(
+              const CRRNGCoordinatorPoF = await ethers.getContractFactory("CRRNGCoordinatorPoF")
+              crrrngCoordinator = await CRRNGCoordinatorPoF.deploy(
                   coordinatorConstructorParams.disputePeriod,
                   coordinatorConstructorParams.minimumDepositAmount,
                   coordinatorConstructorParams.avgL2GasUsed,
@@ -148,7 +150,7 @@ const createCorrectAlgorithmVersionTestCase = () => {
               crrngCoordinatorAddress = await crrrngCoordinator.getAddress()
               expect(crrngCoordinatorAddress).to.be.properAddress
           })
-          it("initialize CRRNGCoordinator", async () => {
+          it("initialize CRRNGCoordinatorPoF", async () => {
               const balanceBefore = await ethers.provider.getBalance(signers[0].address)
               const tx = await crrrngCoordinator.initialize(
                   initializeParams.v,

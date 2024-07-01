@@ -26,7 +26,7 @@ import {
 import fs from "fs"
 import { ethers, network } from "hardhat"
 import { CRRNGCoordinatorPoF, RandomDayTest, TonToken } from "../../typechain-types"
-import OVM_GasPriceOracleABI from "../shared/OVM_GasPriceOracle.json"
+import OVM_GasPriceOracleABI from "../shared/Abis/OVM_GasPriceOracle.json"
 const getBitLenth2 = (num: string): BigNumberish => {
     return BigInt(num).toString(2).length
 }
@@ -35,12 +35,10 @@ interface BigNumber {
     bitlen: BigNumberish
 }
 interface ValueAtRound {
-    startTime: BigNumberish
     requestedTime: BigNumberish
-    commitCounts: BigNumberish
+    commitEndTime: BigNumberish
     consumer: AddressLike
     omega: BigNumber
-    stage: BigNumberish
     isRecovered: boolean
     isVerified: boolean
 }
@@ -50,7 +48,9 @@ function getLength(value: number): number {
     return length
 }
 const createCorrectAlgorithmVersionTestCase = () => {
-    const testCaseJson = JSON.parse(fs.readFileSync(__dirname + "/../shared/correct.json", "utf-8"))
+    const testCaseJson = JSON.parse(
+        fs.readFileSync(__dirname + "/../shared/TestCases/currentTestCase.json", "utf-8"),
+    )
     return testCaseJson
 }
 
@@ -171,8 +171,10 @@ describe("RandomDay", function () {
                     },
                 ],
             })
-            const CRRNGCoordinator = await ethers.getContractFactory("CRRNGCoordinatorPoFForTitan")
-            crrrngCoordinator = await CRRNGCoordinator.deploy(
+            const CRRNGCoordinatorPoF = await ethers.getContractFactory(
+                "CRRNGCoordinatorPoFForTitan",
+            )
+            const crrrngCoordinator = await CRRNGCoordinatorPoF.deploy(
                 coordinatorConstructorParams.disputePeriod,
                 coordinatorConstructorParams.minimumDepositAmount,
                 coordinatorConstructorParams.avgL2GasUsed,
@@ -203,8 +205,8 @@ describe("RandomDay", function () {
             await expect(signers.length).to.eq(500)
         })
         it("deploy CRRRRNGCoordinator", async function () {
-            const CRRNGCoordinator = await ethers.getContractFactory("CRRNGCoordinatorPoF")
-            crrrngCoordinator = await CRRNGCoordinator.deploy(
+            const CRRNGCoordinatorPoF = await ethers.getContractFactory("CRRNGCoordinatorPoF")
+            crrrngCoordinator = await CRRNGCoordinatorPoF.deploy(
                 coordinatorConstructorParams.disputePeriod,
                 coordinatorConstructorParams.minimumDepositAmount,
                 coordinatorConstructorParams.avgL2GasUsed,
@@ -222,7 +224,7 @@ describe("RandomDay", function () {
                 gasUsed,
             )
             console.log(
-                "deploy CRRNGCoordinator total gasCost on Titan",
+                "deploy CRRNGCoordinatorPoF total gasCost on Titan",
                 ethers.formatEther(titanGasCost),
                 "ETH",
             )
@@ -241,7 +243,7 @@ describe("RandomDay", function () {
             await expect(feeSettings[4]).to.equal(coordinatorConstructorParams.flatFee)
             await expect(disputePeriod).to.equal(coordinatorConstructorParams.disputePeriod)
         })
-        it("initialize CRRNGCoordinator", async () => {
+        it("initialize CRRNGCoordinatorPoF", async () => {
             const tx = await crrrngCoordinator.initialize(
                 initializeParams.v,
                 initializeParams.x,
@@ -256,7 +258,7 @@ describe("RandomDay", function () {
             ])
             const titanGasCost = await getTotalTitanGasCost(encodedFuncData, gasUsed)
             console.log(
-                "initialize CRRNGCoordinator total gasCost on Titan",
+                "initialize CRRNGCoordinatorPoF total gasCost on Titan",
                 ethers.formatEther(titanGasCost),
                 "ETH",
             )
@@ -440,7 +442,7 @@ describe("RandomDay", function () {
                 await expect(requestCount).to.equal(i + 1)
                 await expect(lastRequestId).to.equal(i)
 
-                // ** crrngCoordinator get
+                // ** CRRNGCoordinatorPoF get
                 // 1. s_valuesAtRound[_round].stage is Stages.Commit
                 // 2. s_valuesAtRound[_round].consumer is consumerExample.address
                 // s_cost[_round]
@@ -450,12 +452,10 @@ describe("RandomDay", function () {
                 const consumerAddress = await crrrngCoordinator.getConsumerAtRound(round)
 
                 // ** assert
-                await expect(valuesAtRound.startTime).to.be.equal(0n)
-                await expect(valuesAtRound.commitCounts).to.be.equal(0n)
+                await expect(valuesAtRound.commitEndTime).to.be.equal(0n)
                 await expect(valuesAtRound.consumer).to.be.equal(await randomDay.getAddress())
                 await expect(consumerAddress).to.be.equal(await randomDay.getAddress())
                 await expect(valuesAtRound.omega.val).to.be.equal("0x")
-                await expect(valuesAtRound.stage).to.be.equal(1n)
                 await expect(valuesAtRound.isRecovered).to.be.equal(false)
                 await expect(valuesAtRound.isVerified).to.be.equal(false)
             }
@@ -475,7 +475,11 @@ describe("RandomDay", function () {
                     const receipt = await tx.wait()
                     const valuesAtRound: ValueAtRound =
                         await crrrngCoordinator.getValuesAtRound(round)
-                    await expect(valuesAtRound.commitCounts).to.equal(i + 1)
+                    const commitCount = await crrrngCoordinator.getCommitCountAtRound(round)
+                    const validCommitCount =
+                        await crrrngCoordinator.getValidCommitCountAtRound(round)
+                    await expect(commitCount).to.equal(validCommitCount)
+                    await expect(commitCount).to.equal(i + 1)
                     const gasUsed = receipt?.gasUsed as bigint
                     const titanGasCost = await getTotalTitanGasCost(tx.data as BytesLike, gasUsed)
                     _commitAvgGas += titanGasCost
@@ -486,21 +490,17 @@ describe("RandomDay", function () {
                     )
                     await expect(userStatusAtRound.committed).to.equal(true)
                     await expect(userStatusAtRound.commitIndex).to.equal(i)
-                    const getCommitValues = await crrrngCoordinator.getCommitValue(
+                    const getCommitValues = await crrrngCoordinator.getOneCommitValueAtRound(
                         round,
                         userStatusAtRound.commitIndex,
                     )
-                    await expect(getCommitValues.commit.val).to.equal(commitParams[i].val)
-                    await expect(getCommitValues.operatorAddress).to.equal(signers[i].address)
 
                     if (i == 0) {
                         const blockNumber = receipt?.blockNumber as number
                         const provider = ethers.provider
-                        const blockTimestamp = (await provider.getBlock(blockNumber))?.timestamp
+                        const blockTimestamp = (await provider.getBlock(blockNumber))?.timestamp!
                         const valuesAtRound = await crrrngCoordinator.getValuesAtRound(round)
-                        await expect(valuesAtRound.stage).to.equal(1)
-                        await expect(valuesAtRound.commitCounts).to.equal(1)
-                        await expect(valuesAtRound.startTime).to.equal(blockTimestamp)
+                        await expect(valuesAtRound.commitEndTime).to.equal(blockTimestamp + 120)
                     }
                 }
                 _commitAvgGas /= 3n
@@ -536,9 +536,7 @@ describe("RandomDay", function () {
                     await crrrngCoordinator.getDisputeEndTimeOfOperator(signers[0].address)
 
                 // ** assert
-                await expect(valuesAtRound.commitCounts).to.equal(3)
                 await expect(valuesAtRound.isRecovered).to.equal(true)
-                await expect(valuesAtRound.stage).to.equal(0)
                 await expect(valuesAtRound.isVerified).to.equal(false)
 
                 await expect(getDisputeEndTimeAndLeaderAtRound[0]).to.equal(

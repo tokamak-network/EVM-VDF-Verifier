@@ -21,8 +21,7 @@ const deployConsumerExample: DeployFunction = async (hre: HardhatRuntimeEnvironm
     const { deploy, log } = deployments
     const { deployer } = await getNamedAccounts()
     const chainId = network.config.chainId
-    const crrRngCoordinatorAddress = (await deployments.get("CRRNGCoordinatorPoFV2ForTitan"))
-        .address
+    const crrRngCoordinatorAddress = (await deployments.get("CRRNGCoordinatorPoFForTitan")).address
     const waitBlockConfirmations =
         chainId === 31337 ||
         chainId === 5050 ||
@@ -53,7 +52,7 @@ deployConsumerExample.tags = [
     "all",
     "consumerexample",
     "sepolia",
-    "v2",
+    "",
     "consume",
     "opSepolia",
     "consumerTitan",

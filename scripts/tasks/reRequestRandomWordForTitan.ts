@@ -17,11 +17,11 @@ task("reRequestRandomWordForTitan", "Operator re-requests random word at round")
     .addParam("round", "The round to re-request")
     .setAction(async ({ round }, { deployments, ethers, getNamedAccounts }) => {
         const { deployer } = await getNamedAccounts()
-        const crrrngCoordinatorAddress = (await deployments.get("CRRNGCoordinatorPoFV2ForTitan"))
+        const crrrngCoordinatorAddress = (await deployments.get("CRRNGCoordinatorPoFForTitan"))
             .address
         console.log("CRRRNGCoordinator address:", crrrngCoordinatorAddress)
         const crrngCoordinatorContract = await ethers.getContractAt(
-            "CRRNGCoordinatorPoFV2ForTitan",
+            "CRRNGCoordinatorPoFForTitan",
             crrrngCoordinatorAddress,
         )
         console.log("Re-request...")

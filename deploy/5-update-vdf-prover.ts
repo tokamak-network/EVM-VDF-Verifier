@@ -39,17 +39,17 @@ async function updateContractAddress() {
         currentAddress[chainId!] = [await cryptoDice.getAddress()]
     }
     fs.writeFileSync(VDF_PROVER_ADDRESS_FILE_CONSUMER, JSON.stringify(currentAddress))
-    // crrngCoordinator
-    const crrngCoordinator = await ethers.getContract("CRRNGCoordinator")
+    // CRRNGCoordinatorPoF
+    const CRRNGCoordinatorPoF = await ethers.getContract("CRRNGCoordinatorPoF")
     const currentAddressCoordinator = JSON.parse(
         fs.readFileSync(VDF_PROVER_ADDRESS_FILE_COORDINATOR, "utf8"),
     )
     if (chainId! in currentAddressCoordinator) {
-        if (!currentAddressCoordinator[chainId!].includes(await crrngCoordinator.getAddress())) {
-            currentAddressCoordinator[chainId!].push(await crrngCoordinator.getAddress())
+        if (!currentAddressCoordinator[chainId!].includes(await CRRNGCoordinatorPoF.getAddress())) {
+            currentAddressCoordinator[chainId!].push(await CRRNGCoordinatorPoF.getAddress())
         }
     } else {
-        currentAddressCoordinator[chainId!] = [await crrngCoordinator.getAddress()]
+        currentAddressCoordinator[chainId!] = [await CRRNGCoordinatorPoF.getAddress()]
     }
     fs.writeFileSync(VDF_PROVER_ADDRESS_FILE_COORDINATOR, JSON.stringify(currentAddressCoordinator))
 }
@@ -57,7 +57,7 @@ async function updateContractAddress() {
 async function updateAbi() {
     const cryptoDice = await ethers.getContract("CryptoDice")
     fs.writeFileSync(VDF_PROVER_ABI_FILE_CONSUMER, cryptoDice.interface.formatJson())
-    const crrngCoordinator = await ethers.getContract("CRRNGCoordinator")
-    fs.writeFileSync(VDF_PROVER_ABI_FILE_COORDINATOR, crrngCoordinator.interface.formatJson())
+    const CRRNGCoordinatorPoF = await ethers.getContract("CRRNGCoordinatorPoF")
+    fs.writeFileSync(VDF_PROVER_ABI_FILE_COORDINATOR, CRRNGCoordinatorPoF.interface.formatJson())
 }
 updateVDFProver.tags = ["all", "vdf-prover"]

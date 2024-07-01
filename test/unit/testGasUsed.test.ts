@@ -18,8 +18,8 @@ import { AddressLike, BigNumberish, BytesLike } from "ethers"
 import fs from "fs"
 import { ethers, network } from "hardhat"
 import { developmentChains } from "../../helper-hardhat-config"
-import { CRRNGCoordinator, ConsumerExample } from "../../typechain-types"
-import OVM_GasPriceOracleABI from "../shared/OVM_GasPriceOracle.json"
+import { CRRNGCoordinatorPoF, ConsumerExample } from "../../typechain-types"
+import OVM_GasPriceOracleABI from "../shared/Abis/OVM_GasPriceOracle.json"
 interface BigNumber {
     val: BytesLike
     bitlen: BigNumberish
@@ -39,7 +39,9 @@ function getLength(value: number): number {
     return length
 }
 const createCorrectAlgorithmVersionTestCase = () => {
-    const testCaseJson = JSON.parse(fs.readFileSync(__dirname + "/../shared/correct.json", "utf-8"))
+    const testCaseJson = JSON.parse(
+        fs.readFileSync(__dirname + "/../shared/TestCases/currentTestCase.json", "utf-8"),
+    )
     return testCaseJson
 }
 
@@ -67,7 +69,7 @@ const createCorrectAlgorithmVersionTestCase = () => {
           }
           let testCaseJson
           let signers: SignerWithAddress[]
-          let crrrngCoordinator: CRRNGCoordinator
+          let crrrngCoordinator: CRRNGCoordinatorPoF
           let crrngCoordinatorAddress: string
           let consumerExample: ConsumerExample
           let initializeParams: {
@@ -140,9 +142,9 @@ const createCorrectAlgorithmVersionTestCase = () => {
                   callback_gaslimit = (gasUsed * (100n + 25n)) / 100n
               })
               it("test initial values on Titan", async function () {
-                  // ** deploy CRRNGCoordinator
-                  const CRRNGCoordinator = await ethers.getContractFactory("CRRNGCoordinatorPoF")
-                  const crrrngCoordinator = await CRRNGCoordinator.deploy(
+                  // ** deploy CRRNGCoordinatorPoF
+                  const CRRNGCoordinatorPoF = await ethers.getContractFactory("CRRNGCoordinatorPoF")
+                  const crrrngCoordinator = await CRRNGCoordinatorPoF.deploy(
                       coordinatorConstructorParams.disputePeriod,
                       coordinatorConstructorParams.minimumDepositAmount,
                       coordinatorConstructorParams.avgL2GasUsed,
@@ -153,7 +155,7 @@ const createCorrectAlgorithmVersionTestCase = () => {
                   await crrrngCoordinator.waitForDeployment()
                   const crrngCoordinatorAddress = await crrrngCoordinator.getAddress()
 
-                  // ** initialize CRRNGCoordinator
+                  // ** initialize CRRNGCoordinatorPoF
                   const tx = await crrrngCoordinator.initialize(
                       initializeParams.v,
                       initializeParams.x,

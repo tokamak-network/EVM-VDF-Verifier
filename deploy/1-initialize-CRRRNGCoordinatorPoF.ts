@@ -84,15 +84,16 @@ deployCRRRNGCoordinator.tags = [
     "sepolia",
     "testnet",
     "anvil",
-    "v2",
+    "",
     "init",
     "opSepolia",
     "opSepoliaRandom",
+    "PoF",
 ]
 
 const createCorrectAlgorithmVersionTestCase = () => {
     const testCaseJson = JSON.parse(
-        fs.readFileSync(__dirname + "/../test/shared/correct.json", "utf-8"),
+        fs.readFileSync(__dirname + "/../test/shared/TestCases/currentTestCase.json", "utf-8"),
     )
     return testCaseJson
 }

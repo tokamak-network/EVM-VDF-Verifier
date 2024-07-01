@@ -82,8 +82,9 @@ deployCRRRNGCoordinator.tags = [
     "all",
     "sepolia",
     "anvil",
-    "v2",
+    "",
     "crr",
     "opSepolia",
     "opSepoliaRandom",
+    "PoF",
 ]

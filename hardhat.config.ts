@@ -236,10 +236,9 @@ const config: HardhatUserConfig = {
     solidity: {
         compilers: [NEW_COMPILER_SETTINGS],
         overrides: {
-            "contracts/CRRNGCooridnatorPoFForTitan.sol": PARIS_COMPILER_SETTINGS,
-            "contracts/CRRNGCooridnatorPoFV2ForTitan.sol": PARIS_COMPILER_SETTINGS,
-            "contracts/RandomDayForTitan.sol": PARIS_COMPILER_SETTINGS,
-            "contracts/ConsumerExampleForTitan.sol": PARIS_COMPILER_SETTINGS,
+            "contracts/ForTitan/CRRNGCooridnatorPoFForTitan.sol": PARIS_COMPILER_SETTINGS,
+            "contracts/ForTitan/RandomDayForTitan.sol": PARIS_COMPILER_SETTINGS,
+            "contracts/ForTitan/ConsumerExampleForTitan.sol": PARIS_COMPILER_SETTINGS,
         },
     },
     mocha: {

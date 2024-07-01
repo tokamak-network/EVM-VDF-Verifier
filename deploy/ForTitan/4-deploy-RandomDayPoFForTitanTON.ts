@@ -49,7 +49,7 @@ deployRandomDayForTitanTON.tags = [
     "all",
     "randomDay",
     "testnet",
-    "v2",
+    "",
     "anvil",
     "anvilTitan",
     "titan",

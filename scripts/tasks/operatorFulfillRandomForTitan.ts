@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 import { BigNumberish, BytesLike } from "ethers"
-import fs from "fs"
 import { task } from "hardhat/config"
 
 interface BigNumber {
@@ -33,11 +32,11 @@ task("fulfillForTitan", "Operator fulfillRandomWord")
     .setAction(async ({ round }, { deployments, ethers, getNamedAccounts }) => {
         const { deployer } = await getNamedAccounts()
         console.log("EOA address:", deployer)
-        const crrrngCoordinatorAddress = (await deployments.get("CRRNGCoordinatorPoFV2ForTitan"))
+        const crrrngCoordinatorAddress = (await deployments.get("CRRNGCoordinatorPoFForTitan"))
             .address
         console.log("CRRRNGCoordinator address:", crrrngCoordinatorAddress)
         const crrngCoordinatorContract = await ethers.getContractAt(
-            "CRRNGCoordinatorPoFV2ForTitan",
+            "CRRNGCoordinatorPoFForTitan",
             crrrngCoordinatorAddress,
         )
         console.log("Fulfill...")
@@ -47,7 +46,3 @@ task("fulfillForTitan", "Operator fulfillRandomWord")
         console.log("Fulfilled successfully")
         console.log("----------------------")
     })
-const createCorrectAlgorithmVersionTestCase = () => {
-    const testCaseJson = JSON.parse(fs.readFileSync(__dirname + "/../recover.json", "utf-8"))
-    return testCaseJson
-}

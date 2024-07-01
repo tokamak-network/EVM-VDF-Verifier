@@ -33,10 +33,10 @@ task("fulfillAtRound", "Operator fulfillRandomWord")
     .setAction(async ({ round }, { deployments, ethers, getNamedAccounts }) => {
         const { deployer } = await getNamedAccounts()
         console.log("EOA address:", deployer)
-        const crrrngCoordinatorAddress = (await deployments.get("CRRNGCoordinatorPoFV2")).address
+        const crrrngCoordinatorAddress = (await deployments.get("CRRNGCoordinatorPoF")).address
         console.log("CRRRNGCoordinator address:", crrrngCoordinatorAddress)
         const crrngCoordinatorContract = await ethers.getContractAt(
-            "CRRNGCoordinatorPoFV2",
+            "CRRNGCoordinatorPoF",
             crrrngCoordinatorAddress,
         )
         console.log("Fulfill...")

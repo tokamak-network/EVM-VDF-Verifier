@@ -31,10 +31,10 @@ task("commitAtRound", "Operator commits")
     .addParam("round", "The round to commit")
     .setAction(async ({ round }, { deployments, ethers, getNamedAccounts }) => {
         const { deployer } = await getNamedAccounts()
-        const crrrngCoordinatorAddress = (await deployments.get("CRRNGCoordinatorPoFV2")).address
+        const crrrngCoordinatorAddress = (await deployments.get("CRRNGCoordinatorPoF")).address
         console.log("CRRRNGCoordinator address:", crrrngCoordinatorAddress)
         const crrngCoordinatorContract = await ethers.getContractAt(
-            "CRRNGCoordinatorPoFV2",
+            "CRRNGCoordinatorPoF",
             crrrngCoordinatorAddress,
         )
         const commitCount = await crrngCoordinatorContract.getValidCommitCountAtRound(round)

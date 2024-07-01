@@ -19,10 +19,10 @@ async function requestRandomWord() {
     const registrationDuration = 86400n
     const totalPrizeAmount = 1000n * 10n ** 18n
     console.log("EOA address:", deployer)
-    const crrrngCoordinatorAddress = (await deployments.get("CRRNGCoordinatorPoFV2")).address
-    console.log("CRRNGCoordinatorPoFV2 address:", crrrngCoordinatorAddress)
+    const crrrngCoordinatorAddress = (await deployments.get("CRRNGCoordinatorPoF")).address
+    console.log("CRRNGCoordinatorPoF address:", crrrngCoordinatorAddress)
     const crrngCoordinatorContract = await ethers.getContractAt(
-        "CRRNGCoordinatorPoFV2",
+        "CRRNGCoordinatorPoF",
         crrrngCoordinatorAddress,
     )
     try {

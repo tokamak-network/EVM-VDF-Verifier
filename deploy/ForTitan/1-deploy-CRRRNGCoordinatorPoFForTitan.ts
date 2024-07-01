@@ -18,7 +18,7 @@ import { DeployFunction } from "hardhat-deploy/types"
 import { HardhatRuntimeEnvironment } from "hardhat/types"
 import { VERIFICATION_BLOCK_CONFIRMATIONS } from "../../helper-hardhat-config"
 import verify from "../../utils/verify"
-const deployCRRRNGCoordinator: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
+const deployCRRRNGCoordinatorForTitan: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
     const { deployments, getNamedAccounts, network } = hre
     const { deploy, log } = deployments
     const { deployer } = await getNamedAccounts()
@@ -41,7 +41,7 @@ const deployCRRRNGCoordinator: DeployFunction = async (hre: HardhatRuntimeEnviro
         penaltyPercentage: 20n,
         flatFee: ethers.parseEther("0.001"),
     }
-    console.log("chainId", chainId)
+
     const waitBlockConfirmations =
         chainId === 31337 ||
         chainId === 5050 ||
@@ -81,11 +81,14 @@ const deployCRRRNGCoordinator: DeployFunction = async (hre: HardhatRuntimeEnviro
     }
     log("----------------------------------------------------")
 }
-export default deployCRRRNGCoordinator
-deployCRRRNGCoordinator.tags = [
+export default deployCRRRNGCoordinatorForTitan
+deployCRRRNGCoordinatorForTitan.tags = [
     "all",
-    "CRRNGCoordinator",
-    "anvilTitan",
-    "titan",
-    "titanCoordinator",
+    "sepolia",
+    "anvil",
+    "",
+    "crr",
+    "opSepolia",
+    "opSepoliaRandom",
+    "PoFForTitan",
 ]

@@ -32,11 +32,11 @@ task("recoverForTitan", "Operator recover")
     .setAction(async ({ round }, { deployments, ethers, getNamedAccounts }) => {
         const { deployer } = await getNamedAccounts()
         console.log("EOA address:", deployer)
-        const crrrngCoordinatorAddress = (await deployments.get("CRRNGCoordinatorPoFV2ForTitan"))
+        const crrrngCoordinatorAddress = (await deployments.get("CRRNGCoordinatorPoFForTitan"))
             .address
         console.log("CRRRNGCoordinator address:", crrrngCoordinatorAddress)
         const crrngCoordinatorContract = await ethers.getContractAt(
-            "CRRNGCoordinatorPoFV2ForTitan",
+            "CRRNGCoordinatorPoFForTitan",
             crrrngCoordinatorAddress,
         )
 
