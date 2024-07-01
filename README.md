@@ -39,6 +39,7 @@ Pietrzak VDF verifier implementation for EVM. The related technical details are 
   - [Known Issues](#known-issues)
     - [For Operators](#for-operators)
     - [For Consumers](#for-consumers)
+    - [General](#general)
 
 # Getting Started
 
@@ -222,3 +223,8 @@ slither .
 1. **refundAtRound**
    - The function may be executed when the commitPhase is over and there are less than 2 commits. 
    - Or, 3 minutes have passed and no one has committed.
+
+
+### General
+- We are aware the Coordinator is centralized and owned by a single user who can set fee related variables, aka it is centralized.
+- We are missing some zero address checks/input validation intentionally to save gas. 
