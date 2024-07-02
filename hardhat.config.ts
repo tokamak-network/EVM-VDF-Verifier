@@ -225,6 +225,8 @@ const config: HardhatUserConfig = {
             "contracts/ForTitan/CRRNGCooridnatorPoFForTitan.sol": PARIS_COMPILER_SETTINGS,
             "contracts/ForTitan/RandomDayForTitan.sol": PARIS_COMPILER_SETTINGS,
             "contracts/ForTitan/ConsumerExampleForTitan.sol": PARIS_COMPILER_SETTINGS,
+            "contracts/ForTitan/TonTokenForTitan.sol": PARIS_COMPILER_SETTINGS,
+            "contracts/ForTitan/VDFCRRNGPoFForTitan.sol": PARIS_COMPILER_SETTINGS,
         },
     },
     mocha: {

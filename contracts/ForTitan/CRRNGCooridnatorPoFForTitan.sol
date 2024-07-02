@@ -5,10 +5,10 @@ import {ICRRRNGCoordinator} from "../interfaces/ICRRRNGCoordinator.sol";
 import {VDFCRRNGPoFForTitan} from "./VDFCRRNGPoFForTitan.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 
-/// @title Commit-Recover Random Number Generator Coordinator
+/// @title Proof of Fraud, Random Number Generator Coordinator
 /// @author Justin G
-/// @notice This contract is not audited
-/// @notice  This contract is for generating random number
+/// @notice This contract is for generating random numbers and is not audited.
+/// @dev Implements the ICRRRNGCoordinator interface and inherits from Ownable and VDFCRRNGPoF.
 contract CRRNGCoordinatorPoFForTitan is ICRRRNGCoordinator, Ownable, VDFCRRNGPoFForTitan {
     // *** State variables
     // * private
@@ -16,13 +16,14 @@ contract CRRNGCoordinatorPoFForTitan is ICRRRNGCoordinator, Ownable, VDFCRRNGPoF
     uint256 private s_premiumPercentage;
     uint256 private s_flatFee;
 
-    /// @notice The deployer becomes the owner of the contract
-    /// @dev no zero checks
-    /// @param disputePeriod The dispute period after recovery
-    /// @param minimumDepositAmount The minimum deposit amount to become operators
-    /// @param avgL2GasUsed The average gas cost for recovery of the random number
-    /// @param premiumPercentage The percentage of the premium, will be set to 0
-    /// @param flatFee The flat fee for the direct funding
+    /// @notice Constructor to initialize the CRRNGCoordinatorPoF contract.
+    /// @param disputePeriod The dispute period for the contract.
+    /// @param minimumDepositAmount The minimum deposit amount required from operators.
+    /// @param avgL2GasUsed The average L2 gas used. 3 commits + 1 recover + 1 fulfill gasUsed
+    /// @param avgL1GasUsed The average L1 gas used. 3 commits + 1 recover + 1 fulfill calldata gas
+    /// @param premiumPercentage The premium percentage to be applied.
+    /// @param penaltyPercentage The penalty percentage to be applied.
+    /// @param flatFee The flat fee to be charged.
     constructor(
         uint256 disputePeriod,
         uint256 minimumDepositAmount,
@@ -42,15 +43,6 @@ contract CRRNGCoordinatorPoFForTitan is ICRRRNGCoordinator, Ownable, VDFCRRNGPoF
         s_flatFee = flatFee;
     }
 
-    /** @notice Sets the settings for the contract. The owner will be transfer to mini DAO contract in the future.
-     *  1. only owner can set the settings<br>
-     *  2. no safety checks for values since it is only owner
-     * @param disputePeriod The dispute period after recovery
-     * @param minimumDepositAmount The minimum deposit amount to become operators
-     * @param avgL2GasUsed The average gas cost for recovery of the random number
-     * @param premiumPercentage The percentage of the premium, will be set to 0
-     * @param flatFee The flat fee for the direct funding
-     */
     function setSettingVariables(
         uint256 disputePeriod,
         uint256 minimumDepositAmount,
@@ -70,49 +62,26 @@ contract CRRNGCoordinatorPoFForTitan is ICRRRNGCoordinator, Ownable, VDFCRRNGPoF
         s_flatFee = flatFee;
     }
 
-    /**  @param callbackGasLimit  Test and adjust this limit based on the processing of the callback request in your fulfillRandomWords() function.
-     * @notice Consumer requests a random number, the consumer must send the cost of the request. There is refund logic in the contract to refund the excess amount sent by the consumer, so nonReentrant modifier is used to prevent reentrancy attacks.
-     * - checks
-     * 1. Reverts when reentrancy is detected
-     * 2. Reverts when the VDF values are not verified
-     * 3. Reverts when the number of operators is less than 2
-     * 4. Reverts when the value sent from consumer is less than the _calculateDirectFundingPrice function result
-     * - effects
-     * 1. Increments the round number
-    //  * 2. Sets the start time of the round
-     * 3. Sets the stage of the round to Commit, commit starts
-     * 4. Sets the msg.sender as the consumer of the round, doesn't check if the consumer is EOA or CA
-     * 5. Sets the cost of the round, derived from the _calculateDirectFundingPrice function
-     * 6. Emits a RandomWordsRequested(round, msg.sender) event
-     * - interactions
-     * 1. Refunds the excess amount sent over the result of the _calculateDirectFundingPrice function, reverts if the refund fails
-     */
+    /// @notice Requests a random word with direct funding.
+    /// @param callbackGasLimit The gas limit for the callback function.
+    /// @return round The round number of the request.
     function requestRandomWordDirectFunding(
         uint32 callbackGasLimit
-    ) external payable nonReentrant returns (uint256 _round) {
+    ) external payable nonReentrant returns (uint256 round) {
         if (!s_initialized) revert NotVerified();
         if (s_operatorCount < 2) revert NotEnoughOperators();
         uint256 cost = _calculateDirectFundingPrice(callbackGasLimit, tx.gasprice);
         if (msg.value < cost) revert InsufficientAmount();
-        _round = s_nextRound++;
-        s_valuesAtRound[_round].consumer = msg.sender;
-        s_valuesAtRound[_round].requestedTime = block.timestamp;
-        s_cost[_round] = msg.value;
-        s_callbackGasLimit[_round] = callbackGasLimit;
-        emit RandomWordsRequested(_round);
+        round = s_nextRound++;
+        s_valuesAtRound[round].consumer = msg.sender;
+        s_valuesAtRound[round].requestedTime = block.timestamp;
+        s_cost[round] = msg.value;
+        s_callbackGasLimit[round] = callbackGasLimit;
+        emit RandomWordsRequested(round);
     }
 
-    /**
-     * @param round The round ID of the request
-     * @notice This function can be called by anyone to restart the commit stage of the round when commits are less than 2 after the commit stage ends
-     * - checks
-     * 1. Reverts when the current block timestamp is less than the start time of the round plus the commit duration, meaning the commit stage is still ongoing
-     * 2. Reverts when the number of commits is more than 1, because the recovery stage is already started
-     * - effects
-     * 1. Resets the stage of the round to Commit
-     * 2. Resets the start time of the round
-     * 3. ReEmits a RandomWordsRequested(round, msg.sender) event
-     */
+    /// @notice Re-requests a random word at a specific round.
+    /// @param round The round number for which to re-request the random word.
     function reRequestRandomWordAtRound(uint256 round) external startedRound(round) nonReentrant {
         // check
         if (s_operatorCount < 2) revert NotEnoughOperators();
@@ -129,6 +98,8 @@ contract CRRNGCoordinatorPoFForTitan is ICRRRNGCoordinator, Ownable, VDFCRRNGPoF
         emit RandomWordsRequested(round);
     }
 
+    /// @notice Refunds at a specific round.
+    /// @param round The round number for which to process the refund.
     function refundAtRound(uint256 round) external startedRound(round) nonReentrant {
         // check
         if (s_valuesAtRound[round].consumer != msg.sender) revert NotConsumer();
@@ -141,15 +112,7 @@ contract CRRNGCoordinatorPoFForTitan is ICRRRNGCoordinator, Ownable, VDFCRRNGPoF
         }
     }
 
-    /**
-     * @notice This function is for anyone to become an operator by depositing the minimum deposit amount, also for operators to increase their deposit amount
-     * - checks
-     * 1. Reverts when the deposit amount of the msg.sender plus the value sent is less than the minimum deposit amount
-     * - effects
-     * 1. Increments the operator count when the msg.sender was not an operator before
-     * 2. Sets the operator status of the msg.sender to true
-     * 3. Increments the deposit amount of the msg.sender
-     */
+    /// @notice Allows operators to deposit funds. or to become an operator.
     function operatorDeposit() external payable {
         uint256 sumAmount = s_depositedAmount[msg.sender] + msg.value;
         if (sumAmount < s_minimumDepositAmount) revert InsufficientDepositAmount();
@@ -160,20 +123,8 @@ contract CRRNGCoordinatorPoFForTitan is ICRRRNGCoordinator, Ownable, VDFCRRNGPoF
         s_depositedAmount[msg.sender] = sumAmount;
     }
 
-    /**
-     * @param amount The amount to withdraw
-     * @notice This function is for operators to withdraw their deposit amount, also for operators to decrease their deposit amount
-     * - checks
-     * 1. Reverts when the dispute end time of the operator is more than the current block timestamp, meaning the operator could be in a dispute
-     * 2. Reverts when the parameter amount is more than the deposit amount of the operator
-     * - effects
-     * 1. If the deposit amount of the operator minus the amount is less than the minimum deposit amount
-     * <br>&nbsp;- Sets the operator status of the operator to false
-     * <br>&nbsp;- Decrements the operator count
-     * 2. Decrements the deposit amount of the operator
-     * - interactions
-     * 1. Sends the amount to the operator, reverts if the send fails
-     */
+    /// @notice Allows operators to withdraw funds.
+    /// @param amount The amount to withdraw.
     function operatorWithdraw(uint256 amount) external nonReentrant {
         uint256 depositAmount = s_depositedAmount[msg.sender];
         if (s_disputeEndTimeForOperator[msg.sender] > block.timestamp)
@@ -188,13 +139,10 @@ contract CRRNGCoordinatorPoFForTitan is ICRRRNGCoordinator, Ownable, VDFCRRNGPoF
         if (!success) revert SendFailed();
     }
 
-    /**
-     * @param _callbackGasLimit The gas limit for the processing of the callback request in consumer's fulfillRandomWords() function.
-     * @param gasPrice The expected gas price for the callback transaction.
-     * @return calculatedDirectFundingPrice The cost of the direct funding
-     * @notice This function is for the consumer to estimate the cost of the direct funding
-     * 1. returns cost =  (((gasPrice * (_callbackGasLimit + s_avgL2GasUsed)) * (s_premiumPercentage + 100)) / 100) + s_flatFee;
-     */
+    /// @notice Estimates the direct funding price.
+    /// @param _callbackGasLimit The gas limit for the callback function.
+    /// @param gasPrice The gas price to be used for the estimation.
+    /// @return The estimated direct funding price.
     function estimateDirectFundingPrice(
         uint32 _callbackGasLimit,
         uint256 gasPrice
@@ -202,51 +150,19 @@ contract CRRNGCoordinatorPoFForTitan is ICRRRNGCoordinator, Ownable, VDFCRRNGPoF
         return _calculateDirectFundingPrice(_callbackGasLimit, gasPrice);
     }
 
-    /**
-     * @param _callbackGasLimit The gas limit for the processing of the callback request in consumer's fulfillRandomWords() function.
-     * @return calculatedDirectFundingPrice The cost of the direct funding
-     * @notice This function is for the consumer to calculate the cost of the direct funding with the current gas price on-chain
-     * 1. returns cost =  (((tx.gasprice * (_callbackGasLimit + s_avgL2GasUsed)) * (s_premiumPercentage + 100)) / 100) + s_flatFee;
-     */
+    // @notice Calculates the direct funding price.
+    /// @param _callbackGasLimit The gas limit for the callback function.
+    /// @return The calculated direct funding price.
     function calculateDirectFundingPrice(
         uint32 _callbackGasLimit
     ) external view override returns (uint256) {
         return _calculateDirectFundingPrice(_callbackGasLimit, tx.gasprice);
     }
 
-    // *** getter functions
-    /**
-     * @param round The round ID of the request
-     * @return disputeEndTimeAtRound The dispute end time of the round
-     * @return leaderAtRound The leader of the round
-     * @notice This getter function is for anyone to get the dispute end time and the leader of the round
-     * - return order
-     * 0. dispute end time
-     * 1. leader
-     */
-    function getDisputeEndTimeAndLeaderAtRound(
-        uint256 round
-    ) external view returns (uint256, address) {
-        return (s_disputeEndTimeAtRound[round], s_leaderAtRound[round]);
-    }
-
-    /**
-     * @param operator The operator address
-     * @return s_disputeEndTimeForOperator The dispute end time of the operator
-     * @notice This getter function is for anyone to get the dispute end time and all the incentive of the operator
-     * - return order
-     * 0. dispute end time
-     * 1. incentive
-     */
     function getDisputeEndTimeOfOperator(address operator) external view returns (uint256) {
         return s_disputeEndTimeForOperator[operator];
     }
 
-    /**
-     * @param round The round ID of the request
-     * @return costOfRound The cost of the round. The cost includes the _callbackGasLimit, recovery gas cost, premium, and flat fee. premium is set to 0.
-     * @notice This getter function is for anyone to get the cost of the round
-     */
     function getCostAtRound(uint256 round) external view returns (uint256) {
         return s_cost[round];
     }
@@ -259,35 +175,18 @@ contract CRRNGCoordinatorPoFForTitan is ICRRRNGCoordinator, Ownable, VDFCRRNGPoF
         return s_commitValues[round].length - s_ignoredCounts[round];
     }
 
-    /**
-     * @param operator The operator address
-     * @return depositAmount The deposit amount of the operator
-     * @notice This getter function is for anyone to get the deposit amount of the operator
-     */
     function getDepositAmount(address operator) external view returns (uint256) {
         return s_depositedAmount[operator];
-    }
-
-    function getFulfillStatusAtRound(uint256 round) external view returns (FulfillStatus memory) {
-        return s_fulfillStatus[round];
     }
 
     function getOperatorCount() external view returns (uint256) {
         return s_operatorCount;
     }
 
-    /**
-     * @return minimumDepositAmount The minimum deposit amount to become operators
-     * @notice This getter function is for anyone to get the minimum deposit amount to become operators
-     */
     function getMinimumDepositAmount() external view returns (uint256) {
         return s_minimumDepositAmount;
     }
 
-    /**
-     * @return nextRound The next round ID
-     * @notice This getter function is for anyone to get the next round ID
-     */
     function getNextRound() external view returns (uint256) {
         return s_nextRound;
     }
@@ -306,41 +205,12 @@ contract CRRNGCoordinatorPoFForTitan is ICRRRNGCoordinator, Ownable, VDFCRRNGPoF
         return s_disputePeriod;
     }
 
-    /**
-     * @param _round The round ID of the request
-     * @return The values of the round that are used for commit and recovery stages. The return value is struct ValueAtRound
-     * @notice This getter function is for anyone to get the values of the round that are used for commit and recovery stages
-     * - [0]: commitEndTime -> The start time of the round
-     * - [1]:numOfPariticipants -> This is the number of operators who have committed to the round. And this is updated on the recovery stage.
-     * - [2]: count -> The number of operators who have committed to the round. And this is updated real-time.
-     * - [3]: consumer -> The address of the consumer of the round
-     * - [4]: bStar -> The bStar value of the round. This is updated on recovery stage.
-     * - [6]: omega -> The omega value of the round. This is updated after recovery.
-     * - [7]: stage -> The stage of the round. 0 is Recovered or NotStarted, 1 is Commit
-     * - [8]: isRecovered -> The flag to check if the round is completed. This is updated after recovery.
-     */
     function getValuesAtRound(uint256 _round) external view returns (ValueAtRound memory) {
         return s_valuesAtRound[_round];
     }
 
     function getConsumerAtRound(uint256 round) external view returns (address) {
         return s_valuesAtRound[round].consumer;
-    }
-
-    /**
-     * @param _operator The operator address
-     * @param _round The round ID of the request
-     * @return The status of the operator at the round. The return value is struct UserStatusAtRound
-     * @notice This getter function is for anyone to get the status of the operator at the round
-     *
-     * - [0]: index -> The index of the commitValue array of the operator
-     * - [1]: committed -> The flag to check if the operator has committed to the round
-     */
-    function getUserStatusAtRound(
-        address _operator,
-        uint256 _round
-    ) external view returns (OperatorStatusAtRound memory) {
-        return s_operatorStatusAtRound[_round][_operator];
     }
 
     function isOperator(address operator) external view returns (bool) {
@@ -351,24 +221,6 @@ contract CRRNGCoordinatorPoFForTitan is ICRRRNGCoordinator, Ownable, VDFCRRNGPoF
         return s_initialized;
     }
 
-    function getCommittedOperatorsAtRound(uint256 round) external view returns (address[] memory) {
-        return s_committedOperatorsAtRound[round];
-    }
-
-    function getOneCommittedOperatorAtRound(
-        uint256 round,
-        uint256 index
-    ) external view returns (address) {
-        return s_committedOperatorsAtRound[round][index];
-    }
-
-    /**
-     * @param _callbackGasLimit The gas limit for the processing of the callback request in consumer's fulfillRandomWords() function.
-     * @param gasPrice The gas price for the callback transaction.
-     * @return calculatedDirectFundingPrice The cost of the direct funding
-     * @notice This function is for the contract to calculate the cost of the direct funding
-     * - returns cost =  (((gasPrice * (_callbackGasLimit + s_avgL2GasUsed)) * (s_premiumPercentage + 100)) / 100) + s_flatFee;
-     */
     function _calculateDirectFundingPrice(
         uint32 _callbackGasLimit,
         uint256 gasPrice

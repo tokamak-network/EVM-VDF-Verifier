@@ -38,7 +38,6 @@ Pietrzak VDF verifier implementation for EVM. The related technical details are 
   - [Calculate Fees](#calculate-fees)
   - [Known Issues](#known-issues)
     - [For Operators](#for-operators)
-    - [For Consumers](#for-consumers)
     - [General](#general)
 
 # Getting Started
@@ -208,23 +207,18 @@ slither .
    - Incentive mechanisms (not updated yet):
      - What if the leader doesn't recover for 2 minutes?
        - Any other operators who committed to this round should recover.
-       - There should be a recovery gas cost plus some reward. The leader's reward goes to the recoverer (first come, first served).
+       - There should be a recovery gas cost plus some reward. The leader's reward should go to the recoverer (first come, first served).
 
 2. **reRequestRandomWordAtRound**
    - The function may be executed when the commitPhase is over and there are less than 2 commits.
-   - In a round that is reRequested when there is already a single commit, the existing committed commit and its operator are expected to participate normally in that round. However, the existing commit count is ignored and counted from zero again.
+   - This function was created to ensure that the specific round to be fulfilled. However, this function requires additional gas to run, which will be addressed in the future.
+   - Function descriptions
+     - In a round that is reRequested when there is already a single commit, the existing committed commit and its operator are expected to participate normally in that round. However, the existing commit count is ignored and counted from zero again.
      - Reason: We implemented this because if the reRequested round creates one more commit, resulting in a total of two commits to recover, it may not be a safe random number.
-   - Who runs it?
-     - Functions can be executed by anyone, but the operator (who wants to participate in the round) will be the one to run it.
-     - But who would want to sacrifice gas to participate? This issue is not yet solved (only the function is implemented).
-
-### For Consumers
-
-1. **refundAtRound**
-   - The function may be executed when the commitPhase is over and there are less than 2 commits. 
-   - Or, 3 minutes have passed and no one has committed.
+     - Who runs it?
+       - Functions can be executed by anyone, but the operator (who wants to participate in the round) will be the one to run it.
 
 
 ### General
-- We are aware the Coordinator is centralized and owned by a single user who can set fee related variables, aka it is centralized.
+- We are aware the Coordinator is owned by a single user who can set fee related variables, aka it is centralized.
 - We are missing some zero address checks/input validation intentionally to save gas. 

@@ -14,15 +14,6 @@ import {RNGConsumerBase} from "./RNGConsumerBase.sol";
 contract VDFCRRNGPoF is ReentrancyGuardTransient, GetL1Fee {
     // *** Type declarations
 
-    /**
-     *  @notice The struct to store the values of the round
-     * - [0]: commitEndTime -> The start time of the round
-     * - [1]: commitCounts -> The number of operators who have committed to the round. And this is updated real-time.
-     * - [2]: consumer -> The address of the consumer of the round
-     * - [4]: omega -> The omega value of the round. This is updated after recovery.
-     * - [5]: stage -> The stage of the round. 0 is Recovered or NotStarted, 1 is Commit
-     * - [6]: isRecovered -> The flag to check if the round is completed. This is updated after recovery.
-     */
     struct ValueAtRound {
         uint256 requestedTime;
         uint256 commitEndTime;
@@ -37,11 +28,6 @@ contract VDFCRRNGPoF is ReentrancyGuardTransient, GetL1Fee {
         bool succeeded;
     }
 
-    /**
-     * @dev The struct to store the user status at the round
-     * - [0]: index -> The key of the commitValue mapping
-     * - [1]: committed -> The flag to check if the operator has committed
-     */
     struct OperatorStatusAtRound {
         uint256 maxCommitTimestamp;
         uint256 commitIndex;
@@ -54,18 +40,12 @@ contract VDFCRRNGPoF is ReentrancyGuardTransient, GetL1Fee {
     mapping(uint256 round => uint256 ignoredCounts) internal s_ignoredCounts;
     /// @dev The mapping of the cost of the round. The cost includes _callbackGasLimit, recoveryGasOverhead, and flatFee
     mapping(uint256 round => uint256 cost) internal s_cost;
-    /// @dev The mapping of the dispute end time at the round
-    mapping(uint256 round => uint256 disputeEndTime) internal s_disputeEndTimeAtRound;
-    /// @dev The mapping of the leader at the round
-    mapping(uint256 round => address) internal s_leaderAtRound;
     mapping(uint256 round => uint32 callbackGasLimit) internal s_callbackGasLimit;
     // * round => dynamic array
-    mapping(uint256 round => address[] committedOperators) internal s_committedOperatorsAtRound;
     mapping(uint256 round => BigNumber[] commitValues) internal s_commitValues;
     // * round => Struct
     /// @dev The mapping of the values at the round that are used for commit-recover
     mapping(uint256 round => ValueAtRound) internal s_valuesAtRound;
-    mapping(uint256 round => FulfillStatus fulfillStatus) internal s_fulfillStatus;
     // * round => mapping(value type => Struct)
     /// @dev The mapping of the user status at the round
     mapping(uint256 round => mapping(address operator => OperatorStatusAtRound))
@@ -88,10 +68,17 @@ contract VDFCRRNGPoF is ReentrancyGuardTransient, GetL1Fee {
     /// @dev The flag to check if the setUp values are verified
     bool internal s_initialized;
 
-    // * internal constant
+    // * private variables
+    /// @dev The mapping of the dispute end time at the round
+    mapping(uint256 round => uint256 disputeEndTime) private s_disputeEndTimeAtRound;
+    /// @dev The mapping of the leader at the round
+    mapping(uint256 round => address) private s_leaderAtRound;
+    mapping(uint256 round => address[] committedOperators) private s_committedOperatorsAtRound;
+    mapping(uint256 round => FulfillStatus fulfillStatus) private s_fulfillStatus;
+
+    // * private constants
     /// @dev The duration of the commit stage, 120 seconds
-    uint256 internal constant COMMITDURATION = 120;
-    // * constants
+    uint256 private constant COMMITDURATION = 120;
     uint256 private constant L2_DISPUTERECOVER_TX_GAS = 2881159;
     uint256 private constant L2_DISPUTELEADERSHIP_TX_GAS = 94000;
     /// @dev The constant T, 2^22
@@ -110,7 +97,6 @@ contract VDFCRRNGPoF is ReentrancyGuardTransient, GetL1Fee {
     /// @dev The constant EXPDELTA, 2^2^9
     bytes private constant EXPDELTA =
         hex"000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000";
-
     bytes private constant NVAL =
         hex"4e502cc741a1a63c4ae0cea62d6eefae5d0395e137075a15b515f0ced5c811334f06272c0f1e85c1bed5445025b039e42d0a949989e2c210c9b68b9af5ada8c0f72fa445ce8f4af9a2e56478c8a6b17a6f1c389445467fe096a4c35262e4b06a6ba67a419bcca5d565e698ead674fca78e5d91fdc18f854b8e43edbca302c5d2d2d47ce49afb7405a4db2e87c98c2fd0718af32c1881e4d6d762f624de2d57663754aedfb02cbcc944812d2f8de4f694c933a1c11ecdbb2e67cf22f410487d598ef3d82190feabf11b5a83a4a058cdda1def94cd244fd30412eb8fa6d467398c21a15af04bf55078d9c73e12e3d0f5939804845b1487fae1fb526fa583e27d71";
     bytes private constant GVAL =
@@ -162,11 +148,6 @@ contract VDFCRRNGPoF is ReentrancyGuardTransient, GetL1Fee {
     error CommitPhaseEnded();
 
     // *** Modifiers
-    /**
-     * @notice The modifier to check if the sender is the operator
-     * @dev If the sender is not the operator, revert
-     * @dev This modifier is used for the operator-only functions
-     */
     modifier onlyOperator() {
         if (!s_isOperators[msg.sender]) revert CRRNGCoordinator_NotOperator();
         _;
@@ -192,66 +173,49 @@ contract VDFCRRNGPoF is ReentrancyGuardTransient, GetL1Fee {
         s_initialized = true;
     }
 
-    /**
-     * @param round The round number
-     * @param c The commit value in BigNumber
-     * @notice The function to commit the value
-     * - checks
-     * 1. The msg.sender should be the operator
-     * 2. The stage should be Commit stage.
-     * 3. The commit value should not be zero
-     * 4. The operator should not have committed
-     * - effects
-     * 1. The operator's committed flag is set to true
-     * 2. The operator's index is set to the count of the round
-     * 3. The commit value is stored in the commitValue mapping
-     * 4. The address of the operator is stored in the commitValues mapping
-     * 6. The count of the round is incremented
-     * 7. The CommitC(_count, c.val) event is emitted
-     */
     function commit(uint256 round, BigNumber memory c) external startedRound(round) onlyOperator {
         // ** check commit phase
-        uint256 _commitEndTime = s_valuesAtRound[round].commitEndTime;
-        if (_commitEndTime == 0) {
+        uint256 commitEndTime = s_valuesAtRound[round].commitEndTime;
+        if (commitEndTime == 0) {
             uint256 previousRound;
             unchecked {
                 previousRound = round - BigNumbers.UINTONE;
             }
             if (s_valuesAtRound[previousRound].requestedTime > 0) {
                 if (s_valuesAtRound[previousRound].isRecovered)
-                    s_valuesAtRound[round].commitEndTime = _commitEndTime =
+                    s_valuesAtRound[round].commitEndTime = commitEndTime =
                         block.timestamp +
                         COMMITDURATION;
                 else revert PreviousRoundNotRecovered();
             } else
-                s_valuesAtRound[round].commitEndTime = _commitEndTime =
+                s_valuesAtRound[round].commitEndTime = commitEndTime =
                     block.timestamp +
                     COMMITDURATION;
-        } else if (block.timestamp >= _commitEndTime) revert CommitPhaseEnded();
+        } else if (block.timestamp >= commitEndTime) revert CommitPhaseEnded();
         // * commit
         if (BigNumbers.isZero(c)) revert ShouldNotBeZero();
         if (s_operatorStatusAtRound[round][msg.sender].committed) {
-            uint256 _commitIndex = s_operatorStatusAtRound[round][msg.sender].commitIndex;
+            uint256 commitIndex = s_operatorStatusAtRound[round][msg.sender].commitIndex;
             if (block.timestamp < s_operatorStatusAtRound[round][msg.sender].maxCommitTimestamp)
                 revert AlreadyCommitted();
-            if (BigNumbers.eq(s_commitValues[round][_commitIndex], c)) revert CommittedSameValue();
+            if (BigNumbers.eq(s_commitValues[round][commitIndex], c)) revert CommittedSameValue();
             unchecked {
                 --s_ignoredCounts[round];
             }
-            s_commitValues[round][_commitIndex] = c;
-            s_operatorStatusAtRound[round][msg.sender].maxCommitTimestamp = _commitEndTime;
-            emit CommitC(round, _commitIndex, msg.sender, c.val);
+            s_commitValues[round][commitIndex] = c;
+            s_operatorStatusAtRound[round][msg.sender].maxCommitTimestamp = commitEndTime;
+            emit CommitC(round, commitIndex, msg.sender, c.val);
         } else {
             //effect
-            uint256 _commitIndex = s_commitValues[round].length;
+            uint256 commitIndex = s_commitValues[round].length;
             s_operatorStatusAtRound[round][msg.sender] = OperatorStatusAtRound(
-                _commitEndTime,
-                _commitIndex,
+                commitEndTime,
+                commitIndex,
                 true
             );
             s_commitValues[round].push(c);
             s_committedOperatorsAtRound[round].push(msg.sender);
-            emit CommitC(round, _commitIndex, msg.sender, c.val);
+            emit CommitC(round, commitIndex, msg.sender, c.val);
         }
     }
 
@@ -260,9 +224,9 @@ contract VDFCRRNGPoF is ReentrancyGuardTransient, GetL1Fee {
         BigNumber memory y
     ) external startedRound(round) onlyOperator nonReentrant {
         // * check recover phase
-        uint256 _commitEndTime = s_valuesAtRound[round].commitEndTime;
-        if (_commitEndTime == 0) revert CommitNotStarted();
-        else if (block.timestamp < _commitEndTime) revert StillInCommitPhase();
+        uint256 commitEndTime = s_valuesAtRound[round].commitEndTime;
+        if (commitEndTime == 0) revert CommitNotStarted();
+        else if (block.timestamp < commitEndTime) revert StillInCommitPhase();
         uint256 _count = s_commitValues[round].length - s_ignoredCounts[round];
         if (_count < BigNumbers.UINTTWO) revert InsufficientCommitsCount();
         // check
@@ -418,6 +382,34 @@ contract VDFCRRNGPoF is ReentrancyGuardTransient, GetL1Fee {
         uint256 index
     ) external view returns (BigNumber memory) {
         return s_commitValues[round][index];
+    }
+
+    function getDisputeEndTimeAndLeaderAtRound(
+        uint256 round
+    ) external view returns (uint256, address) {
+        return (s_disputeEndTimeAtRound[round], s_leaderAtRound[round]);
+    }
+
+    function getCommittedOperatorsAtRound(uint256 round) external view returns (address[] memory) {
+        return s_committedOperatorsAtRound[round];
+    }
+
+    function getOneCommittedOperatorAtRound(
+        uint256 round,
+        uint256 index
+    ) external view returns (address) {
+        return s_committedOperatorsAtRound[round][index];
+    }
+
+    function getUserStatusAtRound(
+        address _operator,
+        uint256 _round
+    ) external view returns (OperatorStatusAtRound memory) {
+        return s_operatorStatusAtRound[_round][_operator];
+    }
+
+    function getFulfillStatusAtRound(uint256 round) external view returns (FulfillStatus memory) {
+        return s_fulfillStatus[round];
     }
 
     function _getDisputeLeadershipTxGasFee() private view returns (uint256) {

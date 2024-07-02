@@ -19,10 +19,13 @@ async function startEventForTitan() {
     console.log("EOA address:", deployer)
     const randomDayAddress = (await deployments.get("RandomDayForTitan")).address
     console.log("randomDay address:", randomDayAddress)
-    const cryptoDiceConsumerContract = await ethers.getContractAt("RandomDay", randomDayAddress)
+    const randomDayAddressContract = await ethers.getContractAt(
+        "RandomDayForTitan",
+        randomDayAddress,
+    )
     try {
         console.log("Starting Event...")
-        const tx = await cryptoDiceConsumerContract.startEvent()
+        const tx = await randomDayAddressContract.startEvent()
         const receipt = await tx.wait()
         console.log("Transaction receipt", receipt)
         console.log("Event started")
