@@ -97,7 +97,7 @@ describe("RandomDay", function () {
         penaltyPercentage: BigNumberish
         flatFee: BigNumberish
     } = {
-        disputePeriod: 180n,
+        disputePeriod: 120n,
         minimumDepositAmount: ethers.parseEther("0.005"),
         avgL2GasUsed: 2101449n,
         avgL1GasUsed: 27824n,
@@ -500,7 +500,7 @@ describe("RandomDay", function () {
                         const provider = ethers.provider
                         const blockTimestamp = (await provider.getBlock(blockNumber))?.timestamp!
                         const valuesAtRound = await crrrngCoordinator.getValuesAtRound(round)
-                        await expect(valuesAtRound.commitEndTime).to.equal(blockTimestamp + 120)
+                        await expect(valuesAtRound.commitEndTime).to.equal(blockTimestamp + 60)
                     }
                 }
                 _commitAvgGas /= 3n

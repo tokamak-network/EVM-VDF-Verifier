@@ -37,4 +37,4 @@ const deployTestERC20: DeployFunction = async (hre: HardhatRuntimeEnvironment) =
     log("tonToken deployed at:", tonToken.address)
 }
 export default deployTestERC20
-deployTestERC20.tags = ["all", "cancun", "paris"]
+deployTestERC20.tags = ["all", "cancun"]

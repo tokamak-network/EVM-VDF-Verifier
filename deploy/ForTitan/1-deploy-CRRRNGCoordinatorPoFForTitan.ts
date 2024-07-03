@@ -33,7 +33,7 @@ const deployCRRRNGCoordinatorForTitan: DeployFunction = async (hre: HardhatRunti
         penaltyPercentage: BigNumberish
         flatFee: BigNumberish
     } = {
-        disputePeriod: 180n,
+        disputePeriod: 120n,
         minimumDepositAmount: ethers.parseEther("0.005"),
         avgL2GasUsed: 2101449n,
         avgL1GasUsed: 27824n,

@@ -24,7 +24,11 @@ const deployRandomDayForTitanTON: DeployFunction = async (hre: HardhatRuntimeEnv
     const crrRngCoordinatorAddress = (await deployments.get("CRRNGCoordinatorPoFForTitan")).address
     const tonTokenAddress = "0x7c6b91D9Be155A6Db01f749217d76fF02A7227F2"
     const waitBlockConfirmations =
-        chainId === 31337 || chainId === 5050 || chainId === 55004 || chainId === 111551115050
+        chainId === 31337 ||
+        chainId === 5050 ||
+        chainId === 55004 ||
+        chainId === 111551115050 ||
+        chainId == 55007
             ? 1
             : VERIFICATION_BLOCK_CONFIRMATIONS
 

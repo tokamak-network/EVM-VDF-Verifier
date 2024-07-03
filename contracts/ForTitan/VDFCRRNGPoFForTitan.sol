@@ -78,7 +78,7 @@ contract VDFCRRNGPoFForTitan is ReentrancyGuard, GetL1Fee {
 
     // * private constants
     /// @dev The duration of the commit stage, 120 seconds
-    uint256 private constant COMMITDURATION = 120;
+    uint256 private constant COMMITDURATION = 60;
     uint256 private constant L2_DISPUTERECOVER_TX_GAS = 2881159;
     uint256 private constant L2_DISPUTELEADERSHIP_TX_GAS = 94000;
     /// @dev The constant T, 2^22

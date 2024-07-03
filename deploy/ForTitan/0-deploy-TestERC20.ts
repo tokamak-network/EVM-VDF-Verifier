@@ -22,7 +22,11 @@ const deployTestERC20: DeployFunction = async (hre: HardhatRuntimeEnvironment) =
     const chainId = network.config.chainId
 
     const waitBlockConfirmations =
-        chainId === 31337 || chainId === 5050 || chainId === 55004 || chainId === 111551115050
+        chainId === 31337 ||
+        chainId === 5050 ||
+        chainId === 55004 ||
+        chainId === 111551115050 ||
+        chainId == 55007
             ? 1
             : VERIFICATION_BLOCK_CONFIRMATIONS
 

@@ -15,6 +15,7 @@
 import { DeployFunction } from "hardhat-deploy/types"
 import { HardhatRuntimeEnvironment } from "hardhat/types"
 import { VERIFICATION_BLOCK_CONFIRMATIONS } from "../../helper-hardhat-config"
+import verify from "../../utils/verify"
 const deployConsumerExample: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
     const { deployments, getNamedAccounts, network } = hre
     const { deploy, log } = deployments
@@ -31,7 +32,7 @@ const deployConsumerExample: DeployFunction = async (hre: HardhatRuntimeEnvironm
             : VERIFICATION_BLOCK_CONFIRMATIONS
 
     log("----------------------------------------------------")
-    const consumerExample = await deploy("ConsumerExample", {
+    const consumerExample = await deploy("ConsumerExampleForTitan", {
         from: deployer,
         log: true,
         args: [crrRngCoordinatorAddress],
@@ -40,11 +41,11 @@ const deployConsumerExample: DeployFunction = async (hre: HardhatRuntimeEnvironm
     // deploy result
     log("consumerExample fortitan deployed at:", consumerExample.address)
 
-    // if (chainId !== 31337 && process.env.ETHERSCAN_API_KEY) {
-    //     log("Verifying...")
-    //     await verify(consumerExample.address, [crrRngCoordinatorAddress])
-    // }
+    if (chainId !== 31337 && process.env.ETHERSCAN_API_KEY) {
+        log("Verifying...")
+        await verify(consumerExample.address, [crrRngCoordinatorAddress])
+    }
     log("----------------------------------------------------")
 }
 export default deployConsumerExample
-deployConsumerExample.tags = ["all", "paris"]
+deployConsumerExample.tags = ["all", "paris", "consumerExampleForTitan"]

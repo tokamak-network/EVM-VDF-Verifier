@@ -304,7 +304,7 @@ function getLength(value: number): number {
                           await expect(
                               await crrrngCoordinator.getValidCommitCountAtRound(i),
                           ).to.equal(1)
-                          await expect(valuesAtRound.commitEndTime).to.equal(blockTimestamp! + 120)
+                          await expect(valuesAtRound.commitEndTime).to.equal(blockTimestamp! + 60)
                       }
                   }
                   const committedOperators =
@@ -368,7 +368,7 @@ function getLength(value: number): number {
                           const provider = ethers.provider
                           const blockTimestamp = (await provider.getBlock(blockNumber))?.timestamp
                           const valuesAtRound = await crrrngCoordinator.getValuesAtRound(round)
-                          await expect(valuesAtRound.commitEndTime).to.equal(blockTimestamp! + 120)
+                          await expect(valuesAtRound.commitEndTime).to.equal(blockTimestamp! + 60)
                           await expect(
                               await crrrngCoordinator.getValidCommitCountAtRound(round),
                           ).to.equal(1)
