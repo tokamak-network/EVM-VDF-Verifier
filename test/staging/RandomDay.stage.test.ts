@@ -753,6 +753,14 @@ describe("RandomDay", function () {
                 )
                 await expect(s_requests.requester).to.equal(signers[round % 500].address)
             }
+            let requesterNum = 0n
+            for (let i = 1; i < 1001; i++) {
+                const requesters = await randomDay.getTickRequesters(i)
+                if (requesters.length > 0) {
+                    console.log("tick:", i, " requestersNum:", requesters.length)
+                    requesterNum += BigInt(requesters.length)
+                }
+            }
         })
         it("transfer 1000 TON to RandomDay", async () => {
             const tx = await tonToken.transfer(randomDayAddress, ethers.parseEther("1000"))
@@ -767,7 +775,7 @@ describe("RandomDay", function () {
 
             // ** blackList funciton
             const blackListAddresses: string[] = []
-            for (let i = 10; i < 15; i++) {
+            for (let i = 0; i < 497; i++) {
                 blackListAddresses.push(signers[i].address)
             }
             let tx = await randomDay.blackList(blackListAddresses)
@@ -775,7 +783,7 @@ describe("RandomDay", function () {
             let gasUsed = receipt?.gasUsed as bigint
             let titanGasCost = await getTotalTitanGasCost(tx.data as BytesLike, gasUsed)
             console.log(
-                "blackList 5 people total gasCost on Titan",
+                "blackList 500 people total gasCost on Titan",
                 ethers.formatEther(titanGasCost),
                 "ETH",
             )
@@ -788,7 +796,7 @@ describe("RandomDay", function () {
                     requesterNum += BigInt(requesters.length)
                 }
             }
-            expect(requesterNum).to.equal(495n)
+            expect(requesterNum).to.equal(3n)
 
             // ** finalizeRankingandSendPrize
             const getThreeClosestToSevenHundreds = await randomDay.getThreeClosestToSevenHundred()

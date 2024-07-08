@@ -33,7 +33,7 @@ const deployRandomDayForTitanTON: DeployFunction = async (hre: HardhatRuntimeEnv
             : VERIFICATION_BLOCK_CONFIRMATIONS
 
     log("----------------------------------------------------")
-    const randomDay = await deploy("RandomDay", {
+    const randomDay = await deploy("RandomDayForTitan", {
         from: deployer,
         log: true,
         args: [crrRngCoordinatorAddress, tonTokenAddress],
@@ -49,4 +49,4 @@ const deployRandomDayForTitanTON: DeployFunction = async (hre: HardhatRuntimeEnv
     log("----------------------------------------------------")
 }
 export default deployRandomDayForTitanTON
-deployRandomDayForTitanTON.tags = ["all", "titan"]
+deployRandomDayForTitanTON.tags = ["all", "titan", "titanVerify", "randomDayForTitanTon"]

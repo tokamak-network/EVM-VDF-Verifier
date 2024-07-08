@@ -14,18 +14,41 @@
 import { loadFixture } from "@nomicfoundation/hardhat-network-helpers"
 import { expect } from "chai"
 import { ethers } from "hardhat"
-import { GetClosestTickTest } from "../../typechain-types"
+import { GetClosestTickTest, TonToken } from "../../typechain-types"
 
 describe("Bitmap Test", function () {
     let getClosestTickTest: GetClosestTickTest
+    let tonTokenContract: TonToken
+    const address1 = "0x0000000000000000000000000000000000000001"
+    const address2 = "0x0000000000000000000000000000000000000002"
+    const address3 = "0x0000000000000000000000000000000000000003"
+    const address4 = "0x0000000000000000000000000000000000000004"
+    const address5 = "0x0000000000000000000000000000000000000005"
+    const FIRSTPRIZE = 550000000000000000000n
+    const SECONDPRIZE = 300000000000000000000n
+    const THIRDPRIZE = 150000000000000000000n
     async function deployGetClosestTickTest() {
-        const getClosestTickTest = await ethers.deployContract("GetClosestTickTest")
+        const tonToken = await ethers.getContractFactory("TonToken")
+        const tonTokenContract = await tonToken.deploy()
+        await tonTokenContract.waitForDeployment()
+        // const getClosestTickTest = await ethers.deployContract("GetClosestTickTest")
+        const GetClosestTickTest = await ethers.getContractFactory("GetClosestTickTest")
+        const getClosestTickTest = await GetClosestTickTest.deploy(
+            await tonTokenContract.getAddress(),
+        )
+        const tx = await tonTokenContract.transfer(
+            await getClosestTickTest.getAddress(),
+            await tonTokenContract.balanceOf((await ethers.getSigners())[0].address),
+        )
+        await tx.wait()
 
         // Fixtures can return anything you consider useful for your tests
-        return getClosestTickTest
+        return { getClosestTickTest, tonTokenContract }
     }
     beforeEach("deploy GetClosestTickTest", async function () {
-        getClosestTickTest = await loadFixture(deployGetClosestTickTest)
+        const Fixture = await loadFixture(deployGetClosestTickTest)
+        getClosestTickTest = Fixture.getClosestTickTest
+        tonTokenContract = Fixture.tonTokenContract
     })
     it("set tick 700 750 820", async () => {
         const gasUsedOfSettingTicks = await getClosestTickTest.setTicks.estimateGas(700)
@@ -38,6 +61,10 @@ describe("Bitmap Test", function () {
         console.log(returnValue)
         console.log("gasUsedOfSettingTicks", gasUsedOfSettingTicks)
         console.log("gasUsedOfGettingClosestTick", gasUsedOfGettingClosestTick)
+        await getClosestTickTest.finalizeRankingandSendPrize()
+        console.log(await tonTokenContract.balanceOf(address1))
+        console.log(await tonTokenContract.balanceOf(address2))
+        console.log(await tonTokenContract.balanceOf(address3))
     })
     it("#testcase1", async () => {
         const testCases = [700, 700, 701]
@@ -47,6 +74,10 @@ describe("Bitmap Test", function () {
         const returnValue = await getClosestTickTest.getThreeClosestToSevenHundred()
         expect(returnValue[0]).to.eql([700n, 701n, 1001n, 1001n])
         expect(returnValue[1]).to.eql([2n, 1n, 0n, 0n])
+        await getClosestTickTest.finalizeRankingandSendPrize()
+        expect(await tonTokenContract.balanceOf(address1)).to.eq((FIRSTPRIZE + SECONDPRIZE) / 2n)
+        expect(await tonTokenContract.balanceOf(address2)).to.eq((FIRSTPRIZE + SECONDPRIZE) / 2n)
+        expect(await tonTokenContract.balanceOf(address3)).to.eq(THIRDPRIZE)
     })
     it("#testcase2", async () => {
         const testCases = [701, 702, 703]
@@ -56,6 +87,10 @@ describe("Bitmap Test", function () {
         const returnValue = await getClosestTickTest.getThreeClosestToSevenHundred()
         expect(returnValue[0]).to.eql([701n, 702n, 703n, 1001n])
         expect(returnValue[1]).to.eql([1n, 1n, 1n, 0n])
+        await getClosestTickTest.finalizeRankingandSendPrize()
+        expect(await tonTokenContract.balanceOf(address1)).to.eq(FIRSTPRIZE)
+        expect(await tonTokenContract.balanceOf(address2)).to.eq(SECONDPRIZE)
+        expect(await tonTokenContract.balanceOf(address3)).to.eq(THIRDPRIZE)
     })
     it("#testcase3", async () => {
         const testCases = [698, 699, 700]
@@ -65,6 +100,10 @@ describe("Bitmap Test", function () {
         const returnValue = await getClosestTickTest.getThreeClosestToSevenHundred()
         expect(returnValue[0]).to.eql([700n, 699n, 698n, 1001n])
         expect(returnValue[1]).to.eql([1n, 1n, 1n, 0n])
+        await getClosestTickTest.finalizeRankingandSendPrize()
+        expect(await tonTokenContract.balanceOf(address1)).to.eq(THIRDPRIZE)
+        expect(await tonTokenContract.balanceOf(address2)).to.eq(SECONDPRIZE)
+        expect(await tonTokenContract.balanceOf(address3)).to.eq(FIRSTPRIZE)
     })
     it("#testcase4", async () => {
         const testCases = [698, 699, 700, 700, 700]
@@ -74,6 +113,18 @@ describe("Bitmap Test", function () {
         const returnValue = await getClosestTickTest.getThreeClosestToSevenHundred()
         expect(returnValue[0]).to.eql([700n, 1001n, 1001n, 1001n])
         expect(returnValue[1]).to.eql([3n, 0n, 0n, 0n])
+        await getClosestTickTest.finalizeRankingandSendPrize()
+        expect(await tonTokenContract.balanceOf(address1)).to.eq(0n)
+        expect(await tonTokenContract.balanceOf(address2)).to.eq(0n)
+        expect(await tonTokenContract.balanceOf(address3)).to.eq(
+            (FIRSTPRIZE + SECONDPRIZE + THIRDPRIZE) / 3n,
+        )
+        expect(await tonTokenContract.balanceOf(address4)).to.eq(
+            (FIRSTPRIZE + SECONDPRIZE + THIRDPRIZE) / 3n,
+        )
+        expect(await tonTokenContract.balanceOf(address5)).to.eq(
+            (FIRSTPRIZE + SECONDPRIZE + THIRDPRIZE) / 3n,
+        )
     })
     it("#testcase5", async () => {
         const testCases = [698, 699, 699, 700, 700]
@@ -83,6 +134,12 @@ describe("Bitmap Test", function () {
         const returnValue = await getClosestTickTest.getThreeClosestToSevenHundred()
         expect(returnValue[0]).to.eql([700n, 699n, 1001n, 1001n])
         expect(returnValue[1]).to.eql([2n, 2n, 0n, 0n])
+        await getClosestTickTest.finalizeRankingandSendPrize()
+        expect(await tonTokenContract.balanceOf(address1)).to.eq(0n)
+        expect(await tonTokenContract.balanceOf(address2)).to.eq(THIRDPRIZE / 2n)
+        expect(await tonTokenContract.balanceOf(address3)).to.eq(THIRDPRIZE / 2n)
+        expect(await tonTokenContract.balanceOf(address4)).to.eq((FIRSTPRIZE + SECONDPRIZE) / 2n)
+        expect(await tonTokenContract.balanceOf(address5)).to.eq((FIRSTPRIZE + SECONDPRIZE) / 2n)
     })
     it("#testcase6", async () => {
         const testCases = [700, 699, 701]

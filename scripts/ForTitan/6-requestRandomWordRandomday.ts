@@ -33,7 +33,8 @@ async function requestRandomWord() {
         const callback_gaslimit = 210000n
         const fee = await provider.getFeeData()
         console.log("fee", fee)
-        const gasPrice = fee.maxFeePerGas as bigint
+        let gasPrice = fee.maxFeePerGas as bigint
+        if (gasPrice == null) gasPrice = fee.gasPrice as bigint
         const directFundingCost = await crrngCoordinatorContract.estimateDirectFundingPrice(
             callback_gaslimit,
             gasPrice,
@@ -50,7 +51,7 @@ async function requestRandomWord() {
             if (chainId == 5050 || chainId == 55004)
                 tx = await randomDayContract.requestRandomWord({
                     gasLimit: 2400000,
-                    value: (4467175825317694n * (100n + 15n)) / 100n,
+                    value: directFundingCost,
                 })
             else {
                 tx = await randomDayContract.requestRandomWord({

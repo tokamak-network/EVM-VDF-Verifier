@@ -48,4 +48,4 @@ const deployConsumerExample: DeployFunction = async (hre: HardhatRuntimeEnvironm
     log("----------------------------------------------------")
 }
 export default deployConsumerExample
-deployConsumerExample.tags = ["all", "paris", "consumerExampleForTitan"]
+deployConsumerExample.tags = ["all", "paris", "consumerExampleForTitan", "titan", "titanVerify"]
