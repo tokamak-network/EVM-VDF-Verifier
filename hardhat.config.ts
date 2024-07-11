@@ -79,14 +79,16 @@ const config: HardhatUserConfig = {
             },
         },
         localhost: {
-            chainId: 31337,
+            chainId: 55004,
             allowUnlimitedContractSize: true,
+            accounts: [`${process.env.PRIVATE_KEY}`],
         },
         anvil: {
             //chainId: 55004,
-            chainId: 31337,
+            chainId: 55004,
             //chainId: 55007,
             url: "http://localhost:8545",
+            accounts: [`${process.env.PRIVATE_KEY}`],
             //allowUnlimitedContractSize: true,
         },
         sepolia: {
