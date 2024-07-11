@@ -1,6 +1,4 @@
-<p align="center">
-<img src="./images/drbimage.png" width="400" alt="drb-image">
-<br/>
+
 
 # Pietrzak-VDF-Verifier
 
