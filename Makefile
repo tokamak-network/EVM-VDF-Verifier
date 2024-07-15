@@ -53,11 +53,14 @@ endif
 ifeq ($(findstring --network titan,$(ARGS)),--network titan)
 	NETWORK_ARGS := --rpc-url $(TITAN_RPC_URL) --private-key $(PRIVATE_KEY) --broadcast --verify --etherscan-api-key $(ETHERSCAN_API_KEY) -vvvv
 endif
-ifeq ($(findstring --network titansepolia,$(ARGS)),--network titan)
+ifeq ($(findstring --network titansepolia,$(ARGS)),--network titansepolia)
 	NETWORK_ARGS := --rpc-url $(TITAN_SEPOLIA_URL) --private-key $(PRIVATE_KEY) --broadcast --verify --etherscan-api-key $(ETHERSCAN_API_KEY) -vvvv
 endif
-ifeq ($(findstring --network opsepolia,$(ARGS)),--network titan)
+ifeq ($(findstring --network opsepolia,$(ARGS)),--network opsepolia)
 	NETWORK_ARGS := --rpc-url $(OP_SEPOLIA_RPC_URL) --private-key $(PRIVATE_KEY) --broadcast --verify --etherscan-api-key $(OP_ETHERSCAN_API_KEY) -vvvv
+endif
+ifeq ($(findstring --network thanossepolia,$(ARGS)), --network thanossepolia)
+	NETWORK_ARGS := --rpc-url $(THANOS_SEPOLIA_URL) --private-key $(PRIVATE_KEY) --broadcast --verify --verifier blockscout --verifier-url https://explorer.thanos-sepolia.tokamak.network/api --etherscan-api-key $(ETHERSCAN_API_KEY) -vvvv
 endif
 
 deploy: deploy-rng deploy-consumer-example deploy-random-day
@@ -87,3 +90,7 @@ ROUND_ARG := $()
 
 re-request-round:
 	@forge script script/Interactions.s.sol:ReRequestRandomWord $(NETWORK_ARGS)
+
+verify-randomday:
+	@CONSTRUCTOR_ARGS=$$(cast abi-encode "constructor(address,address)" 0x819B9E61F02Bdb8841e90Af300d5064AD1a30D84 0x2b69EAB0d5e93edcc9F9c0d0acEc7f2F4f273cBb) \
+	forge verify-contract --constructor-args CONSTRUCTOR_ARGS --verifier blockscout --verifier-url https://explorer.thanos-sepolia.tokamak.network/api --rpc-url $(THANOS_SEPOLIA_URL) 0xb215a3844823B8f3115dE7c39E00eCF6A7275b57 RandomDay
