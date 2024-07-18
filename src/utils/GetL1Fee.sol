@@ -14,7 +14,8 @@ contract GetL1Fee {
     address private constant OVM_GASPRICEORACLE_ADDR =
         address(0x420000000000000000000000000000000000000F);
     /// @notice Address of the L1Block predeploy.
-    address internal constant L1_BLOCK_ATTRIBUTES = 0x4200000000000000000000000000000000000015;
+    address internal constant L1_BLOCK_ATTRIBUTES =
+        0x4200000000000000000000000000000000000015;
     IOVM_GasPriceOracle private constant OVM_GASPRICEORACLE =
         IOVM_GasPriceOracle(OVM_GASPRICEORACLE_ADDR);
     IL1Block private constant L1_BLOCK = IL1Block(L1_BLOCK_ATTRIBUTES);
@@ -30,7 +31,8 @@ contract GetL1Fee {
     function _getDisputeLeadershipTxL1GasFee() internal view returns (uint256) {
         uint256 chainId = block.chainid;
         if (chainId == 55004 || chainId == 55007)
-            return _getCurrentTxL1GasFeesTitan(L1_DISPUTELEADERSHIP_TX_GAS_TITAN);
+            return
+                _getCurrentTxL1GasFeesTitan(L1_DISPUTELEADERSHIP_TX_GAS_TITAN);
         if (chainId == 11155420 || chainId == 10)
             return _getL1FeeBedrock(L1_DISPUTELEADERSHIP_TX_GAS);
         return 0;
@@ -40,7 +42,8 @@ contract GetL1Fee {
         uint256 chainId = block.chainid;
         if (chainId == 55004 || chainId == 55007)
             return _getCurrentTxL1GasFeesTitan(L1_DISPUTERECOVER_TX_GAS_TITAN);
-        if (chainId == 11155420 || chainId == 10) return _getL1FeeBedrock(L1_DISPUTERECOVER_TX_GAS);
+        if (chainId == 11155420 || chainId == 10)
+            return _getL1FeeBedrock(L1_DISPUTERECOVER_TX_GAS);
         return 0;
     }
 
@@ -48,11 +51,14 @@ contract GetL1Fee {
         uint256 chainId = block.chainid;
         if (chainId == 55004 || chainId == 55007)
             return _getCurrentTxL1GasFeesTitan(s_l1GasUsedTitan);
-        if (chainId == 11155420 || chainId == 10) return _getL1FeeEcotone(s_avgL1GasUsed);
+        if (chainId == 11155420 || chainId == 10)
+            return _getL1FeeEcotone(s_avgL1GasUsed);
         return 0;
     }
 
-    function _getCurrentTxL1GasFeesTitan(uint256 gasUsed) private view returns (uint256) {
+    function _getCurrentTxL1GasFeesTitan(
+        uint256 gasUsed
+    ) private view returns (uint256) {
         uint256 l1Fee = gasUsed * OVM_GASPRICEORACLE.l1BaseFee();
         uint256 divisor = 10 ** OVM_GASPRICEORACLE.decimals();
         uint256 unscaled = l1Fee * OVM_GASPRICEORACLE.scalar();
@@ -72,8 +78,11 @@ contract GetL1Fee {
     /// @notice L1 portion of the fee after Ecotone.
     /// @return L1 fee that should be paid for the tx
     function _getL1FeeEcotone(uint256 gasUsed) private view returns (uint256) {
-        uint256 scaledBaseFee = L1_BLOCK.baseFeeScalar() * 16 * L1_BLOCK.basefee();
-        uint256 scaledBlobBaseFee = L1_BLOCK.blobBaseFeeScalar() * L1_BLOCK.blobBaseFee();
+        uint256 scaledBaseFee = L1_BLOCK.baseFeeScalar() *
+            16 *
+            L1_BLOCK.basefee();
+        uint256 scaledBlobBaseFee = L1_BLOCK.blobBaseFeeScalar() *
+            L1_BLOCK.blobBaseFee();
         uint256 fee = gasUsed * (scaledBaseFee + scaledBlobBaseFee);
         return fee / MULTIPLYBY16;
     }
