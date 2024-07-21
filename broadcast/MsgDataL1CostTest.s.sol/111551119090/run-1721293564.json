@@ -1,0 +1,79 @@
+{
+  "transactions": [
+    {
+      "hash": "0xe5df0a07ff8c7986609d7bd80f20bc543d27377b28dbd3130bbb2da9a261e6eb",
+      "transactionType": "CALL",
+      "contractName": null,
+      "contractAddress": "0xfac077c75acf6c4d3d144d31da3279991e5715d6",
+      "function": "setA(uint256)",
+      "arguments": [
+        "1"
+      ],
+      "transaction": {
+        "from": "0xb68aa9e398c054da7ebaaa446292f611ca0cd52b",
+        "to": "0xfac077c75acf6c4d3d144d31da3279991e5715d6",
+        "gas": "0x10232e",
+        "value": "0x0",
+        "input": "0xee919d500000000000000000000000000000000000000000000000000000000000000001",
+        "nonce": "0x17",
+        "chainId": "0x19f8f6fef2"
+      },
+      "additionalContracts": [],
+      "isFixedGasLimit": false
+    }
+  ],
+  "receipts": [
+    {
+      "status": "0x1",
+      "cumulativeGasUsed": "0xc6fe2",
+      "logs": [
+        {
+          "address": "0xfac077c75acf6c4d3d144d31da3279991e5715d6",
+          "topics": [
+            "0xbbf1800bb334f676b1ca855b4c3f87de6f1600cabd7bd915c11c4782cc7803c1"
+          ],
+          "data": "0x00000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000024ee919d50000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000",
+          "blockHash": "0xe408ff9eafdcb84b337be419abccdf82948b62bc94ff96907df0bebff778e0b1",
+          "blockNumber": "0x3d8e2",
+          "transactionHash": "0xe5df0a07ff8c7986609d7bd80f20bc543d27377b28dbd3130bbb2da9a261e6eb",
+          "transactionIndex": "0x1",
+          "logIndex": "0x0",
+          "removed": false
+        },
+        {
+          "address": "0xd6eddd4ae00268857d34034c5c055e49b33b0b04",
+          "topics": [
+            "0xd00fbfaee19a244732cdc29fd0d130b77a7511feaa49c83cf60351ca4bfdcaa5"
+          ],
+          "data": "0x000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000003e434de04730000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000000400000000000000000000000000000000000000000000000000000000000000600000000000000000000000000000000000000000000000000000000000000354ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff00000000000000000000000000000000000000000000000000000000000000000000000000000000",
+          "blockHash": "0xe408ff9eafdcb84b337be419abccdf82948b62bc94ff96907df0bebff778e0b1",
+          "blockNumber": "0x3d8e2",
+          "transactionHash": "0xe5df0a07ff8c7986609d7bd80f20bc543d27377b28dbd3130bbb2da9a261e6eb",
+          "transactionIndex": "0x1",
+          "logIndex": "0x1",
+          "removed": false
+        }
+      ],
+      "logsBloom": "0x00000000000000000000000000080000000040000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000800000000000000000000000000000000000000000000000000400080000000000000000040000000000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000001000000040000000000000000000000000000000000000000000080000000",
+      "type": "0x2",
+      "transactionHash": "0xe5df0a07ff8c7986609d7bd80f20bc543d27377b28dbd3130bbb2da9a261e6eb",
+      "transactionIndex": "0x1",
+      "blockHash": "0xe408ff9eafdcb84b337be419abccdf82948b62bc94ff96907df0bebff778e0b1",
+      "blockNumber": "0x3d8e2",
+      "gasUsed": "0xbaee7",
+      "effectiveGasPrice": "0xfd",
+      "from": "0xb68aa9e398c054da7ebaaa446292f611ca0cd52b",
+      "to": "0xfac077c75acf6c4d3d144d31da3279991e5715d6",
+      "contractAddress": null,
+      "l1Fee": "0x1915e94a690c",
+      "l1GasPrice": "0x4d1d74eb2",
+      "l1GasUsed": "0x79c"
+    }
+  ],
+  "libraries": [],
+  "pending": [],
+  "returns": {},
+  "timestamp": 1721293564,
+  "chain": 111551119090,
+  "commit": "a53049b"
+}
