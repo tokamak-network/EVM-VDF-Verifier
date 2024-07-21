@@ -303,9 +303,7 @@ contract GetL1Fee is BaseTest, GasHelpers {
     function test_calculateDirectFundingUsingL1GasFeesMode() public {
         s_testCoordinator.setL1FeeCalculation(L1_GAS_FEES_MODE, 100);
         bytes memory txMsgData = abi.encodeWithSelector(
-            VDFCoordinatorForGetL1FeeTest
-                .requestRandomWordDirectFundingCalldata
-                .selector,
+            VDFCoordinatorForGetL1FeeTest.directlyCallGetL1Fee.selector,
             s_callbackGasLimit
         );
         (bool success, bytes memory returnData) = address(s_testCoordinator)
@@ -322,9 +320,7 @@ contract GetL1Fee is BaseTest, GasHelpers {
     {
         s_testCoordinator.setL1FeeCalculation(L1_CALLDATA_GAS_COST_MODE, 100);
         bytes memory txMsgData = abi.encodeWithSelector(
-            VDFCoordinatorForGetL1FeeTest
-                .requestRandomWordDirectFundingCalldataSize
-                .selector,
+            VDFCoordinatorForGetL1FeeTest.callCustomGetL1FeeEcotoneVer.selector,
             s_callbackGasLimit
         );
         (bool success, bytes memory returnData) = address(s_testCoordinator)
@@ -345,7 +341,7 @@ contract GetL1Fee is BaseTest, GasHelpers {
         );
         bytes memory txMsgData = abi.encodeWithSelector(
             VDFCoordinatorForGetL1FeeTest
-                .requestRandomWordDirectFundingCalldataSize2
+                .directlyCallGetL1FeeUpperBoundFjordVer
                 .selector,
             s_callbackGasLimit
         );

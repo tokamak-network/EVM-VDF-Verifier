@@ -32,7 +32,7 @@ contract VDFCoordinatorForGetL1FeeTest is Ownable, OptimismL1Fees {
         return msg.sender == owner();
     }
 
-    function requestRandomWordDirectFundingCalldata(
+    function directlyCallGetL1Fee(
         uint32 callbackGasLimit
     ) external payable returns (uint256) {
         cost =
@@ -41,7 +41,7 @@ contract VDFCoordinatorForGetL1FeeTest is Ownable, OptimismL1Fees {
         return round++;
     }
 
-    function requestRandomWordDirectFundingCalldataSize(
+    function callCustomGetL1FeeEcotoneVer(
         uint32 callbackGasLimit
     ) external returns (uint256) {
         cost =
@@ -50,7 +50,7 @@ contract VDFCoordinatorForGetL1FeeTest is Ownable, OptimismL1Fees {
         return round++;
     }
 
-    function requestRandomWordDirectFundingCalldataSize2(
+    function directlyCallGetL1FeeUpperBoundFjordVer(
         uint32 callbackGasLimit
     ) external returns (uint256) {
         cost =
