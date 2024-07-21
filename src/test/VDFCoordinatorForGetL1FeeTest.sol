@@ -10,6 +10,8 @@ contract VDFCoordinatorForGetL1FeeTest is Ownable, OptimismL1Fees {
     uint256 public s_flatFee;
     uint256 public s_calldataSizeBytes;
     bytes public s_calldata;
+    uint256 public round;
+    uint256 public cost;
 
     constructor(
         address owner,
@@ -24,6 +26,37 @@ contract VDFCoordinatorForGetL1FeeTest is Ownable, OptimismL1Fees {
         s_flatFee = flatFee;
         s_calldataSizeBytes = calldataSizeBytes;
         s_calldata = allCalldata;
+    }
+
+    function isOwner() external view returns (bool) {
+        return msg.sender == owner();
+    }
+
+    function requestRandomWordDirectFundingCalldata(
+        uint32 callbackGasLimit
+    ) external payable returns (uint256) {
+        cost =
+            _calculateDirectFundingPrice(callbackGasLimit, tx.gasprice) +
+            OVM_GASPRICEORACLE.getL1Fee(s_calldata);
+        return round++;
+    }
+
+    function requestRandomWordDirectFundingCalldataSize(
+        uint32 callbackGasLimit
+    ) external returns (uint256) {
+        cost =
+            _calculateDirectFundingPrice(callbackGasLimit, tx.gasprice) +
+            _getL1CostWeiForCalldataSize(s_calldataSizeBytes);
+        return round++;
+    }
+
+    function requestRandomWordDirectFundingCalldataSize2(
+        uint32 callbackGasLimit
+    ) external returns (uint256) {
+        cost =
+            _calculateDirectFundingPrice(callbackGasLimit, tx.gasprice) +
+            _getL1CostWeiForCalldataSize(s_calldataSizeBytes);
+        return round++;
     }
 
     function estimateL1DirectFundingPrice(
@@ -46,7 +79,5 @@ contract VDFCoordinatorForGetL1FeeTest is Ownable, OptimismL1Fees {
         return
             (((gasPrice * (callbackGasLimit + s_avgL2GasUsed)) *
                 (s_premiumPercentage + 100)) / 100) + s_flatFee;
-        //  +
-        // _getCurrentTxL1GasFee();
     }
 }

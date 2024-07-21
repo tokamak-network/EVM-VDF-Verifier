@@ -143,3 +143,38 @@ contract GetL1FeeCoordinator is ReentrancyGuardTransient, GetL1FeeTest {
             _getCurrentTxL1GasFee();
     }
 }
+
+contract A {
+    uint256 a;
+    event msgData(bytes);
+    BBB b;
+    bytes public data =
+        hex"ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff";
+
+    constructor(address bb) {
+        b = BBB(bb);
+    }
+
+    function setA(uint256 aa) public {
+        a = aa;
+        emit msgData(msg.data);
+        b.callFromA(aa + 1, aa + 3, data);
+    }
+
+    function setB(bytes memory data) public {
+        b.callFromA(1, 2, data);
+    }
+}
+
+contract BBB {
+    event msgDataData(bytes);
+    uint256 a;
+    bytes public dataB;
+
+    function callFromA(uint256 bb, uint256 cc, bytes memory data) public {
+        emit msgDataData(msg.data);
+        a = bb;
+        a = cc + bb + 1;
+        dataB = data;
+    }
+}

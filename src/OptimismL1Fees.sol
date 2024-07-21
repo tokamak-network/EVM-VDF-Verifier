@@ -17,7 +17,7 @@ abstract contract OptimismL1Fees is Ownable {
     /// @dev reference: https://community.optimism.io/docs/developers/build/transaction-fees/#estimating-the-l1-data-fee
     address private constant OVM_GASPRICEORACLE_ADDR =
         address(0x420000000000000000000000000000000000000F);
-    IOVM_GasPriceOracle private constant OVM_GASPRICEORACLE =
+    IOVM_GasPriceOracle internal constant OVM_GASPRICEORACLE =
         IOVM_GasPriceOracle(OVM_GASPRICEORACLE_ADDR);
 
     /// @dev Option 1: getL1Fee() function from predeploy GasPriceOracle contract with the calldata payload
@@ -63,18 +63,6 @@ abstract contract OptimismL1Fees is Ownable {
         s_l1FeeCoefficient = coefficient;
 
         emit L1FeeCalculationSet(mode, coefficient);
-    }
-
-    function _getL1CostWeiForcalldata(
-        bytes calldata data
-    ) internal view returns (uint256) {
-        if (s_l1FeeCalculationMode == L1_GAS_FEES_MODE) {
-            return
-                OVM_GASPRICEORACLE.getL1Fee(
-                    bytes.concat(data, L1_FEE_DATA_PADDING)
-                );
-        }
-        return _getL1CostWeiForCalldataSize(data.length);
     }
 
     function _getL1CostWeiForCalldataSize(
