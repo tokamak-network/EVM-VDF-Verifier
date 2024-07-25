@@ -39,11 +39,17 @@ abstract contract ReentrancyGuardTransient {
         }
 
         // Any calls to nonReentrant after this point will fail
-        StorageSlot.tstore(StorageSlot.asBoolean(REENTRANCY_GUARD_STORAGE), true);
+        StorageSlot.tstore(
+            StorageSlot.asBoolean(REENTRANCY_GUARD_STORAGE),
+            true
+        );
     }
 
     function _nonReentrantAfter() private {
-        StorageSlot.tstore(StorageSlot.asBoolean(REENTRANCY_GUARD_STORAGE), false);
+        StorageSlot.tstore(
+            StorageSlot.asBoolean(REENTRANCY_GUARD_STORAGE),
+            false
+        );
     }
 
     /**
@@ -51,6 +57,7 @@ abstract contract ReentrancyGuardTransient {
      * `nonReentrant` function in the call stack.
      */
     function _reentrancyGuardEntered() internal view returns (bool) {
-        return StorageSlot.tload(StorageSlot.asBoolean(REENTRANCY_GUARD_STORAGE));
+        return
+            StorageSlot.tload(StorageSlot.asBoolean(REENTRANCY_GUARD_STORAGE));
     }
 }

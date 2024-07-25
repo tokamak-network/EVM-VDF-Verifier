@@ -40,7 +40,7 @@ contract GetL1FeeOfContractA is Script {
     bytes internal constant L1_FEE_DATA_PADDING2 =
         "0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff";
 
-    function run() external {
+    function run() external view {
         IOVM_GasPriceOracle ovmGasPriceOracle = IOVM_GasPriceOracle(
             address(0x420000000000000000000000000000000000000F)
         );

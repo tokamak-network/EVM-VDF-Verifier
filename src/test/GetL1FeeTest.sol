@@ -161,8 +161,8 @@ contract A {
         b.callFromA(aa + 1, aa + 3, data);
     }
 
-    function setB(bytes memory data) public {
-        b.callFromA(1, 2, data);
+    function setB(bytes memory _data) public {
+        b.callFromA(1, 2, _data);
     }
 }
 

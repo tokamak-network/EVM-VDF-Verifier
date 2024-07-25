@@ -30,40 +30,64 @@ contract GetClosestTickTest {
     }
 
     function finalizeRankingandSendPrize() external {
-        (uint256[4] memory rticks, uint256[4] memory counts) = getThreeClosestToSevenHundred();
+        (
+            uint256[4] memory rticks,
+            uint256[4] memory counts
+        ) = getThreeClosestToSevenHundred();
         uint256[4] memory gaps = [uint256(1000), 1000, 1000, 1000];
         for (uint256 i = 0; i < 4; i++) {
             if (rticks[i] == 1001) continue;
-            gaps[i] = rticks[i] > CENTERTICK ? rticks[i] - CENTERTICK : CENTERTICK - rticks[i];
+            gaps[i] = rticks[i] > CENTERTICK
+                ? rticks[i] - CENTERTICK
+                : CENTERTICK - rticks[i];
         }
         if (gaps[0] == gaps[1]) {
             uint256 firstCount = counts[0] + counts[1];
             if (firstCount > 2) {
-                uint256 eachPrize = (FIRSTPRIZE + SECONDPRIZE + THIRDPRIZE) / firstCount;
+                uint256 eachPrize = (FIRSTPRIZE + SECONDPRIZE + THIRDPRIZE) /
+                    firstCount;
                 uint256 length = s_tickRequesters[rticks[0]].length;
                 for (uint256 i = 0; i < length; i++) {
-                    i_airdropToken.safeTransfer(s_tickRequesters[rticks[0]][i], eachPrize);
+                    i_airdropToken.safeTransfer(
+                        s_tickRequesters[rticks[0]][i],
+                        eachPrize
+                    );
                 }
                 length = s_tickRequesters[rticks[1]].length;
                 for (uint256 i = 0; i < length; i++) {
-                    i_airdropToken.safeTransfer(s_tickRequesters[rticks[1]][i], eachPrize);
+                    i_airdropToken.safeTransfer(
+                        s_tickRequesters[rticks[1]][i],
+                        eachPrize
+                    );
                 }
                 return;
             } else if (firstCount == 2) {
                 uint256 eachPrize = (FIRSTPRIZE + SECONDPRIZE) / 2;
-                i_airdropToken.safeTransfer(s_tickRequesters[rticks[0]][0], eachPrize);
-                i_airdropToken.safeTransfer(s_tickRequesters[rticks[1]][0], eachPrize);
+                i_airdropToken.safeTransfer(
+                    s_tickRequesters[rticks[0]][0],
+                    eachPrize
+                );
+                i_airdropToken.safeTransfer(
+                    s_tickRequesters[rticks[1]][0],
+                    eachPrize
+                );
 
                 if (gaps[2] == gaps[3]) {
                     uint256 thirdCount = counts[2] + counts[3];
                     eachPrize = THIRDPRIZE / thirdCount;
                     uint256 length = s_tickRequesters[rticks[2]].length;
                     for (uint256 i = 0; i < length; i++) {
-                        i_airdropToken.safeTransfer(s_tickRequesters[rticks[2]][i], eachPrize);
+                        i_airdropToken.safeTransfer(
+                            s_tickRequesters[rticks[2]][i],
+                            eachPrize
+                        );
                     }
                     length = s_tickRequesters[rticks[3]].length;
                     for (uint256 i = 0; i < length; i++) {
-                        i_airdropToken.safeTransfer(s_tickRequesters[rticks[3]][i], eachPrize);
+                        i_airdropToken.safeTransfer(
+                            s_tickRequesters[rticks[3]][i],
+                            eachPrize
+                        );
                     }
                     return;
                 } else {
@@ -71,7 +95,10 @@ contract GetClosestTickTest {
                     uint256 length = s_tickRequesters[rticks[2]].length;
                     eachPrize = THIRDPRIZE / thirdCount;
                     for (uint256 i = 0; i < length; i++) {
-                        i_airdropToken.safeTransfer(s_tickRequesters[rticks[2]][i], eachPrize);
+                        i_airdropToken.safeTransfer(
+                            s_tickRequesters[rticks[2]][i],
+                            eachPrize
+                        );
                     }
                     return;
                 }
@@ -79,16 +106,23 @@ contract GetClosestTickTest {
         } else {
             uint256 firstCount = counts[0];
             if (firstCount > 2) {
-                uint256 eachPrize = (FIRSTPRIZE + SECONDPRIZE + THIRDPRIZE) / firstCount;
+                uint256 eachPrize = (FIRSTPRIZE + SECONDPRIZE + THIRDPRIZE) /
+                    firstCount;
                 uint256 length = s_tickRequesters[rticks[0]].length;
                 for (uint256 i = 0; i < length; i++) {
-                    i_airdropToken.safeTransfer(s_tickRequesters[rticks[0]][i], eachPrize);
+                    i_airdropToken.safeTransfer(
+                        s_tickRequesters[rticks[0]][i],
+                        eachPrize
+                    );
                 }
                 return;
             } else if (firstCount == 2) {
                 uint256 eachPrize = (FIRSTPRIZE + SECONDPRIZE) / 2;
                 for (uint256 i = 0; i < 2; i++) {
-                    i_airdropToken.safeTransfer(s_tickRequesters[rticks[0]][i], eachPrize);
+                    i_airdropToken.safeTransfer(
+                        s_tickRequesters[rticks[0]][i],
+                        eachPrize
+                    );
                 }
                 if (gaps[1] == gaps[2]) {
                     // tie
@@ -96,11 +130,17 @@ contract GetClosestTickTest {
                     eachPrize = THIRDPRIZE / secondCount;
                     uint256 length = s_tickRequesters[rticks[1]].length;
                     for (uint256 i = 0; i < length; i++) {
-                        i_airdropToken.safeTransfer(s_tickRequesters[rticks[1]][i], eachPrize);
+                        i_airdropToken.safeTransfer(
+                            s_tickRequesters[rticks[1]][i],
+                            eachPrize
+                        );
                     }
                     length = s_tickRequesters[rticks[2]].length;
                     for (uint256 i = 0; i < length; i++) {
-                        i_airdropToken.safeTransfer(s_tickRequesters[rticks[2]][i], eachPrize);
+                        i_airdropToken.safeTransfer(
+                            s_tickRequesters[rticks[2]][i],
+                            eachPrize
+                        );
                     }
                     return;
                 } else {
@@ -109,40 +149,63 @@ contract GetClosestTickTest {
                         eachPrize = THIRDPRIZE / secondCount;
                         uint256 length = s_tickRequesters[rticks[1]].length;
                         for (uint256 i = 0; i < length; i++) {
-                            i_airdropToken.safeTransfer(s_tickRequesters[rticks[1]][i], eachPrize);
+                            i_airdropToken.safeTransfer(
+                                s_tickRequesters[rticks[1]][i],
+                                eachPrize
+                            );
                         }
                         return;
                     } else if (secondCount == 1) {
-                        i_airdropToken.safeTransfer(s_tickRequesters[rticks[1]][0], THIRDPRIZE);
+                        i_airdropToken.safeTransfer(
+                            s_tickRequesters[rticks[1]][0],
+                            THIRDPRIZE
+                        );
                         return;
                     }
                 }
             } else {
-                i_airdropToken.safeTransfer(s_tickRequesters[rticks[0]][0], FIRSTPRIZE);
+                i_airdropToken.safeTransfer(
+                    s_tickRequesters[rticks[0]][0],
+                    FIRSTPRIZE
+                );
                 if (gaps[1] == gaps[2]) {
                     // tie
                     uint256 secondCount = counts[1] + counts[2];
-                    uint256 eachPrize = (SECONDPRIZE + THIRDPRIZE) / secondCount;
+                    uint256 eachPrize = (SECONDPRIZE + THIRDPRIZE) /
+                        secondCount;
                     uint256 length = s_tickRequesters[rticks[1]].length;
                     for (uint256 i = 0; i < length; i++) {
-                        i_airdropToken.safeTransfer(s_tickRequesters[rticks[1]][i], eachPrize);
+                        i_airdropToken.safeTransfer(
+                            s_tickRequesters[rticks[1]][i],
+                            eachPrize
+                        );
                     }
                     length = s_tickRequesters[rticks[2]].length;
                     for (uint256 i = 0; i < length; i++) {
-                        i_airdropToken.safeTransfer(s_tickRequesters[rticks[2]][i], eachPrize);
+                        i_airdropToken.safeTransfer(
+                            s_tickRequesters[rticks[2]][i],
+                            eachPrize
+                        );
                     }
                     return;
                 } else {
                     uint256 secondCount = counts[1];
                     if (secondCount > 1) {
-                        uint256 eachPrize = (SECONDPRIZE + THIRDPRIZE) / secondCount;
+                        uint256 eachPrize = (SECONDPRIZE + THIRDPRIZE) /
+                            secondCount;
                         uint256 length = s_tickRequesters[rticks[1]].length;
                         for (uint256 i = 0; i < length; i++) {
-                            i_airdropToken.safeTransfer(s_tickRequesters[rticks[1]][i], eachPrize);
+                            i_airdropToken.safeTransfer(
+                                s_tickRequesters[rticks[1]][i],
+                                eachPrize
+                            );
                         }
                         return;
                     } else if (secondCount == 1) {
-                        i_airdropToken.safeTransfer(s_tickRequesters[rticks[1]][0], SECONDPRIZE);
+                        i_airdropToken.safeTransfer(
+                            s_tickRequesters[rticks[1]][0],
+                            SECONDPRIZE
+                        );
                         if (gaps[2] == gaps[3]) {
                             // tie
                             uint256 thirdCount = counts[2] + counts[3];
@@ -166,7 +229,8 @@ contract GetClosestTickTest {
                             uint256 thirdCount = counts[2];
                             if (thirdCount > 1) {
                                 uint256 eachPrize = THIRDPRIZE / thirdCount;
-                                uint256 length = s_tickRequesters[rticks[2]].length;
+                                uint256 length = s_tickRequesters[rticks[2]]
+                                    .length;
                                 for (uint256 i = 0; i < length; i++) {
                                     i_airdropToken.safeTransfer(
                                         s_tickRequesters[rticks[2]][i],
@@ -199,8 +263,14 @@ contract GetClosestTickTest {
         uint24 currentTickRight = 700;
         bool leftFound;
         bool rightFound;
-        (currentTickLeft, leftFound) = _findNextinitializedTick(currentTickLeft, true);
-        (currentTickRight, rightFound) = _findNextinitializedTick(currentTickRight, false);
+        (currentTickLeft, leftFound) = _findNextinitializedTick(
+            currentTickLeft,
+            true
+        );
+        (currentTickRight, rightFound) = _findNextinitializedTick(
+            currentTickRight,
+            false
+        );
         uint256 totalCount;
         if (leftFound || rightFound) {
             // count is at least 1
@@ -228,15 +298,27 @@ contract GetClosestTickTest {
                 unchecked {
                     --currentTickLeft;
                 }
-                (currentTickLeft, leftFound) = _findNextinitializedTick(currentTickLeft, true);
-                (currentTickRight, rightFound) = _findNextinitializedTick(currentTickRight, false);
+                (currentTickLeft, leftFound) = _findNextinitializedTick(
+                    currentTickLeft,
+                    true
+                );
+                (currentTickRight, rightFound) = _findNextinitializedTick(
+                    currentTickRight,
+                    false
+                );
             } else if (leftCount) {
                 unchecked {
                     --currentTickLeft;
                 }
-                (currentTickLeft, leftFound) = _findNextinitializedTick(currentTickLeft, true);
+                (currentTickLeft, leftFound) = _findNextinitializedTick(
+                    currentTickLeft,
+                    true
+                );
             } else if (rightCount) {
-                (currentTickRight, rightFound) = _findNextinitializedTick(currentTickRight, false);
+                (currentTickRight, rightFound) = _findNextinitializedTick(
+                    currentTickRight,
+                    false
+                );
             }
             if (leftFound || rightFound) {
                 // count is at least 2
@@ -264,7 +346,10 @@ contract GetClosestTickTest {
                     unchecked {
                         --currentTickLeft;
                     }
-                    (currentTickLeft, leftFound) = _findNextinitializedTick(currentTickLeft, true);
+                    (currentTickLeft, leftFound) = _findNextinitializedTick(
+                        currentTickLeft,
+                        true
+                    );
                     (currentTickRight, rightFound) = _findNextinitializedTick(
                         currentTickRight,
                         false
@@ -273,7 +358,10 @@ contract GetClosestTickTest {
                     unchecked {
                         --currentTickLeft;
                     }
-                    (currentTickLeft, leftFound) = _findNextinitializedTick(currentTickLeft, true);
+                    (currentTickLeft, leftFound) = _findNextinitializedTick(
+                        currentTickLeft,
+                        true
+                    );
                 } else if (rightCount) {
                     (currentTickRight, rightFound) = _findNextinitializedTick(
                         currentTickRight,
@@ -303,10 +391,8 @@ contract GetClosestTickTest {
         bool left
     ) private view returns (uint24, bool found) {
         while (currentTick < 1001 && currentTick > 0) {
-            (uint24 nextTick, bool initialized) = s_tickBitmap.nextInitializedTickWithinOneWord(
-                currentTick,
-                left
-            );
+            (uint24 nextTick, bool initialized) = s_tickBitmap
+                .nextInitializedTickWithinOneWord(currentTick, left);
             if (initialized) {
                 currentTick = nextTick;
                 found = true;

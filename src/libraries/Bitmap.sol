@@ -8,7 +8,9 @@ library Bitmap {
     /// @param tick The tick for which to compute the position
     /// @return wordPos The key in the mapping containing the word in which the bit is stored
     /// @return bitPos The bit position in the word where the flag is stored
-    function position(uint24 tick) internal pure returns (uint16 wordPos, uint8 bitPos) {
+    function position(
+        uint24 tick
+    ) internal pure returns (uint16 wordPos, uint8 bitPos) {
         assembly {
             // signed arithmetic shift right
             wordPos := shr(8, tick)
@@ -19,7 +21,10 @@ library Bitmap {
     /// @notice Flips the initialized state for a given tick from false to true, or vice versa
     /// @param self The mapping in which to flip the tick
     /// @param tick The tick to flip
-    function flipTick(mapping(uint16 => uint256) storage self, uint24 tick) internal {
+    function flipTick(
+        mapping(uint16 => uint256) storage self,
+        uint24 tick
+    ) internal {
         // Equivalent to the following Solidity:
         //     if (tick % tickSpacing != 0) revert TickMisaligned(tick, tickSpacing);
         //     (int16 wordPos, uint8 bitPos) = position(tick / tickSpacing);
@@ -61,7 +66,8 @@ library Bitmap {
                 initialized = masked != 0;
                 // overflow/underflow is possible, but prevented externally by limiting both tickSpacing and tick
                 next = initialized
-                    ? (tick - uint24(bitPos - BitMath.mostSignificantBit(masked)))
+                    ? (tick -
+                        uint24(bitPos - BitMath.mostSignificantBit(masked)))
                     : (tick - uint24(bitPos));
             } else {
                 // start from the word of the next tick, since the current tick state doesn't matter
@@ -74,7 +80,8 @@ library Bitmap {
                 initialized = masked != 0;
                 // overflow/underflow is possible, but prevented externally by limiting both tickSpacing and tick
                 next = initialized
-                    ? (tick + uint24(BitMath.leastSignificantBit(masked) - bitPos))
+                    ? (tick +
+                        uint24(BitMath.leastSignificantBit(masked) - bitPos))
                     : (tick + uint24(type(uint8).max - bitPos));
             }
         }
