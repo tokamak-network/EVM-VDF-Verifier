@@ -37,13 +37,13 @@ update :; forge update
 
 build :; forge build
 
-test :; forge test
-
 snapshot :; forge snapshot
 
 format :; forge fmt
 
 anvil :; anvil -m 'test test test test test test test test test test test junk' --steps-tracing --block-time 1
+
+#################### * scripts ####################
 
 NETWORK_ARGS := --rpc-url http://localhost:8545 --private-key $(DEFAULT_ANVIL_KEY) --broadcast
 
@@ -94,3 +94,18 @@ re-request-round:
 verify-randomday:
 	@CONSTRUCTOR_ARGS=$$(cast abi-encode "constructor(address,address)" 0x819B9E61F02Bdb8841e90Af300d5064AD1a30D84 0x2b69EAB0d5e93edcc9F9c0d0acEc7f2F4f273cBb) \
 	forge verify-contract --constructor-args CONSTRUCTOR_ARGS --verifier blockscout --verifier-url https://explorer.thanos-sepolia.tokamak.network/api --rpc-url $(THANOS_SEPOLIA_URL) 0xb215a3844823B8f3115dE7c39E00eCF6A7275b57 RandomDay
+
+
+#################### * test ####################
+
+test: test-getL1Fee test-pietrzak test-wesolowski
+
+test-pietrzak:
+	@forge test --mp test/staging/Pietrzak.t.sol --gas-report -vv --gas-limit 999999999999
+test-wesolowski:
+	@forge test --mp test/staging/Wesolowski.t.sol --gas-report -vv --gas-limit 999999999999
+test-getL1Fee:
+	@forge test --mp test/unit/GetL1Fee.t.sol -v --gas-report
+
+test-prime:
+	@forge test --mp test/unit/Prime.t.sol -vv
