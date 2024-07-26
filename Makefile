@@ -60,10 +60,11 @@ ifeq ($(findstring --network opsepolia,$(ARGS)),--network opsepolia)
 	NETWORK_ARGS := --rpc-url $(OP_SEPOLIA_RPC_URL) --private-key $(PRIVATE_KEY) --broadcast --verify --etherscan-api-key $(OP_ETHERSCAN_API_KEY) -vvvv
 endif
 ifeq ($(findstring --network thanossepolia,$(ARGS)), --network thanossepolia)
-	NETWORK_ARGS := --rpc-url $(THANOS_SEPOLIA_URL) --private-key $(PRIVATE_KEY) --broadcast --verify --verifier blockscout --verifier-url https://explorer.thanos-sepolia.tokamak.network/api --etherscan-api-key $(ETHERSCAN_API_KEY) -vvvv
+	NETWORK_ARGS := --rpc-url $(THANOS_SEPOLIA_URL) --private-key $(PRIVATE_KEY) --broadcast --verify --verifier blockscout --verifier-url https://explorer.thanos-sepolia.tokamak.network/api --etherscan-api-key $(ETHERSCAN_API_KEY) -vv
 endif
 
 deploy: deploy-rng deploy-consumer-example deploy-random-day
+# make deploy ARGS="--network thanossepolia"
 
 deploy-rng:
 	@forge script script/DeployRNGCoordinatorPoF.s.sol:DeployRNGCoordinatorPoF $(NETWORK_ARGS)
@@ -98,7 +99,8 @@ verify-randomday:
 
 #################### * test ####################
 
-test: test-getL1Fee test-pietrzak test-wesolowski
+test:
+	@forge test --nmp test/unit/Prime.t.sol --gas-report --gas-limit 999999999999
 
 test-pietrzak:
 	@forge test --mp test/staging/Pietrzak.t.sol --gas-report -vv --gas-limit 999999999999
@@ -109,3 +111,6 @@ test-getL1Fee:
 
 test-prime:
 	@forge test --mp test/unit/Prime.t.sol -vv
+
+
+#forge verify-contract --constructor-args 0xcC377BD2EA392DC48605bfe0779a638ea4fCf365 --verifier blockscout --verifier-url https://explorer.thanos-sepolia.tokamak.network/api 0xf10Cf5550143850fac7CCF09B36cd4BEE018070D ConsumerExample
