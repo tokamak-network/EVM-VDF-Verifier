@@ -79,6 +79,18 @@ contract DeployAndTestPietrzak is Script {
         T = uint256(bytes32((vm.parseJson(json, ".T"))));
     }
 
+    function getIntrinsicGas(bytes memory _data) public pure returns (uint256) {
+        uint256 total = 21000; //txBase
+        for (uint256 i = 0; i < _data.length; i++) {
+            if (_data[i] == 0) {
+                total += 4;
+            } else {
+                total += 16;
+            }
+        }
+        return total;
+    }
+
     function run() external {
         BigNumber[] memory v;
         BigNumber memory x;
@@ -86,24 +98,42 @@ contract DeployAndTestPietrzak is Script {
         BigNumber memory n;
         uint256 delta;
         uint256 T;
-        (v, x, y, n, delta, T) = returnParsed(2048, 1, 20);
+        (v, x, y, n, delta, T) = returnParsed(2048, 1, 22);
         MinimalPietrzakExternal minimalPietrzak204822 = MinimalPietrzakExternal(
             DevOpsTools.get_most_recent_deployment(
                 "MinimalPietrzakExternal",
                 block.chainid
             )
         );
+        Calldata calldataContract = Calldata(
+            DevOpsTools.get_most_recent_deployment("Calldata", block.chainid)
+        );
         vm.startBroadcast();
         //MinimalPietrzakExternal minimalPietrzak204822 = new MinimalPietrzakExternal();
-        bool result = minimalPietrzak204822.verifyPietrzak(
-            v,
-            x,
-            y,
-            n,
-            delta,
-            T
-        );
+        // bool result = minimalPietrzak204822.verifyPietrzak(
+        //     v,
+        //     x,
+        //     y,
+        //     n,
+        //     delta,
+        //     T
+        // );
+        calldataContract.verify(v, x, y, n, delta, T);
         vm.stopBroadcast();
-        console2.log("result: ", result);
+        //console2.log("result: ", result);
+        console2.log(vm.lastCallGas().gasTotalUsed);
+        console2.log(
+            getIntrinsicGas(
+                abi.encodeWithSelector(
+                    calldataContract.verify.selector,
+                    v,
+                    x,
+                    y,
+                    n,
+                    delta,
+                    T
+                )
+            )
+        );
     }
 }
