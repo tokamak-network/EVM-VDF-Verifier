@@ -11,8 +11,8 @@ library WesolowskiLibrary {
     error MillarRabinTestFailed();
     error CalculatedYNotEqualY();
     error GapTooLarge();
-    bytes32 private constant primeMask =
-        hex"7fff_ffff_ffff_ffff_ffff_ffff_ffff_ffff_ffff_ffff_ffff_ffff_ffff_ffff_ffff_E000";
+    //bytes32 private constant primeMask =
+    //   hex"7fff_ffff_ffff_ffff_ffff_ffff_ffff_ffff_ffff_ffff_ffff_ffff_ffff_ffff_ffff_E000";
     uint256 private constant jHCadwellMaxGap = 5938;
     bytes32 private constant MSB =
         hex"8000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000";

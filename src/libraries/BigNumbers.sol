@@ -51,7 +51,7 @@ library BigNumbers {
      */
     function init(
         bytes memory val
-    ) internal view returns(BigNumber memory){
+    ) internal pure returns(BigNumber memory){
         return _init(val, UINTZERO);
     }
 
@@ -318,7 +318,7 @@ library BigNumbers {
       * @param bits amount of bits to shift by
       * @return r result
       */
-    function _shr(BigNumber memory bn, uint256 bits) internal view returns(BigNumber memory){
+    function _shr(BigNumber memory bn, uint256 bits) internal pure returns(BigNumber memory){
         uint256 length;
         assembly ("memory-safe") { length := mload(mload(bn)) }
 
@@ -350,7 +350,8 @@ library BigNumbers {
                   let insize      := add(inlength, 0x20)
                   let out         := add(in,     bytes_shift)
                   let outsize     := sub(insize, bytes_shift)
-                  let success     := staticcall(450, 0x4, in, insize, out, insize)
+                  //let success     := staticcall(450, 0x4, in, insize, out, insize)
+                  mcopy(out, in, insize)
                   mstore8(add(out, 0x1f), 0) // maintain our BN layout following identity call:
                   mstore(in, inlength)         // set current length byte to 0, and reset old length.
               }
@@ -394,7 +395,7 @@ library BigNumbers {
       */
     function isZero(
         bytes memory a
-    ) private pure returns(bool) {
+    ) internal pure returns(bool) {
         uint256 msword;
         uint256 msword_ptr;
         assembly ("memory-safe") {
@@ -496,7 +497,7 @@ library BigNumbers {
     function _init(
         bytes memory val, 
         uint256 bitlen
-    ) private view returns(BigNumber memory r){ 
+    ) private pure returns(BigNumber memory r){ 
         // use identity at location 0x4 for cheap memcpy.
         // grab contents of val, load starting from memory end, update memory end pointer.
         assembly ("memory-safe") {
@@ -515,7 +516,8 @@ library BigNumbers {
                     out     := add(add(freemem, offset), 0x20)    // freememory location + offset + length word
                     mstore(freemem, add(length, offset))          // set new length 
                 }
-            pop(staticcall(450, 0x4, data, length, out, length))  // copy into 'out' memory location
+            //pop(staticcall(450, 0x4, data, length, out, length))  // copy into 'out' memory location
+            mcopy(out, data, length)
             mstore(0x40, add(freemem, add(mload(freemem), 0x20))) // update the free memory pointer
             
             // handle leading zero words. assume freemem is pointer to bytes value
@@ -795,22 +797,25 @@ library BigNumbers {
             
             // arg[3] = base.bits @ + 96
             // Use identity built-in (contract 0x4) as a cheap memcpy
-            let success := staticcall(450, 0x4, add(_b,32), bl, add(freemem,96), bl)
+            //let success := staticcall(450, 0x4, add(_b,32), bl, add(freemem,96), bl)
+            mcopy(add(freemem,96), add(_b,32), bl)
             
             // arg[4] = exp.bits @ +96+base.length
             let size := add(96, bl)
-            success := staticcall(450, 0x4, add(_e,32), el, add(freemem,size), el)
+            //success := staticcall(450, 0x4, add(_e,32), el, add(freemem,size), el)
+            mcopy(add(freemem,size), add(_e,32), el)
             
             // arg[5] = mod.bits @ +96+base.length+exp.length
             size := add(size,el)
-            success := staticcall(450, 0x4, add(_m,32), ml, add(freemem,size), ml)
+            //success := staticcall(450, 0x4, add(_m,32), ml, add(freemem,size), ml)
+            mcopy(add(freemem,size), add(_m,32), ml)
             
-            switch success case 0 { invalid() } //fail where we haven't enough gas to make the call
+            // switch success case 0 { invalid() } //fail where we haven't enough gas to make the call
 
             // Total size of input = 96+base.length+exp.length+mod.length
             size := add(size,ml)
             // Invoke contract 0x5, put return value right after mod.length, @ +96
-            success := staticcall(sub(gas(), 1350), 0x5, freemem, size, add(freemem, 0x60), ml)
+            let success := staticcall(sub(gas(), 1350), 0x5, freemem, size, add(freemem, 0x60), ml)
 
             switch success case 0 { invalid() } //fail where we haven't enough gas to make the call
 

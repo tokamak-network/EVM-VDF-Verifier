@@ -9,13 +9,10 @@ import {IOVM_GasPriceOracle} from "../../src/interfaces/IOVM_GasPriceOracle.sol"
 import {VDFCoordinatorForGetL1FeeTest} from "../../src/test/VDFCoordinatorForGetL1FeeTest.sol";
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 import {GasHelpers} from "../shared/Utils.t.sol";
+import {DecodeJsonBigNumber} from "../shared/DecodeJsonBigNumber.sol";
+import {BigNumber} from "../../src/libraries/BigNumbers.sol";
 
 interface IVDFCoordinator {
-    struct BigNumber {
-        bytes val;
-        uint256 bitlen;
-    }
-
     function commit(uint256 round, BigNumber memory c) external;
 
     function reveal(uint256 round, BigNumber memory a) external;
@@ -32,15 +29,7 @@ interface IVDFCoordinator {
     function fulfillRandomness(uint256 round) external;
 }
 
-contract GetL1Fee is BaseTest, GasHelpers {
-    struct JsonBigNumber {
-        uint256 bitlen;
-        bytes val;
-    }
-    struct BigNumber {
-        bytes val;
-        uint256 bitlen;
-    }
+contract GetL1Fee is BaseTest, GasHelpers, DecodeJsonBigNumber {
     uint256 public optimismFork;
     string public constant key = "OP_MAINNET_RPC_URL";
     string public OP_MAINNET_RPC_URL = vm.envString(key);
@@ -78,20 +67,6 @@ contract GetL1Fee is BaseTest, GasHelpers {
     /// @dev Option 3: getL1FeeUpperBound() function from predeploy GasPriceOracle contract (available after Fjord upgrade)
     /// @dev This option is available for the Coordinator contract
     uint8 internal constant L1_GAS_FEES_UPPER_BOUND_MODE = 2;
-
-    function decodeBigNumber(
-        bytes memory jsonBytes
-    ) public pure returns (BigNumber memory) {
-        JsonBigNumber memory xJsonBigNumber = abi.decode(
-            jsonBytes,
-            (JsonBigNumber)
-        );
-        BigNumber memory x = BigNumber(
-            xJsonBigNumber.val,
-            xJsonBigNumber.bitlen
-        );
-        return x;
-    }
 
     function getAllCalldata() public view returns (bytes memory totalCalldata) {
         // Eg. 2 commits, 2 reveals, 1 recover, 1 fulfill

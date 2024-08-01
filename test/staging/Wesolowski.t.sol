@@ -7,12 +7,9 @@ import "../../src/test/MinimalWesolowski.sol";
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 import "../../src/libraries/BigNumbers.sol";
 import "../shared/Utils.t.sol";
+import {DecodeJsonBigNumber} from "../shared/DecodeJsonBigNumber.sol";
 
-contract MinimalWesolowskiTest is BaseTest, GasHelpers {
-    struct JsonBigNumber {
-        uint256 bitlen;
-        bytes val;
-    }
+contract MinimalWesolowskiTest is BaseTest, GasHelpers, DecodeJsonBigNumber {
     struct SmallJsonBigNumber {
         uint256 bitlen;
         bytes32 val;
@@ -33,20 +30,6 @@ contract MinimalWesolowskiTest is BaseTest, GasHelpers {
         mWs[9] = IMinimalWesolowski(address(new MinimalWesolowski307223()));
         mWs[10] = IMinimalWesolowski(address(new MinimalWesolowski307224()));
         mWs[11] = IMinimalWesolowski(address(new MinimalWesolowski307225()));
-    }
-
-    function decodeBigNumber(
-        bytes memory jsonBytes
-    ) public pure returns (BigNumber memory) {
-        JsonBigNumber memory xJsonBigNumber = abi.decode(
-            jsonBytes,
-            (JsonBigNumber)
-        );
-        BigNumber memory x = BigNumber(
-            xJsonBigNumber.val,
-            xJsonBigNumber.bitlen
-        );
-        return x;
     }
 
     function decodeShortBigNumber(
