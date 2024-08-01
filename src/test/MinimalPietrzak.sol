@@ -15,6 +15,74 @@ interface IMinimalPietrzak {
     ) external view returns (bool);
 }
 
+contract MinimalPietrzakHalving {
+    function verifyPietrzak(
+        BigNumber[] memory v,
+        BigNumber memory x,
+        BigNumber memory y,
+        BigNumber memory n,
+        uint256 delta,
+        uint256 T
+    ) external returns (bool) {
+        return PietrzakLibraryMeasureHalvingGas.verify(v, x, y, n, delta, T);
+    }
+}
+
+contract MinimalPietrzakModExp {
+    function verifyPietrzak(
+        BigNumber[] memory v,
+        BigNumber memory x,
+        BigNumber memory y,
+        BigNumber memory n,
+        uint256 delta,
+        uint256 T
+    ) external returns (bool) {
+        return PietrzakLibraryMeasureModExpGas.verify(v, x, y, n, delta, T);
+    }
+}
+
+contract MinimalPietrzakHalvingReturnGas {
+    function verifyPietrzak(
+        BigNumber[] memory v,
+        BigNumber memory x,
+        BigNumber memory y,
+        BigNumber memory n,
+        uint256 delta,
+        uint256 T
+    ) external view returns (uint256) {
+        return
+            PietrzakLibraryMeasureHalvingGas.verifyReturnGas(
+                v,
+                x,
+                y,
+                n,
+                delta,
+                T
+            );
+    }
+}
+
+contract MinimalPietrzakModExpReturnGas {
+    function verifyPietrzak(
+        BigNumber[] memory v,
+        BigNumber memory x,
+        BigNumber memory y,
+        BigNumber memory n,
+        uint256 delta,
+        uint256 T
+    ) external view returns (uint256) {
+        return
+            PietrzakLibraryMeasureModExpGas.verifyReturnGas(
+                v,
+                x,
+                y,
+                n,
+                delta,
+                T
+            );
+    }
+}
+
 contract MinimalPietrzakExternal {
     function verifyPietrzak(
         BigNumber[] memory v,
@@ -28,150 +96,7 @@ contract MinimalPietrzakExternal {
     }
 }
 
-contract MinimalPietrzak204820 {
-    function verifyPietrzak(
-        BigNumber[] memory v,
-        BigNumber memory x,
-        BigNumber memory y,
-        BigNumber memory n,
-        uint256 delta,
-        uint256 T
-    ) external view returns (bool) {
-        return PietrzakLibrary.verify(v, x, y, n, delta, T);
-    }
-}
-
-contract MinimalPietrzak204821 {
-    function verifyPietrzak(
-        BigNumber[] memory v,
-        BigNumber memory x,
-        BigNumber memory y,
-        BigNumber memory n,
-        uint256 delta,
-        uint256 T
-    ) external view returns (bool) {
-        return PietrzakLibrary.verify(v, x, y, n, delta, T);
-    }
-}
-
-contract MinimalPietrzak204822 {
-    function verifyPietrzak(
-        BigNumber[] memory v,
-        BigNumber memory x,
-        BigNumber memory y,
-        BigNumber memory n,
-        uint256 delta,
-        uint256 T
-    ) external view returns (bool) {
-        return PietrzakLibrary.verify(v, x, y, n, delta, T);
-    }
-}
-
-contract MinimalPietrzak204823 {
-    function verifyPietrzak(
-        BigNumber[] memory v,
-        BigNumber memory x,
-        BigNumber memory y,
-        BigNumber memory n,
-        uint256 delta,
-        uint256 T
-    ) external view returns (bool) {
-        return PietrzakLibrary.verify(v, x, y, n, delta, T);
-    }
-}
-
-contract MinimalPietrzak204824 {
-    function verifyPietrzak(
-        BigNumber[] memory v,
-        BigNumber memory x,
-        BigNumber memory y,
-        BigNumber memory n,
-        uint256 delta,
-        uint256 T
-    ) external view returns (bool) {
-        return PietrzakLibrary.verify(v, x, y, n, delta, T);
-    }
-}
-
-contract MinimalPietrzak204825 {
-    function verifyPietrzak(
-        BigNumber[] memory v,
-        BigNumber memory x,
-        BigNumber memory y,
-        BigNumber memory n,
-        uint256 delta,
-        uint256 T
-    ) external view returns (bool) {
-        return PietrzakLibrary.verify(v, x, y, n, delta, T);
-    }
-}
-
-contract MinimalPietrzak307220 {
-    function verifyPietrzak(
-        BigNumber[] memory v,
-        BigNumber memory x,
-        BigNumber memory y,
-        BigNumber memory n,
-        uint256 delta,
-        uint256 T
-    ) external view returns (bool) {
-        return PietrzakLibrary.verify(v, x, y, n, delta, T);
-    }
-}
-
-contract MinimalPietrzak307221 {
-    function verifyPietrzak(
-        BigNumber[] memory v,
-        BigNumber memory x,
-        BigNumber memory y,
-        BigNumber memory n,
-        uint256 delta,
-        uint256 T
-    ) external view returns (bool) {
-        return PietrzakLibrary.verify(v, x, y, n, delta, T);
-    }
-}
-
-contract MinimalPietrzak307222 {
-    function verifyPietrzak(
-        BigNumber[] memory v,
-        BigNumber memory x,
-        BigNumber memory y,
-        BigNumber memory n,
-        uint256 delta,
-        uint256 T
-    ) external view returns (bool) {
-        return PietrzakLibrary.verify(v, x, y, n, delta, T);
-    }
-}
-
-contract MinimalPietrzak307223 {
-    function verifyPietrzak(
-        BigNumber[] memory v,
-        BigNumber memory x,
-        BigNumber memory y,
-        BigNumber memory n,
-        uint256 delta,
-        uint256 T
-    ) external view returns (bool) {
-        return PietrzakLibrary.verify(v, x, y, n, delta, T);
-    }
-}
-
-contract MinimalPietrzak307224 {
-    function verifyPietrzak(
-        BigNumber[] memory v,
-        BigNumber memory x,
-        BigNumber memory y,
-        BigNumber memory n,
-        uint256 delta,
-        uint256 T
-    ) external view returns (bool) {
-        return PietrzakLibrary.verify(v, x, y, n, delta, T);
-    }
-}
-
-contract MinimalPietrzak307225 {
+contract MinimalPietrzak {
     function verifyPietrzak(
         BigNumber[] memory v,
         BigNumber memory x,
