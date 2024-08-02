@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.24;
+pragma solidity 0.8.26;
 
 import "../shared/BaseTest.t.sol";
 import {console2, Vm} from "forge-std/Test.sol";
@@ -80,27 +80,28 @@ contract MinimalPietrzakTest is BaseTest, DecodeJsonBigNumber {
         T = uint256(bytes32((vm.parseJson(json, ".T"))));
     }
 
-    function testPietrzakForManuscriptTable() public view {
+    uint256 constant DELTA2048 = 15;
+
+    function test1PietrzakForManuscriptTable2048() public view {
         BigNumber[] memory v;
         BigNumber memory x;
         BigNumber memory y;
         BigNumber memory n;
-        uint256 delta = 9;
         uint256 T;
         uint256 numOfEachTestCase = 5;
         uint256[6] memory taus = [uint256(20), 21, 22, 23, 24, 25];
-        uint256[2] memory bits = [uint256(2048), 3072];
-        for (uint256 i = 0; i < bits.length; i++) {
-            console2.log("-----------------");
-            console2.log("bit size", bits[i]);
-            uint256[4][6] memory results;
-            for (uint256 j = 0; j < taus.length; j++) {
+        uint256 bit = 2048;
+        console2.log("-----------------");
+        console2.log("bit size", bit);
+        uint256[4][6][DELTA2048] memory results;
+        for (uint256 j = 0; j < taus.length; j++) {
+            for (uint256 delta; delta < DELTA2048; delta++) {
                 uint256[] memory gasUseds = new uint256[](numOfEachTestCase);
                 uint256[] memory calldataSizes = new uint256[](
                     numOfEachTestCase
                 );
                 for (uint256 k = 1; k <= numOfEachTestCase; k++) {
-                    (v, x, y, n, T) = returnParsed(bits[i], k, taus[j], delta);
+                    (v, x, y, n, T) = returnParsed(bit, k, taus[j], delta);
                     bool result = minimalPietrzak.verifyPietrzak(
                         v,
                         x,
@@ -110,8 +111,61 @@ contract MinimalPietrzakTest is BaseTest, DecodeJsonBigNumber {
                         T
                     );
                     gasUseds[k - 1] = vm.lastCallGas().gasTotalUsed;
-                    bytes memory calldataBytes = abi.encodeWithSelector(
-                        minimalPietrzak.verifyPietrzak.selector,
+                    calldataSizes[k - 1] = abi
+                        .encodeWithSelector(
+                            minimalPietrzak.verifyPietrzak.selector,
+                            v,
+                            x,
+                            y,
+                            n,
+                            delta,
+                            T
+                        )
+                        .length;
+                    assertTrue(result);
+                }
+                uint256 averageGasUsed = getAverage(gasUseds);
+                uint256 averageCalldataSize = getAverage(calldataSizes);
+                results[delta][j] = [
+                    delta,
+                    taus[j],
+                    averageGasUsed,
+                    averageCalldataSize
+                ];
+            }
+        }
+        console2.log("delta", "tau", "gas used", "calldata size");
+        for (uint256 k = 0; k < DELTA2048; k++) {
+            for (uint256 j = 0; j < taus.length; j++) {
+                console2.log(
+                    results[k][j][0],
+                    results[k][j][1],
+                    results[k][j][2],
+                    results[k][j][3]
+                );
+            }
+        }
+    }
+
+    uint256 constant DELTA3072 = 15;
+
+    function test1PietrzakForManuscriptTable3072() public view {
+        BigNumber[] memory v;
+        BigNumber memory x;
+        BigNumber memory y;
+        BigNumber memory n;
+        uint256 T;
+        uint256 numOfEachTestCase = 4;
+        uint256[6] memory taus = [uint256(20), 21, 22, 23, 24, 25];
+        uint256 bit = 3072;
+        console2.log("bit size", bit);
+        uint256[3][6][DELTA3072] memory results;
+        for (uint256 j = 0; j < taus.length; j++) {
+            for (uint256 delta; delta < DELTA3072; delta++) {
+                uint256[] memory gasUseds = new uint256[](numOfEachTestCase);
+                for (uint256 k = 1; k <= numOfEachTestCase; k++) {
+                    (v, x, y, n, T) = returnParsed(bit, k, taus[j], delta);
+                    bool result = minimalPietrzak.verifyPietrzak(
                         v,
                         x,
                         y,
@@ -119,17 +173,83 @@ contract MinimalPietrzakTest is BaseTest, DecodeJsonBigNumber {
                         delta,
                         T
                     );
-                    calldataSizes[k - 1] = calldataBytes.length;
+                    gasUseds[k - 1] = vm.lastCallGas().gasTotalUsed;
                     assertTrue(result);
                 }
                 uint256 averageGasUsed = getAverage(gasUseds);
-                uint256 averageCalldataSize = getAverage(calldataSizes);
-                results[j] = [
-                    taus[j],
-                    averageGasUsed,
-                    averageCalldataSize,
-                    (averageCalldataSize * 10000) / 1024
-                ];
+                results[delta][j] = [delta, taus[j], averageGasUsed];
+            }
+        }
+        console2.log("delta", "tau", "gas used", "calldata size");
+        for (uint256 k = 0; k < DELTA3072; k++) {
+            for (uint256 j = 0; j < taus.length; j++) {
+                console2.log(
+                    results[k][j][0],
+                    results[k][j][1],
+                    results[k][j][2]
+                );
+            }
+        }
+    }
+
+    function test2PietrzakForManuscriptTable() public view {
+        BigNumber[] memory v;
+        BigNumber memory x;
+        BigNumber memory y;
+        BigNumber memory n;
+        uint256 T;
+        uint256 numOfEachTestCase = 5;
+        uint256[6] memory taus = [uint256(20), 21, 22, 23, 24, 25];
+        uint256[2] memory bits = [uint256(2048), 3072];
+        for (uint256 i = 0; i < bits.length; i++) {
+            console2.log("-----------------");
+            console2.log("bit size", bits[i]);
+            uint256[4][4][6] memory results;
+            for (uint256 delta = 16; delta < 20; delta++) {
+                for (uint256 j = 0; j < taus.length; j++) {
+                    uint256[] memory gasUseds = new uint256[](
+                        numOfEachTestCase
+                    );
+                    uint256[] memory calldataSizes = new uint256[](
+                        numOfEachTestCase
+                    );
+                    for (uint256 k = 1; k <= numOfEachTestCase; k++) {
+                        (v, x, y, n, T) = returnParsed(
+                            bits[i],
+                            k,
+                            taus[j],
+                            delta
+                        );
+                        bool result = minimalPietrzak.verifyPietrzak(
+                            v,
+                            x,
+                            y,
+                            n,
+                            delta,
+                            T
+                        );
+                        gasUseds[k - 1] = vm.lastCallGas().gasTotalUsed;
+                        bytes memory calldataBytes = abi.encodeWithSelector(
+                            minimalPietrzak.verifyPietrzak.selector,
+                            v,
+                            x,
+                            y,
+                            n,
+                            delta,
+                            T
+                        );
+                        calldataSizes[k - 1] = calldataBytes.length;
+                        assertTrue(result);
+                    }
+                    uint256 averageGasUsed = getAverage(gasUseds);
+                    uint256 averageCalldataSize = getAverage(calldataSizes);
+                    results[j][delta] = [
+                        taus[j],
+                        averageGasUsed,
+                        averageCalldataSize,
+                        (averageCalldataSize * 10000) / 1024
+                    ];
+                }
             }
             console2.log(
                 "tau",
@@ -138,12 +258,14 @@ contract MinimalPietrzakTest is BaseTest, DecodeJsonBigNumber {
                 "calldata size(KB) * 10000"
             );
             for (uint256 j = 0; j < taus.length; j++) {
-                console2.log(
-                    results[j][0],
-                    results[j][1],
-                    results[j][2],
-                    results[j][3]
-                );
+                for (uint256 k = 0; k < 4; k++) {
+                    console2.log(
+                        results[j][k][0],
+                        results[j][k][1],
+                        results[j][k][2],
+                        results[j][k][3]
+                    );
+                }
             }
         }
     }
