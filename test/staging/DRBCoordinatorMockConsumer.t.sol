@@ -106,7 +106,7 @@ contract DRBCoordinatorMockConsumerTest is Test {
         vm.recordLogs();
         uint256 requestId = drbConsumerExample.requestRandomWord{
             value: estimatedDirectFundingPrice
-        }(requestInfo);
+        }();
         _checkRandomWordsRequestEmittedLogs(requestId);
         (bool requested, uint256 randomNumber) = (
             drbConsumerExample.s_requestsInfos(requestId)

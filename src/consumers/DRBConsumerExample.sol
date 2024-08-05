@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.26;
 
-import {DRBConsumerBase, IDRBCoordinator} from "../DRBConsumerBase.sol";
+import {DRBConsumerBase} from "../DRBConsumerBase.sol";
 
 /**
  * @title DRBConsumerExample
@@ -43,12 +43,9 @@ contract DRBConsumerExample is DRBConsumerBase {
 
     /**
      * @notice Requests Randomness, 'Word' refers to unit of data in Computer Science
-     * @param _requestParam request parameters
      */
-    function requestRandomWord(
-        IDRBCoordinator.RandomWordsRequest calldata _requestParam
-    ) external payable returns (uint256 requestId) {
-        requestId = requestRandomness(_requestParam);
+    function requestRandomWord() external payable returns (uint256 requestId) {
+        requestId = requestRandomness(SECURITY, MODE, CALLBACK_GAS_LIMIT);
         s_requestsInfos[requestId].requested = true;
     }
 

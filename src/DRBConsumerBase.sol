@@ -23,16 +23,23 @@ abstract contract DRBConsumerBase {
     }
 
     /**
-     * @param _requestParam The parameters needed to measure gas costs
      * @return requestId The ID of the request
      * @dev Request Randomness to the Coordinator
      */
     function requestRandomness(
-        IDRBCoordinator.RandomWordsRequest calldata _requestParam
+        uint16 security,
+        uint16 mode,
+        uint32 callbackGasLimit
     ) internal returns (uint256) {
         uint256 requestId = i_drbCoordinator.requestRandomWordDirectFunding{
             value: msg.value
-        }(_requestParam);
+        }(
+            IDRBCoordinator.RandomWordsRequest({
+                security: security,
+                mode: mode,
+                callbackGasLimit: callbackGasLimit
+            })
+        );
         return requestId;
     }
 
