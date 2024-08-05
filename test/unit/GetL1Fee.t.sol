@@ -27,6 +27,8 @@ interface IVDFCoordinator {
     ) external;
 
     function fulfillRandomness(uint256 round) external;
+
+    function calculateOmegAndFulfill(uint256 round) external;
 }
 
 contract GetL1Fee is BaseTest, GasHelpers, DecodeJsonBigNumber {
@@ -57,16 +59,87 @@ contract GetL1Fee is BaseTest, GasHelpers, DecodeJsonBigNumber {
 
     VDFCoordinatorForGetL1FeeTest public s_testCoordinator;
 
-    /// @dev Option 1: getL1Fee() function from predeploy GasPriceOracle contract with the calldata payload
-    /// @dev This option is only available for the Coordinator contract
-    uint8 internal constant L1_GAS_FEES_MODE = 0;
-    /// @dev Option 2: our own implementation of getL1Fee() function (Ecotone version) with projected
-    /// @dev calldata payload
-    /// @dev This option is available for the Coordinator contract
-    uint8 internal constant L1_CALLDATA_GAS_COST_MODE = 1;
-    /// @dev Option 3: getL1FeeUpperBound() function from predeploy GasPriceOracle contract (available after Fjord upgrade)
-    /// @dev This option is available for the Coordinator contract
-    uint8 internal constant L1_GAS_FEES_UPPER_BOUND_MODE = 2;
+    uint8 internal constant L1_GAS_FEES_UPPER_BOUND_MODE = 0;
+    uint8 internal constant L1_GAS_FEES_ECOTONE_MODE = 1;
+    uint8 internal constant L1_GAS_FEES_LEGACY_MODE = 2;
+    uint8 internal constant NOT_L2 = 4;
+
+    function getCommitRevealCalculateOmegaFulFillCalldata()
+        public
+        view
+        returns (bytes memory totalCalldata)
+    {
+        // 2 commits, 2 reveal, 1 calculateOmegaWithFulfill
+        // ** Get the calldatas
+        string memory root = vm.projectRoot();
+        string memory path = string(
+            abi.encodePacked(root, "/test/shared/currentTestCase.json")
+        );
+        string memory json = vm.readFile(path);
+        BigNumber[] memory commits = new BigNumber[](2);
+        BigNumber[] memory reveals = new BigNumber[](2);
+        for (uint256 i; i < 2; i++) {
+            commits[i] = decodeBigNumber(
+                vm.parseJson(
+                    json,
+                    string.concat(".commitList[", Strings.toString(i), "]")
+                )
+            );
+            reveals[i] = decodeBigNumber(
+                vm.parseJson(
+                    json,
+                    string.concat(".randomList[", Strings.toString(i), "]")
+                )
+            );
+        }
+        uint256 round = 9;
+        bytes memory commit1Data = abi.encodeWithSelector(
+            IVDFCoordinator.commit.selector,
+            round,
+            commits[0]
+        );
+        totalCalldata = bytes.concat(commit1Data, L1_FEE_DATA_PADDING);
+        bytes memory commit2Data = abi.encodeWithSelector(
+            IVDFCoordinator.commit.selector,
+            round,
+            commits[1]
+        );
+        totalCalldata = bytes.concat(
+            totalCalldata,
+            commit2Data,
+            L1_FEE_DATA_PADDING
+        );
+        bytes memory reveal1Data = abi.encodeWithSelector(
+            IVDFCoordinator.reveal.selector,
+            round,
+            reveals[0]
+        );
+        totalCalldata = bytes.concat(
+            totalCalldata,
+            reveal1Data,
+            L1_FEE_DATA_PADDING
+        );
+        bytes memory reveal2Data = abi.encodeWithSelector(
+            IVDFCoordinator.reveal.selector,
+            round,
+            reveals[1]
+        );
+        totalCalldata = bytes.concat(
+            totalCalldata,
+            reveal2Data,
+            L1_FEE_DATA_PADDING
+        );
+        bytes memory fulfillData = abi.encodeWithSelector(
+            IVDFCoordinator.calculateOmegAndFulfill.selector,
+            round
+        );
+        totalCalldata = bytes.concat(
+            totalCalldata,
+            fulfillData,
+            L1_FEE_DATA_PADDING
+        );
+        return totalCalldata;
+    }
 
     function getAllCalldata() public view returns (bytes memory totalCalldata) {
         // Eg. 2 commits, 2 reveals, 1 recover, 1 fulfill
@@ -226,22 +299,22 @@ contract GetL1Fee is BaseTest, GasHelpers, DecodeJsonBigNumber {
     }
 
     function test_setL1FeePaymentMethod() public {
-        assertEq(L1_GAS_FEES_MODE, s_testCoordinator.s_l1FeeCalculationMode());
+        assertEq(NOT_L2, s_testCoordinator.s_l1FeeCalculationMode());
         assertEq(100, uint256(s_testCoordinator.s_l1FeeCoefficient()));
 
         vm.recordLogs();
-        s_testCoordinator.setL1FeeCalculation(L1_CALLDATA_GAS_COST_MODE, 70);
-        _checkL1FeeCalculationSetEmittedLogs(L1_CALLDATA_GAS_COST_MODE, 70);
+        s_testCoordinator.setL1FeeCalculation(L1_GAS_FEES_ECOTONE_MODE, 70);
+        _checkL1FeeCalculationSetEmittedLogs(L1_GAS_FEES_ECOTONE_MODE, 70);
         assertEq(
-            L1_CALLDATA_GAS_COST_MODE,
+            L1_GAS_FEES_ECOTONE_MODE,
             s_testCoordinator.s_l1FeeCalculationMode()
         );
         assertEq(70, uint256(s_testCoordinator.s_l1FeeCoefficient()));
 
-        s_testCoordinator.setL1FeeCalculation(L1_GAS_FEES_UPPER_BOUND_MODE, 30);
-        _checkL1FeeCalculationSetEmittedLogs(L1_GAS_FEES_UPPER_BOUND_MODE, 30);
+        s_testCoordinator.setL1FeeCalculation(L1_GAS_FEES_LEGACY_MODE, 30);
+        _checkL1FeeCalculationSetEmittedLogs(L1_GAS_FEES_LEGACY_MODE, 30);
         assertEq(
-            uint256(L1_GAS_FEES_UPPER_BOUND_MODE),
+            uint256(L1_GAS_FEES_LEGACY_MODE),
             uint256(s_testCoordinator.s_l1FeeCalculationMode())
         );
         assertEq(30, uint256(s_testCoordinator.s_l1FeeCoefficient()));
@@ -250,10 +323,10 @@ contract GetL1Fee is BaseTest, GasHelpers, DecodeJsonBigNumber {
         vm.expectRevert(
             abi.encodeWithSelector(
                 OptimismL1Fees.InvalidL1FeeCalculationMode.selector,
-                4
+                5
             )
         );
-        s_testCoordinator.setL1FeeCalculation(4, 100);
+        s_testCoordinator.setL1FeeCalculation(5, 100);
 
         // should revert if invalid coefficient is used (equal to zero, this would disable l1 fees completely)
         vm.expectRevert(
@@ -262,7 +335,7 @@ contract GetL1Fee is BaseTest, GasHelpers, DecodeJsonBigNumber {
                 0
             )
         );
-        s_testCoordinator.setL1FeeCalculation(L1_GAS_FEES_MODE, 0);
+        s_testCoordinator.setL1FeeCalculation(L1_GAS_FEES_UPPER_BOUND_MODE, 0);
 
         // should revert if invalid coefficient is used (greater than 100)
         vm.expectRevert(
@@ -271,31 +344,17 @@ contract GetL1Fee is BaseTest, GasHelpers, DecodeJsonBigNumber {
                 101
             )
         );
-        s_testCoordinator.setL1FeeCalculation(L1_GAS_FEES_MODE, 101);
+        s_testCoordinator.setL1FeeCalculation(
+            L1_GAS_FEES_UPPER_BOUND_MODE,
+            101
+        );
     }
 
     // Before Fjord, and after Ecotone
-    function test_calculateDirectFundingUsingL1GasFeesMode() public {
-        s_testCoordinator.setL1FeeCalculation(L1_GAS_FEES_MODE, 100);
+    function test_calculateDirectFundingEcotone() public {
+        s_testCoordinator.setL1FeeCalculation(L1_GAS_FEES_ECOTONE_MODE, 100);
         bytes memory txMsgData = abi.encodeWithSelector(
             VDFCoordinatorForGetL1FeeTest.directlyCallGetL1Fee.selector,
-            s_callbackGasLimit
-        );
-        (bool success, bytes memory returnData) = address(s_testCoordinator)
-            .call(txMsgData);
-        assertTrue(success);
-        uint256 round = abi.decode(returnData, (uint256));
-        assertEq(round, 0);
-        uint256 cost = s_testCoordinator.cost();
-        console2.log("Cost: ", cost);
-    }
-
-    function test_calculateDirectFundingUsingL1_CALLDATA_GAS_COST_MODE()
-        public
-    {
-        s_testCoordinator.setL1FeeCalculation(L1_CALLDATA_GAS_COST_MODE, 100);
-        bytes memory txMsgData = abi.encodeWithSelector(
-            VDFCoordinatorForGetL1FeeTest.callCustomGetL1FeeEcotoneVer.selector,
             s_callbackGasLimit
         );
         (bool success, bytes memory returnData) = address(s_testCoordinator)
@@ -327,5 +386,12 @@ contract GetL1Fee is BaseTest, GasHelpers, DecodeJsonBigNumber {
         assertEq(round, 0);
         uint256 cost = s_testCoordinator.cost();
         console2.log("Cost: ", cost);
+    }
+
+    function testGetCommitRevealCalculateOmegaFulFillCalldata() public view {
+        bytes
+            memory totalCalldata = getCommitRevealCalculateOmegaFulFillCalldata();
+        console2.logBytes(totalCalldata);
+        console2.log("Calldata size: ", totalCalldata.length);
     }
 }
