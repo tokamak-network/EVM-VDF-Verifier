@@ -3,16 +3,19 @@ pragma solidity ^0.8.26;
 import "./libraries/BigNumbers.sol";
 
 contract Wesolowski {
-    uint256 private constant MILLER_RABIN_CHECKS = 28;
+    uint256 private constant MILLER_RABIN_CHECKS = 11;
 
     error ShouldBeGreaterThanThree();
     error InvalidPrime();
     error MSBNotSet();
     error MillarRabinTestFailed();
     error CalculatedYNotEqualY();
-
-    bytes32 constant primeMask =
-        hex"7fff_ffff_ffff_ffff_ffff_ffff_ffff_ffff_ffff_ffff_ffff_ffff_ffff_ffff_ffff_f000";
+    error GapTooLarge();
+    //bytes32 private constant primeMask =
+    //   hex"7fff_ffff_ffff_ffff_ffff_ffff_ffff_ffff_ffff_ffff_ffff_ffff_ffff_ffff_ffff_E000";
+    uint256 private constant jHCadwellMaxGap = 5938;
+    bytes32 private constant MSB =
+        hex"8000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000";
 
     function verify(
         BigNumber memory x,
@@ -48,14 +51,14 @@ contract Wesolowski {
         bytes memory x,
         bytes memory y,
         bytes memory l
-    ) private view {
+    ) internal view {
         // Check p is correct result for hash-to-prime
-        bytes32 bytes32L = bytes32(l);
+        uint256 uint256L = uint256(bytes32(l));
         if (
-            !(bytes32L & primeMask ==
-                (keccak256(bytes.concat(x, y))) & primeMask)
-        ) revert InvalidPrime();
-        if (!millerRabinTest(uint256(bytes32L))) revert MillarRabinTestFailed();
+            uint256L - uint256(keccak256(bytes.concat(x, y)) | MSB) >
+            jHCadwellMaxGap
+        ) revert GapTooLarge();
+        if (!millerRabinTest(uint256L)) revert MillarRabinTestFailed();
     }
 
     function millerRanbinTestExternal(uint256 n) external view returns (bool) {

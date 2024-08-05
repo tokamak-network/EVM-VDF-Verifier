@@ -14,22 +14,13 @@ contract MinimalWesolowskiTest is BaseTest, GasHelpers, DecodeJsonBigNumber {
         uint256 bitlen;
         bytes32 val;
     }
-    IMinimalWesolowski[12] public mWs;
+    IMinimalWesolowski public minimalWesolowski;
 
     function setUp() public override {
         BaseTest.setUp();
-        mWs[0] = IMinimalWesolowski(address(new MinimalWesolowski204820()));
-        mWs[1] = IMinimalWesolowski(address(new MinimalWesolowski204821()));
-        mWs[2] = IMinimalWesolowski(address(new MinimalWesolowski204822()));
-        mWs[3] = IMinimalWesolowski(address(new MinimalWesolowski204823()));
-        mWs[4] = IMinimalWesolowski(address(new MinimalWesolowski204824()));
-        mWs[5] = IMinimalWesolowski(address(new MinimalWesolowski204825()));
-        mWs[6] = IMinimalWesolowski(address(new MinimalWesolowski307220()));
-        mWs[7] = IMinimalWesolowski(address(new MinimalWesolowski307221()));
-        mWs[8] = IMinimalWesolowski(address(new MinimalWesolowski307222()));
-        mWs[9] = IMinimalWesolowski(address(new MinimalWesolowski307223()));
-        mWs[10] = IMinimalWesolowski(address(new MinimalWesolowski307224()));
-        mWs[11] = IMinimalWesolowski(address(new MinimalWesolowski307225()));
+        minimalWesolowski = IMinimalWesolowski(
+            address(new MinimalWesolowski())
+        );
     }
 
     function decodeShortBigNumber(
@@ -84,6 +75,14 @@ contract MinimalWesolowskiTest is BaseTest, GasHelpers, DecodeJsonBigNumber {
         pi = decodeBigNumber(vm.parseJson(json, ".pi"));
     }
 
+    function getAverage(uint256[] memory array) private pure returns (uint256) {
+        uint256 sum = 0;
+        for (uint256 i = 0; i < array.length; i++) {
+            sum += array[i];
+        }
+        return sum / array.length;
+    }
+
     function testWesolowskiAllTestCases() public view {
         BigNumber memory x;
         BigNumber memory y;
@@ -95,9 +94,11 @@ contract MinimalWesolowskiTest is BaseTest, GasHelpers, DecodeJsonBigNumber {
         uint256[6] memory taus = [uint256(20), 21, 22, 23, 24, 25];
         uint256[2] memory bits = [uint256(2048), 3072];
         for (uint256 i = 0; i < bits.length; i++) {
+            console2.log("Bits: ", bits[i]);
+            uint256[2][6] memory results;
             for (uint256 j = 0; j < taus.length; j++) {
+                uint256[] memory gasUseds = new uint256[](numOfEachTestCase);
                 for (uint256 k = 1; k <= numOfEachTestCase; k++) {
-                    IMinimalWesolowski minimalWesolowski = mWs[i * 6 + j];
                     (x, y, n, T, pi, l) = returnParsed(bits[i], k, taus[j]);
                     bool result = minimalWesolowski.verifyWesolowski(
                         x,
@@ -107,8 +108,15 @@ contract MinimalWesolowskiTest is BaseTest, GasHelpers, DecodeJsonBigNumber {
                         pi,
                         l
                     );
+                    gasUseds[k - 1] = vm.lastCallGas().gasTotalUsed;
                     assertTrue(result);
                 }
+                uint256 averageGasUsed = getAverage(gasUseds);
+                results[j] = [taus[j], averageGasUsed];
+            }
+            console2.log("tau, averageGasUsed");
+            for (uint256 j = 0; j < taus.length; j++) {
+                console2.log(results[j][0], results[j][1]);
             }
         }
     }
