@@ -3,7 +3,7 @@ pragma solidity ^0.8.26;
 import "./BigNumbers.sol";
 
 library WesolowskiLibrary {
-    uint256 private constant MILLER_RABIN_CHECKS = 28;
+    uint256 private constant MILLER_RABIN_CHECKS = 11;
 
     error ShouldBeGreaterThanThree();
     error InvalidPrime();

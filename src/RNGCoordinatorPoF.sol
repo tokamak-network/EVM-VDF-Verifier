@@ -171,7 +171,7 @@ contract RNGCoordinatorPoF is IRNGCoordinator, Ownable, VDFPoF {
     /// @return The calculated direct funding price.
     function calculateDirectFundingPrice(
         uint32 _callbackGasLimit
-    ) external view override returns (uint256) {
+    ) external view returns (uint256) {
         return _calculateDirectFundingPrice(_callbackGasLimit, tx.gasprice);
     }
 

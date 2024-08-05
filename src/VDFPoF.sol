@@ -549,7 +549,7 @@ contract VDFPoF is ReentrancyGuardTransient, GetL1Fee {
         bytes memory a,
         bytes memory b,
         bytes memory c
-    ) private view returns (BigNumber memory) {
+    ) private pure returns (BigNumber memory) {
         return
             BigNumbers.init(
                 abi.encodePacked(keccak256(bytes.concat(a, b, c)) >> 128)
@@ -559,7 +559,7 @@ contract VDFPoF is ReentrancyGuardTransient, GetL1Fee {
     function _hash(
         bytes memory a,
         bytes memory b
-    ) private view returns (BigNumber memory) {
+    ) private pure returns (BigNumber memory) {
         return BigNumbers.init(abi.encodePacked(keccak256(bytes.concat(a, b))));
     }
 
@@ -589,7 +589,7 @@ contract VDFPoF is ReentrancyGuardTransient, GetL1Fee {
 
     function _hash(
         bytes memory strings
-    ) private view returns (BigNumber memory) {
+    ) private pure returns (BigNumber memory) {
         return BigNumbers.init(abi.encodePacked(keccak256(strings)));
     }
 
