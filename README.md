@@ -1,8 +1,6 @@
+# On-chain Distributed Random Beacon
 
-
-# Pietrzak-VDF-Verifier
-
-Pietrzak VDF verifier implementation for EVM. The related technical details are presented in our preprint ([Arxiv](https://arxiv.org/abs/2405.06498)).
+On-chain Distributed Random Beacon (DRB) project. We're currently using Pietrzak VDF verifier for EVM. The related technical details are presented in our preprint ([Arxiv](https://arxiv.org/abs/2405.06498)).
 
 ## State Diagram of Each Round of Proof of Fraud (will be updated)
 
