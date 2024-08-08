@@ -6,7 +6,6 @@ import "../libraries/WesolowskiLibrary.sol";
 interface IMinimalWesolowski {
     function verifyWesolowski(
         BigNumber memory x,
-        BigNumber memory y,
         BigNumber memory n,
         BigNumber memory T,
         BigNumber memory pi,
@@ -17,13 +16,22 @@ interface IMinimalWesolowski {
 contract MinimalWesolowski {
     function verifyWesolowski(
         BigNumber memory x,
-        BigNumber memory y,
         BigNumber memory n,
         BigNumber memory T,
         BigNumber memory pi,
         BigNumber memory l
     ) external view returns (bool) {
-        WesolowskiLibrary.verify(x, y, n, T, pi, l);
+        WesolowskiLibrary.verify(x, n, T, pi, l);
         return true;
     }
+}
+
+contract WesolowskiCalldata {
+    function verifyWesolowski(
+        BigNumber memory x,
+        BigNumber memory n,
+        BigNumber memory T,
+        BigNumber memory pi,
+        BigNumber memory l
+    ) external view {}
 }

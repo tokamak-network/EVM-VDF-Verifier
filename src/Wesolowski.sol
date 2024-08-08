@@ -19,7 +19,6 @@ contract Wesolowski {
 
     function verify(
         BigNumber memory x,
-        BigNumber memory y,
         BigNumber memory n,
         BigNumber memory T,
         BigNumber memory pi,
@@ -30,14 +29,11 @@ contract Wesolowski {
             T,
             l
         );
-        BigNumber memory calculatedY = BigNumbers.modmul(
+        BigNumber memory y = BigNumbers.modmul(
             BigNumbers.modexp(pi, l, n),
             BigNumbers.modexp(x, r, n),
             n
         );
-        if (!BigNumbers.eq(calculatedY, y)) {
-            revert CalculatedYNotEqualY();
-        }
         _checkHashToPrime(x.val, y.val, l.val);
     }
 
@@ -66,7 +62,7 @@ contract Wesolowski {
     }
 
     function millerRabinTest(uint256 n) private view returns (bool) {
-        if (n < 4) revert ShouldBeGreaterThanThree();
+        //if (n < 4) revert ShouldBeGreaterThanThree(); // can be deleted
         if (n & 0x1 == 0) return false;
         uint256 d = n - 1;
         uint256 r;
@@ -94,7 +90,7 @@ contract Wesolowski {
                 if (x == n - 1) {
                     check_passed = true;
                     break;
-                }
+                } else if (x == 1) return false;
             }
             if (!check_passed) {
                 return false;
