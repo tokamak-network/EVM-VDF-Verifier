@@ -63,13 +63,13 @@ contract DRBCoordinatorMock is
     ) external payable nonReentrant returns (uint256 requestId) {
         uint256 cost = _calculateDirectFundingPrice(tx.gasprice, _request);
         require(msg.value >= cost, InsufficientAmount());
+        requestId = s_nextId++;
         s_requestInfo[requestId] = _request;
         s_valuesAtRound[requestId] = ValuesAtRequestId({
             requestedTime: block.timestamp,
             cost: cost,
             consumer: msg.sender
         });
-        requestId = s_nextId++;
         emit RandomWordsRequested(requestId);
     }
 
