@@ -3,7 +3,7 @@ pragma solidity ^0.8.26;
 import "./BigNumbers.sol";
 
 library WesolowskiLibrary {
-    uint256 private constant MILLER_RABIN_CHECKS = 11;
+    uint256 private constant MILLER_RABIN_CHECKS = 13;
 
     error ShouldBeGreaterThanThree();
     error InvalidPrime();
@@ -13,9 +13,12 @@ library WesolowskiLibrary {
     error GapTooLarge();
     //bytes32 private constant primeMask =
     //   hex"7fff_ffff_ffff_ffff_ffff_ffff_ffff_ffff_ffff_ffff_ffff_ffff_ffff_ffff_ffff_E000";
-    uint256 private constant jHCadwellMaxGap = 5938;
+    uint256 private constant jHCadwellMaxGap = 5939;
     bytes32 private constant MSB =
         hex"8000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000";
+
+    // if n < 3,317,044,064,679,887,385,961,981, it is enough to test a = 2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, and 41.
+    //bytes private constant witness = hex"020305070b0d1113171d1f2529";
 
     function verify(
         BigNumber memory x,
@@ -34,7 +37,7 @@ library WesolowskiLibrary {
             BigNumbers.modexp(x, r, n),
             n
         );
-        _checkHashToPrime(x.val, y.val, l.val);
+        _checkHashToPrime(x.val, y.val, l.val, T.val);
     }
 
     // This function checks if:
@@ -46,41 +49,82 @@ library WesolowskiLibrary {
     function _checkHashToPrime(
         bytes memory x,
         bytes memory y,
-        bytes memory l
+        bytes memory l,
+        bytes memory T
     ) internal view {
         // Check p is correct result for hash-to-prime
         uint256 uint256L = uint256(bytes32(l));
         if (
-            uint256L - uint256(keccak256(bytes.concat(x, y)) | MSB) >
+            uint256L - uint256(keccak256(bytes.concat(x, y, T)) | MSB) >
             jHCadwellMaxGap
         ) revert GapTooLarge();
-        if (!millerRabinTest(uint256L)) revert MillarRabinTestFailed();
+        if (!millerRabinTestFixedWitness(uint256L))
+            revert MillarRabinTestFailed();
     }
 
-    function millerRanbinTestExternal(uint256 n) external view returns (bool) {
-        return millerRabinTest(n);
-    }
-
-    function millerRabinTest(uint256 n) private view returns (bool) {
+    function millerRabinTestFixedWitness(
+        uint256 n
+    ) internal view returns (bool) {
         //if (n < 4) revert ShouldBeGreaterThanThree(); // can be deleted
         if (n & 0x1 == 0) return false;
         uint256 d = n - 1;
         uint256 r;
-        unchecked {
-            while (d & 0x1 == 0) {
-                d >>= 1;
-                ++r;
+        assembly {
+            for {
+
+            } iszero(and(d, 1)) {
+
+            } {
+                d := shr(1, d)
+                r := add(r, 1)
             }
+        }
+        uint256[13] memory witness = [
+            uint256(2),
+            3,
+            5,
+            7,
+            11,
+            13,
+            17,
+            19,
+            23,
+            29,
+            31,
+            37,
+            41
+        ];
+        uint256 memPtr;
+        uint256 basePtr;
+        assembly {
+            // Get free memory pointer
+            memPtr := mload(0x40)
+            // Store parameters for the EXPMOD precompile
+            mstore(memPtr, 0x20) // Length of Base
+            mstore(add(memPtr, 0x20), 0x20) // Length of Exponent
+            mstore(add(memPtr, 0x40), 0x20) // Length of Modulus
+            basePtr := add(memPtr, 0x60) // Base
+            mstore(add(memPtr, 0x80), d) // Exponent
+            mstore(add(memPtr, 0xa0), n) // Modulus
         }
         uint256 i;
         do {
+            uint256 x;
+            assembly {
+                // pick a witness integer a in the range [2, n − 2]
+                let a := mload(add(witness, mul(i, 0x20)))
+                mstore(basePtr, a)
+                // Call 0x05 (EXPMOD) precompile
+                if iszero(
+                    staticcall(gas(), 0x05, memPtr, 0xc0, basePtr, 0x20)
+                ) {
+                    revert(0, 0)
+                }
+                x := mload(basePtr)
+            }
             unchecked {
                 ++i;
             }
-            // pick a psedo-random integer a in the range [2, n-2]
-            uint256 a = (uint256(keccak256(abi.encodePacked(n, i))) % (n - 3)) +
-                2;
-            uint256 x = expmod(a, d, n);
             if (x == 1 || x == n - 1) {
                 continue;
             }
@@ -90,12 +134,90 @@ library WesolowskiLibrary {
                 if (x == n - 1) {
                     check_passed = true;
                     break;
-                } else if (x == 1) break;
+                } else if (x == 1) return false;
             }
             if (!check_passed) {
                 return false;
             }
         } while (i < MILLER_RABIN_CHECKS);
+        assembly {
+            // Update free memory pointer
+            mstore(0x40, add(memPtr, 0xc0))
+        }
+        return true;
+    }
+
+    function millerRabinTestPseudoRandomWitness(
+        uint256 n
+    ) internal view returns (bool) {
+        //if (n < 4) revert ShouldBeGreaterThanThree(); // can be deleted
+        if (n & 0x1 == 0) return false;
+        uint256 d = n - 1;
+        uint256 r;
+        assembly {
+            for {
+
+            } iszero(and(d, 1)) {
+
+            } {
+                d := shr(1, d)
+                r := add(r, 1)
+            }
+        }
+        uint256 m = n - 3;
+        uint256 memPtr;
+        uint256 basePtr;
+        assembly {
+            mstore(0, n)
+            //mstore(0x20, blockhash(sub(number(), 1)))
+            // Get free memory pointer
+            memPtr := mload(0x40)
+            // Store parameters for the EXPMOD precompile
+            mstore(memPtr, 0x20) // Length of Base
+            mstore(add(memPtr, 0x20), 0x20) // Length of Exponent
+            mstore(add(memPtr, 0x40), 0x20) // Length of Modulus
+            basePtr := add(memPtr, 0x60) // Base
+            mstore(add(memPtr, 0x80), d) // Exponent
+            mstore(add(memPtr, 0xa0), n) // Modulus
+        }
+        uint256 i;
+        do {
+            uint256 x;
+            assembly {
+                // pick a pseudorandom integer a in the range [2, n − 2]
+                mstore(0x20, i)
+                let a := add(mod(keccak256(0, 0x40), m), 2)
+                mstore(basePtr, a)
+                // Call 0x05 (EXPMOD) precompile
+                if iszero(
+                    staticcall(gas(), 0x05, memPtr, 0xc0, basePtr, 0x20)
+                ) {
+                    revert(0, 0)
+                }
+                x := mload(basePtr)
+            }
+            unchecked {
+                ++i;
+            }
+            if (x == 1 || x == n - 1) {
+                continue;
+            }
+            bool check_passed;
+            for (uint256 j = 1; j < r; j++) {
+                x = mulmod(x, x, n);
+                if (x == n - 1) {
+                    check_passed = true;
+                    break;
+                } else if (x == 1) return false;
+            }
+            if (!check_passed) {
+                return false;
+            }
+        } while (i < MILLER_RABIN_CHECKS);
+        assembly {
+            // Update free memory pointer
+            mstore(0x40, add(memPtr, 0xc0))
+        }
         return true;
     }
 
