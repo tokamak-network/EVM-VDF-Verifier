@@ -35,3 +35,15 @@ contract WesolowskiCalldata {
         BigNumber memory l
     ) external view {}
 }
+
+contract WesolowskiFixedWitness {
+    function millerRanbinTest(uint256 n) external view returns (bool) {
+        return WesolowskiLibrary.millerRabinTestFixedWitness(n);
+    }
+}
+
+contract WesolowskiPseudoRandomWitness {
+    function millerRanbinTest(uint256 n) external view returns (bool) {
+        return WesolowskiLibrary.millerRabinTestPseudoRandomWitness(n);
+    }
+}
