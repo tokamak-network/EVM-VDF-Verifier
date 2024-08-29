@@ -99,7 +99,7 @@ contract MinimalWesolowskiTest is BaseTest, GasHelpers, DecodeJsonBigNumber {
         return sum / array.length;
     }
 
-    function testWesolowskiAllTestCases() public view {
+    function testWesolowskiAllTestCases2048() public view {
         BigNumber memory x;
         BigNumber memory y;
         BigNumber memory n;
@@ -108,7 +108,7 @@ contract MinimalWesolowskiTest is BaseTest, GasHelpers, DecodeJsonBigNumber {
         BigNumber memory l;
         uint256 numOfEachTestCase = 5;
         uint256[6] memory taus = [uint256(20), 21, 22, 23, 24, 25];
-        uint256[2] memory bits = [uint256(2048), 3072];
+        uint256[1] memory bits = [uint256(2048)];
         for (uint256 i = 0; i < bits.length; i++) {
             console2.log("Bits: ", bits[i]);
             uint256[2][6] memory results;
@@ -136,7 +136,44 @@ contract MinimalWesolowskiTest is BaseTest, GasHelpers, DecodeJsonBigNumber {
         }
     }
 
-    function testWesolowskiAllTestCasesCalldata() public view {
+    function testWesolowskiAllTestCases3072() public view {
+        BigNumber memory x;
+        BigNumber memory y;
+        BigNumber memory n;
+        BigNumber memory T;
+        BigNumber memory pi;
+        BigNumber memory l;
+        uint256 numOfEachTestCase = 5;
+        uint256[6] memory taus = [uint256(20), 21, 22, 23, 24, 25];
+        uint256[1] memory bits = [uint256(3072)];
+        for (uint256 i = 0; i < bits.length; i++) {
+            console2.log("Bits: ", bits[i]);
+            uint256[2][6] memory results;
+            for (uint256 j = 0; j < taus.length; j++) {
+                uint256[] memory gasUseds = new uint256[](numOfEachTestCase);
+                for (uint256 k = 1; k <= numOfEachTestCase; k++) {
+                    (x, y, n, T, pi, l) = returnParsed(bits[i], k, taus[j]);
+                    bool result = minimalWesolowski.verifyWesolowski(
+                        x,
+                        n,
+                        T,
+                        pi,
+                        l
+                    );
+                    gasUseds[k - 1] = vm.lastCallGas().gasTotalUsed;
+                    assertTrue(result);
+                }
+                uint256 averageGasUsed = getAverage(gasUseds);
+                results[j] = [taus[j], averageGasUsed];
+            }
+            console2.log("tau, averageGasUsed");
+            for (uint256 j = 0; j < taus.length; j++) {
+                console2.log(results[j][0], results[j][1]);
+            }
+        }
+    }
+
+    function testWesolowskiAllTestCasesCalldata() public {
         BigNumber memory x;
         BigNumber memory y;
         BigNumber memory n;
@@ -162,6 +199,7 @@ contract MinimalWesolowskiTest is BaseTest, GasHelpers, DecodeJsonBigNumber {
                 for (uint256 k = 1; k <= numOfEachTestCase; k++) {
                     (x, y, n, T, pi, l) = returnParsed(bits[i], k, taus[j]);
                     wesolowskiCalldata.verifyWesolowski(x, n, T, pi, l);
+                    console2.log(vm.lastCallGas().gasTotalUsed);
                     bytes memory calldataBytes = abi.encodeWithSelector(
                         minimalWesolowski.verifyWesolowski.selector,
                         x,
