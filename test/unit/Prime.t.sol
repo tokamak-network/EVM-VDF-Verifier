@@ -45,7 +45,7 @@ contract PrimeTest is BaseTest, PrimeNumbers {
         }
     }
 
-    function testBailliePSW() public view {
+    function testSuccessBailliePSW() public view {
         for (uint256 i = 0; i < fixturePrimeNumber.length; i++) {
             bool isPrimeNumber = bailliePSW.bailliePSW(fixturePrimeNumber[i]);
             if (!isPrimeNumber) {

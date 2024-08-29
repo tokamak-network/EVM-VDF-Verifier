@@ -33,7 +33,7 @@ contract WesolowskiCalldata {
         BigNumber memory T,
         BigNumber memory pi,
         BigNumber memory l
-    ) external view {}
+    ) external {}
 }
 
 contract WesolowskiFixedWitness {
