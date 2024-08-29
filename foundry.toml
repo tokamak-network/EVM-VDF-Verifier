@@ -15,11 +15,11 @@ fs_permissions = [{ access = "read-write", path = "./"}]
 remappings = [ '@solady/=lib/solady/src', "forge-gas-snapshot/=lib/forge-gas-snapshot/src"]
 # See more config options https://github.com/foundry-rs/foundry/blob/master/crates/config/README.md#all-options
 
-#Optional: Additional optimizer details
-[profile.default.optimizer_details]
-constantOptimizer = true
-yul = true
+# #Optional: Additional optimizer details
+# [profile.default.optimizer_details]
+# constantOptimizer = true
+# yul = true
 
-[profile.default.optimizer_details.yulDetails]
-stackAllocation = true
-optimizerSteps = 'dhfoDgvulfnTUtnIf'
+# [profile.default.optimizer_details.yulDetails]
+# stackAllocation = true
+# optimizerSteps = 'dhfoDgvulfnTUtnIf'
