@@ -9,17 +9,7 @@ pragma solidity ^0.8.26;
  *    2. Commit: participants commit their value
  */
 interface IDRBCoordinator {
-    struct RandomWordsRequest {
-        uint16 security;
-        uint16 mode;
-        uint32 callbackGasLimit;
-    }
-
-    function requestRandomWordDirectFunding(
-        RandomWordsRequest calldata _request
+    function requestRandomNumber(
+        uint32 callbackGasLimit
     ) external payable returns (uint256);
-
-    function calculateDirectFundingPrice(
-        RandomWordsRequest calldata _request
-    ) external view returns (uint256);
 }
