@@ -25,9 +25,9 @@ abstract contract OptimismL1Fees is Ownable {
     uint8 internal constant L1_GAS_FEES_UPPER_BOUND_MODE = 0;
     uint8 internal constant L1_GAS_FEES_ECOTONE_MODE = 1;
     uint8 internal constant L1_GAS_FEES_LEGACY_MODE = 2;
-    uint8 internal constant NOT_L2 = 4;
+    uint8 internal constant NOT_L2 = 3;
 
-    uint8 public s_l1FeeCalculationMode = NOT_L2;
+    uint8 public s_l1FeeCalculationMode = 1;
 
     /// @dev L1 fee coefficient can be applied to options 2 or 3 to reduce possibly inflated gas price
     uint8 public s_l1FeeCoefficient = 100;
@@ -48,7 +48,7 @@ abstract contract OptimismL1Fees is Ownable {
         uint8 mode,
         uint8 coefficient
     ) internal {
-        if (mode >= 5) {
+        if (mode >= 4) {
             revert InvalidL1FeeCalculationMode(mode);
         }
         if (coefficient == 0 || coefficient > 100) {
