@@ -95,10 +95,15 @@ contract DRBCoordinatorTest is BaseTest {
         vm.stopPrank();
         address[] memory activatedOperatorsAfter = drbCoordinator
             .getActivatedOperators();
-        assertEq(drbCoordinator.getActivatedOperatorIndex(operator), 0);
+        assertEq(
+            drbCoordinator.getActivatedOperatorIndex(operator),
+            0,
+            "index"
+        );
         assertEq(
             activatedOperatorsBefore.length - 1,
-            activatedOperatorsAfter.length
+            activatedOperatorsAfter.length,
+            "length"
         );
     }
 

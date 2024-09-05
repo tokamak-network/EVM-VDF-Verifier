@@ -53,10 +53,7 @@ contract DRBCoordinator is
             address operator = activatedOperators[i];
             s_activatedOperatorOrderAtRound[round][operator] = i;
             uint256 activatedOperatorIndex = s_activatedOperatorOrder[operator];
-            uint256 updatedDepositAmount = s_depositAmount[operator] =
-                s_depositAmount[operator] -
-                cost;
-            if (updatedDepositAmount < s_minDeposit)
+            if ((s_depositAmount[operator] -= cost) < s_minDeposit)
                 _deactivate(activatedOperatorIndex, operator);
             unchecked {
                 ++i;
@@ -118,12 +115,13 @@ contract DRBCoordinator is
     function reveal(uint256 round, bytes32 s) external {
         uint256 commitOrder = s_commitOrder[round][msg.sender];
         require(commitOrder != 0, NotCommitted());
-        uint256 revealOrder = s_revealOrder[round][msg.sender];
-        require(revealOrder == 0, AlreadyRevealed());
+        require(s_revealOrder[round][msg.sender] == 0, AlreadyRevealed());
         uint256 commitEndTime = s_roundInfo[round].commitEndTime;
+        uint256 activatedOperatorsAtRoundLength = s_activatedOperatorsAtRound[
+            round
+        ].length - 1;
         require(
-            s_activatedOperatorsAtRound[round].length - 1 ==
-                s_commits[round].length ||
+            activatedOperatorsAtRoundLength == s_commits[round].length ||
                 (block.timestamp > commitEndTime &&
                     block.timestamp <= commitEndTime + REVEAL_DURATION),
             NotRevealPhase()
@@ -134,10 +132,7 @@ contract DRBCoordinator is
         );
         s_reveals[round].push(s);
         s_revealOrder[round][msg.sender] = s_reveals[round].length;
-        if (
-            s_reveals[round].length ==
-            s_activatedOperatorsAtRound[round].length - 1
-        ) {
+        if (s_reveals[round].length == activatedOperatorsAtRoundLength) {
             uint256 randomNumber = uint256(
                 keccak256(abi.encodePacked(s_reveals[round]))
             );
@@ -154,10 +149,10 @@ contract DRBCoordinator is
             s_roundInfo[round].fulfillSucceeded = success;
             uint256 cost = s_requestInfo[round].cost;
             uint256 dividedReward = cost /
-                s_activatedOperatorsAtRound[round].length +
+                activatedOperatorsAtRoundLength +
                 cost;
             for (
-                uint256 i;
+                uint256 i = 1;
                 i < s_activatedOperatorsAtRound[round].length;
                 i = _unchecked_inc(i)
             ) {
@@ -165,9 +160,9 @@ contract DRBCoordinator is
                 uint256 activatedOperatorIndex = s_activatedOperatorOrder[
                     operator
                 ];
-                uint256 updatedDepositAmount = s_depositAmount[operator] =
-                    s_depositAmount[operator] +
-                    dividedReward;
+                uint256 updatedDepositAmount = s_depositAmount[
+                    operator
+                ] += dividedReward;
                 if (
                     activatedOperatorIndex == 0 &&
                     updatedDepositAmount >= s_minDeposit
@@ -188,16 +183,13 @@ contract DRBCoordinator is
     }
 
     function withdraw(uint256 amount) external nonReentrant {
-        uint256 depositAmount = s_depositAmount[msg.sender];
-        require(depositAmount >= amount, InsufficientDeposit());
-        unchecked {
-            s_depositAmount[msg.sender] -= amount;
-        }
-        payable(msg.sender).transfer(amount);
+        s_depositAmount[msg.sender] -= amount;
         uint256 activatedOperatorIndex = s_activatedOperatorOrder[msg.sender];
-        if (activatedOperatorIndex != 0) {
-            _deactivate(activatedOperatorIndex);
-        }
+        if (
+            activatedOperatorIndex != 0 &&
+            s_depositAmount[msg.sender] < s_minDeposit
+        ) _deactivate(activatedOperatorIndex);
+        payable(msg.sender).transfer(amount);
     }
 
     function activate() external nonReentrant {
@@ -215,16 +207,14 @@ contract DRBCoordinator is
     }
 
     function _activate() private {
-        uint256 activatedOperatorIndex = s_activatedOperatorOrder[msg.sender];
-        require(activatedOperatorIndex == 0, AlreadyActivated());
+        require(s_activatedOperatorOrder[msg.sender] == 0, AlreadyActivated());
         s_activatedOperatorOrder[msg.sender] = s_activatedOperators.length;
         s_activatedOperators.push(msg.sender);
         emit Activated(msg.sender);
     }
 
     function _activate(address operator) private {
-        uint256 activatedOperatorIndex = s_activatedOperatorOrder[operator];
-        require(activatedOperatorIndex == 0, AlreadyActivated());
+        require(s_activatedOperatorOrder[operator] == 0, AlreadyActivated());
         s_activatedOperatorOrder[operator] = s_activatedOperators.length;
         s_activatedOperators.push(operator);
         emit Activated(operator);
@@ -243,7 +233,7 @@ contract DRBCoordinator is
         s_activatedOperators[activatedOperatorIndex] = lastOperator;
         s_activatedOperators.pop();
         s_activatedOperatorOrder[lastOperator] = activatedOperatorIndex;
-        s_activatedOperatorOrder[msg.sender] = 0;
+        delete s_activatedOperatorOrder[msg.sender];
         emit DeActivated(msg.sender);
     }
 
@@ -257,7 +247,7 @@ contract DRBCoordinator is
         s_activatedOperators[activatedOperatorIndex] = lastOperator;
         s_activatedOperators.pop();
         s_activatedOperatorOrder[lastOperator] = activatedOperatorIndex;
-        s_activatedOperatorOrder[operator] = 0;
+        delete s_activatedOperatorOrder[operator];
         emit DeActivated(operator);
     }
 
