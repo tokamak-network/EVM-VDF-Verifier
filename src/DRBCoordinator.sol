@@ -173,6 +173,44 @@ contract DRBCoordinator is
         }
     }
 
+    function slashUncommittedOperators(uint256 round) external {
+        uint256 activatedOperatorsAtRoundLength = s_activatedOperatorsAtRound[
+            round
+        ].length - 1;
+        require(
+            block.timestamp > s_roundInfo[round].commitEndTime &&
+                s_commits[round].length < activatedOperatorsAtRoundLength,
+            NotSlashingCondition()
+        );
+        uint256 cost = s_requestInfo[round].cost;
+        uint256 unCommittedCount = activatedOperatorsAtRoundLength -
+            s_commits[round].length;
+        uint256 dividedPenaltyAndFrozenDeposit = ((cost * unCommittedCount) /
+            (activatedOperatorsAtRoundLength - unCommittedCount)) + cost;
+        for (
+            uint256 i = 1;
+            i <= activatedOperatorsAtRoundLength;
+            i = _unchecked_inc(i)
+        ) {
+            address operator = s_activatedOperatorsAtRound[round][i];
+            uint256 commitOrder = s_commitOrder[round][operator];
+            if (commitOrder != 0) {
+                uint256 activatedOperatorIndex = s_activatedOperatorOrder[
+                    operator
+                ];
+                uint256 updatedDepositAmount = s_depositAmount[
+                    operator
+                ] += dividedPenaltyAndFrozenDeposit;
+                if (
+                    activatedOperatorIndex == 0 &&
+                    updatedDepositAmount >= s_minDeposit
+                ) {
+                    _activate(operator);
+                }
+            }
+        }
+    }
+
     function deposit() external payable nonReentrant {
         _deposit();
     }

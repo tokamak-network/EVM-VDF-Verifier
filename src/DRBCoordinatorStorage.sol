@@ -64,6 +64,7 @@ contract DRBCoordinatorStorage {
     error AlreadyCommitted();
     error RevealValueMismatch();
     error AlreadyRevealed();
+    error NotSlashingCondition();
 
     /// *** Events ***
     event RandomNumberRequested(uint256 round);

@@ -252,4 +252,71 @@ contract DRBCoordinatorTest is BaseTest {
             }
         }
     }
+
+    function testSlashUncommittedOperators() public make5Activate {
+        /// ** 1. requestRandomNumber
+        requestRandomNumber();
+        uint256 requestId = consumerExample.lastRequestId();
+
+        /// ** check depositAmount
+        uint256 cost = drbCoordinator.estimateRequestPrice(
+            consumerExample.CALLBACK_GAS_LIMIT(),
+            tx.gasprice
+        );
+        for (uint256 i; i < operatorAddresses.length; i++) {
+            uint256 depositAmount = drbCoordinator.getDepositAmount(
+                operatorAddresses[i]
+            );
+            assertEq(depositAmount, minDeposit - cost);
+        }
+
+        /// ** 2. only 3 operators commit
+        for (uint256 i; i < operatorAddresses.length; i += 2) {
+            address operator = operatorAddresses[i];
+            vm.startPrank(operator);
+            drbCoordinator.commit(requestId, keccak256(abi.encodePacked(i)));
+            vm.stopPrank();
+
+            uint256 commitOrder = drbCoordinator.getCommitOrder(
+                requestId,
+                operator
+            );
+            assertEq(commitOrder, i / 2 + 1);
+        }
+        DRBCoordinator.RoundInfo memory roundInfo = drbCoordinator.getRoundInfo(
+            requestId
+        );
+        bytes32[] memory commits = drbCoordinator.getCommits(requestId);
+        assertEq(commits.length, 3);
+        assertGt(roundInfo.commitEndTime, block.timestamp);
+        assertEq(roundInfo.randomNumber, 0);
+        assertEq(roundInfo.fulfillSucceeded, false);
+
+        /// ** 3. slashUncommittedOperators
+        (uint256 commitDuration, ) = drbCoordinator.getDurations();
+        vm.warp(block.timestamp + commitDuration + 1);
+
+        address operator = operatorAddresses[0];
+        vm.startPrank(operator);
+        drbCoordinator.slashUncommittedOperators(requestId);
+        vm.stopPrank();
+
+        /// ** check depositAmount
+        // committed index 0, 2, 4
+        uint256 penaltyAmount = (cost * 2) / 3;
+        for (uint256 i; i < operatorAddresses.length; i++) {
+            uint256 depositAmount = drbCoordinator.getDepositAmount(
+                operatorAddresses[i]
+            );
+            if (i % 2 == 0) {
+                assertEq(
+                    depositAmount,
+                    minDeposit + penaltyAmount,
+                    "committed"
+                );
+            } else {
+                assertEq(depositAmount, minDeposit - cost, "uncommitted");
+            }
+        }
+    }
 }
